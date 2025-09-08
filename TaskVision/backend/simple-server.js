@@ -21,16 +21,26 @@ app.get('/', (req, res) => {
 app.post('/api/auth/login', (req, res) => {
   const { email, password } = req.body;
   
+  console.log('Login attempt:', { email, password });
+  
   // Mock authentication
   if (email && password) {
+    const isAdmin = email.includes('admin') || email === 'admin@designasia.com';
+    const user = {
+      id: isAdmin ? '1' : '2',
+      email: email,
+      firstName: isAdmin ? 'Admin' : 'John',
+      lastName: isAdmin ? 'User' : 'Doe',
+      role: isAdmin ? 'admin' : 'employee',
+      avatar: null,
+      department: isAdmin ? 'IT' : 'Design'
+    };
+    
+    console.log('Login successful:', user);
+    
     res.json({
-      token: 'mock-jwt-token',
-      user: {
-        id: '1',
-        email: email,
-        name: 'Test User',
-        role: email.includes('admin') ? 'admin' : 'employee'
-      }
+      token: 'mock-jwt-token-' + Date.now(),
+      user: user
     });
   } else {
     res.status(400).json({ error: 'Email and password required' });
@@ -91,6 +101,83 @@ app.get('/api/dashboard/stats', (req, res) => {
     totalUsers: 15,
     activeProjects: 3
   });
+});
+
+// Admin dashboard stats
+app.get('/api/admin/dashboard/stats', (req, res) => {
+  console.log('Admin dashboard stats requested');
+  res.json({
+    totalEmployees: 24,
+    activeEmployees: 18,
+    totalProjects: 8,
+    activeProjects: 5,
+    totalTasks: 156,
+    completedTasks: 89,
+    pendingTasks: 45,
+    overdueTasks: 22,
+    todayAttendance: 16,
+    attendanceRate: 88.9
+  });
+});
+
+// Recent activities for admin
+app.get('/api/admin/dashboard/activities', (req, res) => {
+  res.json([
+    {
+      id: '1',
+      type: 'task_completed',
+      message: 'completed the website redesign task',
+      user: { firstName: 'John', lastName: 'Doe' },
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: '2', 
+      type: 'user_registered',
+      message: 'joined the team',
+      user: { firstName: 'Jane', lastName: 'Smith' },
+      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+    },
+    {
+      id: '3',
+      type: 'project_created',
+      message: 'created new project "Mobile App"',
+      user: { firstName: 'Mike', lastName: 'Johnson' },
+      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString()
+    }
+  ]);
+});
+
+// Project progress for admin
+app.get('/api/admin/dashboard/projects', (req, res) => {
+  res.json([
+    {
+      id: '1',
+      name: 'Website Redesign',
+      progress: 75,
+      totalTasks: 20,
+      completedTasks: 15,
+      dueDate: '2025-09-30',
+      status: 'on-track'
+    },
+    {
+      id: '2',
+      name: 'Mobile App Development',
+      progress: 45,
+      totalTasks: 30,
+      completedTasks: 14,
+      dueDate: '2025-10-15',
+      status: 'at-risk'
+    },
+    {
+      id: '3',
+      name: 'Marketing Campaign',
+      progress: 20,
+      totalTasks: 15,
+      completedTasks: 3,
+      dueDate: '2025-09-20',
+      status: 'delayed'
+    }
+  ]);
 });
 
 // Error handling

@@ -7,6 +7,7 @@ import { Toaster } from 'react-hot-toast';
 // Import components and pages
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Auth pages
 import Login from './pages/auth/Login';
@@ -57,9 +58,10 @@ const App: React.FC = () => {
   const { user, isAuthenticated } = useAuthStore();
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <div className="min-h-screen bg-gray-50">
           <Routes>
             {/* Public routes */}
             <Route 
@@ -192,6 +194,7 @@ const App: React.FC = () => {
       {/* React Query DevTools (only in development) */}
       {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

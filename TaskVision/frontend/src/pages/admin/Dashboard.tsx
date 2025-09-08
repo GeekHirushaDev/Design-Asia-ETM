@@ -63,14 +63,14 @@ const AdminDashboard: React.FC = () => {
       
       // Fetch admin dashboard stats
       const [statsResponse, activityResponse, projectsResponse] = await Promise.all([
-        api.get('/api/admin/dashboard/stats'),
-        api.get('/api/admin/activity?limit=10'),
-        api.get('/api/admin/projects/progress')
+        api.get('/admin/dashboard/stats'),
+        api.get('/admin/dashboard/activities'),
+        api.get('/admin/dashboard/projects')
       ]);
 
       setStats(statsResponse.data);
-      setRecentActivity(activityResponse.data.activities || []);
-      setProjectProgress(projectsResponse.data.projects || []);
+      setRecentActivity(activityResponse.data || []);
+      setProjectProgress(projectsResponse.data || []);
     } catch (error) {
       console.error('Failed to fetch admin dashboard data:', error);
       // Set some mock data for demo

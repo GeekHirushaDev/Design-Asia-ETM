@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import axios from 'axios';
 
 interface User {
   id: string;
@@ -20,7 +21,7 @@ interface AuthState {
 
 
 interface AuthActions {
-  login: (user: User, token: string) => void;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
   setLoading: (loading: boolean) => void;
@@ -39,13 +40,32 @@ export const useAuthStore = create<AuthStore>()(
       isLoading: false,
 
       // Actions
-      login: (user: User, token: string) => {
-        set({
-          user,
-          token,
-          isAuthenticated: true,
-          isLoading: false,
-        });
+      login: async (email: string, password: string) => {
+        try {
+          set({ isLoading: true });
+          
+          console.log('Attempting login with:', { email, password });
+          
+          const response = await axios.post(
+            `${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/auth/login`,
+            { email, password }
+          );
+          
+          console.log('Login response:', response.data);
+          
+          const { user, token } = response.data;
+          
+          set({
+            user,
+            token,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch (error) {
+          console.error('Login error:', error);
+          set({ isLoading: false });
+          throw error;
+        }
       },
 
       logout: () => {
