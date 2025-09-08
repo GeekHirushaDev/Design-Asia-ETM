@@ -1,329 +1,289 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
+import { IAttendance, ILocation } from '@shared/types';
 
-export interface IAttendance extends Document {
-  userId: mongoose.Types.ObjectId;
-  date: Date;
-  checkIn: {
-    time: Date;
-    location: {
-      lat: number;
-      lng: number;
-      accuracy: number;
-      address?: string;
-      geofenceId?: mongoose.Types.ObjectId;
-      isValidLocation: boolean;
-      batteryLevel?: number;
-      deviceInfo?: {
-        platform: string;
-        userAgent: string;
-        ipAddress: string;
-      };
-    };
-    method: 'manual' | 'auto' | 'admin' | 'geofence';
-    verificationData?: {
-      selfieUrl?: string;
-      deviceFingerprint: string;
-      isValidDevice: boolean;
-    };
-  };
-  checkOut?: {
-    time: Date;
-    location: {
-      lat: number;
-      lng: number;
-      accuracy: number;
-      address?: string;
-      geofenceId?: mongoose.Types.ObjectId;
-      isValidLocation: boolean;
-      batteryLevel?: number;
-      deviceInfo?: {
-        platform: string;
-        userAgent: string;
-        ipAddress: string;
-      };
-    };
-    method: 'manual' | 'auto' | 'admin' | 'geofence';
-    verificationData?: {
-      selfieUrl?: string;
-      deviceFingerprint: string;
-      isValidDevice: boolean;
-    };
-  };
-  totalHours: number;
-  breaks: {
-    startTime: Date;
-    endTime?: Date;
-    duration: number;
-    reason?: string;
-    location?: {
-      lat: number;
-      lng: number;
-      address?: string;
-    };
-  }[];
-  locationHistory?: Array<{
-    latitude: number;
-    longitude: number;
-    timestamp: Date;
-    duration: number; // minutes spent at this location
-    geofenceId?: mongoose.Types.ObjectId;
-    activity: 'working' | 'break' | 'travel' | 'idle';
-  }>;
-  geofenceViolations?: Array<{
-    timestamp: Date;
-    type: 'unauthorized_exit' | 'late_entry' | 'outside_working_hours';
-    location: {
-      lat: number;
-      lng: number;
-    };
-    description: string;
-  }>;
-  status: 'present' | 'absent' | 'late' | 'half-day';
-  notes?: string;
-  isOvertime: boolean;
-  overtimeHours: number;
-  approvedBy?: mongoose.Types.ObjectId;
-  approvedAt?: Date;
+export interface IAttendanceDocument extends IAttendance, Document {
+  calculateHours(): number;
+  isLate(): boolean;
+  isEarlyDeparture(): boolean;
 }
 
-const attendanceSchema = new Schema<IAttendance>({
-  userId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-    index: true
-  },
-  date: {
-    type: Date,
-    required: true,
-    index: true
-  },
-  checkIn: {
-    time: {
-      type: Date,
-      required: true
-    },
-    location: {
-      lat: {
-        type: Number,
-        required: true
-      },
-      lng: {
-        type: Number,
-        required: true
-      },
-      accuracy: {
-        type: Number,
-        required: true
-      },
-      address: String,
-      geofenceId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Geofence'
-      },
-      isValidLocation: {
-        type: Boolean,
-        default: false
-      },
-      batteryLevel: Number,
-      deviceInfo: {
-        platform: String,
-        userAgent: String,
-        ipAddress: String
-      }
-    },
-    method: {
-      type: String,
-      enum: ['manual', 'auto', 'admin', 'geofence'],
-      default: 'manual'
-    },
-    verificationData: {
-      selfieUrl: String,
-      deviceFingerprint: {
-        type: String,
-        required: true
-      },
-      isValidDevice: {
-        type: Boolean,
-        default: false
-      }
-    }
-  },
-  checkOut: {
-    time: Date,
-    location: {
-      lat: Number,
-      lng: Number,
-      accuracy: Number,
-      address: String,
-      geofenceId: {
-        type: Schema.Types.ObjectId,
-        ref: 'Geofence'
-      },
-      isValidLocation: {
-        type: Boolean,
-        default: false
-      },
-      batteryLevel: Number,
-      deviceInfo: {
-        platform: String,
-        userAgent: String,
-        ipAddress: String
-      }
-    },
-    method: {
-      type: String,
-      enum: ['manual', 'auto', 'admin', 'geofence'],
-      default: 'manual'
-    },
-    verificationData: {
-      selfieUrl: String,
-      deviceFingerprint: String,
-      isValidDevice: {
-        type: Boolean,
-        default: false
-      }
-    }
-  },
-  totalHours: {
-    type: Number,
-    default: 0
-  },
-  breaks: [{
-    startTime: {
-      type: Date,
-      required: true
-    },
-    endTime: Date,
-    duration: {
-      type: Number,
-      default: 0
-    },
-    reason: String,
-    location: {
-      lat: Number,
-      lng: Number,
-      address: String
-    }
-  }],
-  locationHistory: [{
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Attendance:
+ *       type: object
+ *       required:
+ *         - userId
+ *         - date
+ *         - status
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Auto-generated attendance ID
+ *         userId:
+ *           type: string
+ *           description: ID of the user
+ *         date:
+ *           type: string
+ *           format: date
+ *           description: Attendance date
+ *         clockInTime:
+ *           type: string
+ *           format: date-time
+ *           description: Clock in timestamp
+ *         clockOutTime:
+ *           type: string
+ *           format: date-time
+ *           description: Clock out timestamp
+ *         clockInLocation:
+ *           $ref: '#/components/schemas/Location'
+ *         clockOutLocation:
+ *           $ref: '#/components/schemas/Location'
+ *         totalHours:
+ *           type: number
+ *           description: Total hours worked
+ *         status:
+ *           type: string
+ *           enum: [present, absent, late, early_departure]
+ *           description: Attendance status
+ *         notes:
+ *           type: string
+ *           description: Optional notes
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
+
+// Location subdocument schema (reused from Task model)
+const locationSchema = new Schema<ILocation>(
+  {
     latitude: {
       type: Number,
-      required: true
+      required: [true, 'Latitude is required'],
+      min: [-90, 'Latitude must be between -90 and 90'],
+      max: [90, 'Latitude must be between -90 and 90']
     },
     longitude: {
       type: Number,
-      required: true
+      required: [true, 'Longitude is required'],
+      min: [-180, 'Longitude must be between -180 and 180'],
+      max: [180, 'Longitude must be between -180 and 180']
     },
-    timestamp: {
-      type: Date,
-      required: true
-    },
-    duration: {
-      type: Number,
-      default: 0
-    },
-    geofenceId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Geofence'
-    },
-    activity: {
+    address: {
       type: String,
-      enum: ['working', 'break', 'travel', 'idle'],
-      default: 'working'
+      default: null,
+      maxlength: [200, 'Address cannot be more than 200 characters']
     }
-  }],
-  geofenceViolations: [{
-    timestamp: {
+  },
+  { _id: false }
+);
+
+const attendanceSchema = new Schema<IAttendanceDocument>(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'User ID is required']
+    },
+    date: {
       type: Date,
-      required: true
-    },
-    type: {
-      type: String,
-      enum: ['unauthorized_exit', 'late_entry', 'outside_working_hours'],
-      required: true
-    },
-    location: {
-      lat: {
-        type: Number,
-        required: true
-      },
-      lng: {
-        type: Number,
-        required: true
+      required: [true, 'Date is required'],
+      set: function(value: Date) {
+        // Normalize to start of day
+        const date = new Date(value);
+        date.setHours(0, 0, 0, 0);
+        return date;
       }
     },
-    description: {
+    clockInTime: {
+      type: Date,
+      default: null
+    },
+    clockOutTime: {
+      type: Date,
+      default: null,
+      validate: {
+        validator: function(this: IAttendanceDocument, value: Date) {
+          return !value || !this.clockInTime || value >= this.clockInTime;
+        },
+        message: 'Clock out time must be after clock in time'
+      }
+    },
+    clockInLocation: {
+      type: locationSchema,
+      default: null
+    },
+    clockOutLocation: {
+      type: locationSchema,
+      default: null
+    },
+    totalHours: {
+      type: Number,
+      default: null,
+      min: [0, 'Total hours cannot be negative'],
+      max: [24, 'Total hours cannot exceed 24 hours per day']
+    },
+    status: {
       type: String,
-      required: true
+      enum: ['present', 'absent', 'late', 'early_departure'],
+      default: 'absent',
+      required: [true, 'Status is required']
+    },
+    notes: {
+      type: String,
+      default: null,
+      maxlength: [500, 'Notes cannot be more than 500 characters']
     }
-  }],
-  status: {
-    type: String,
-    enum: ['present', 'absent', 'late', 'half-day'],
-    default: 'present'
   },
-  notes: String,
-  isOvertime: {
-    type: Boolean,
-    default: false
-  },
-  overtimeHours: {
-    type: Number,
-    default: 0
-  },
-  approvedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  approvedAt: Date
-}, {
-  timestamps: true
-});
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true
+    },
+    toObject: {
+      virtuals: true
+    }
+  }
+);
 
-// Indexes
+// Compound index to ensure one attendance record per user per day
 attendanceSchema.index({ userId: 1, date: 1 }, { unique: true });
-attendanceSchema.index({ date: 1 });
-attendanceSchema.index({ userId: 1, createdAt: -1 });
-attendanceSchema.index({ 'checkIn.location.geofenceId': 1 });
-attendanceSchema.index({ 'locationHistory.geofenceId': 1 });
-attendanceSchema.index({ 'geofenceViolations.type': 1, 'geofenceViolations.timestamp': -1 });
+attendanceSchema.index({ date: -1 });
+attendanceSchema.index({ status: 1 });
+attendanceSchema.index({ userId: 1, date: -1 });
 
-// Virtual for location tracking summary
-attendanceSchema.virtual('locationSummary').get(function() {
-  const history = this.locationHistory || [];
-  const totalTime = history.reduce((sum, loc) => sum + loc.duration, 0);
-  
-  const activityBreakdown = history.reduce((acc, loc) => {
-    acc[loc.activity] = (acc[loc.activity] || 0) + loc.duration;
-    return acc;
-  }, {} as Record<string, number>);
-
-  return {
-    totalTrackedTime: totalTime,
-    activities: activityBreakdown,
-    geofenceCompliance: this.geofenceViolations?.length === 0
-  };
+// Virtual for checking if user is currently clocked in
+attendanceSchema.virtual('isClockedIn').get(function(this: IAttendanceDocument) {
+  return this.clockInTime && !this.clockOutTime;
 });
 
-// Calculate total hours before saving
-attendanceSchema.pre('save', function(next: any) {
-  if (this.checkIn && this.checkOut) {
-    const totalMs = this.checkOut.time.getTime() - this.checkIn.time.getTime();
-    const breakMs = this.breaks.reduce((total: number, breakItem: any) => {
-      return total + (breakItem.duration * 60 * 1000); // Convert minutes to ms
-    }, 0);
+// Virtual for current work duration (if clocked in)
+attendanceSchema.virtual('currentWorkDuration').get(function(this: IAttendanceDocument) {
+  if (this.clockInTime && !this.clockOutTime) {
+    const now = new Date();
+    return Math.round((now.getTime() - this.clockInTime.getTime()) / (1000 * 60 * 60 * 100)) / 100; // hours with 2 decimal places
+  }
+  return 0;
+});
+
+// Pre-save middleware to calculate total hours and update status
+attendanceSchema.pre('save', function(this: IAttendanceDocument, next) {
+  // Calculate total hours if both clock in and out times are set
+  if (this.clockInTime && this.clockOutTime) {
+    this.totalHours = Math.round((this.clockOutTime.getTime() - this.clockInTime.getTime()) / (1000 * 60 * 60) * 100) / 100;
+  }
+  
+  // Update status based on times
+  if (this.clockInTime) {
+    const workStartTime = new Date(this.clockInTime);
+    workStartTime.setHours(9, 0, 0, 0); // Assuming 9 AM start time
     
-    this.totalHours = Math.max(0, (totalMs - breakMs) / (1000 * 60 * 60)); // Convert to hours
-    
-    // Check for overtime (assuming 8 hours is standard)
-    if (this.totalHours > 8) {
-      this.isOvertime = true;
-      this.overtimeHours = this.totalHours - 8;
+    if (this.clockInTime > workStartTime) {
+      this.status = 'late';
+    } else if (this.clockOutTime) {
+      const workEndTime = new Date(this.clockOutTime);
+      workEndTime.setHours(17, 0, 0, 0); // Assuming 5 PM end time
+      
+      if (this.clockOutTime < workEndTime && this.totalHours && this.totalHours < 8) {
+        this.status = 'early_departure';
+      } else {
+        this.status = 'present';
+      }
+    } else {
+      this.status = 'present';
     }
+  } else {
+    this.status = 'absent';
   }
   
   next();
 });
 
-export const Attendance = mongoose.model<IAttendance>('Attendance', attendanceSchema);
+// Method to calculate hours worked
+attendanceSchema.methods.calculateHours = function(this: IAttendanceDocument): number {
+  if (this.clockInTime && this.clockOutTime) {
+    return Math.round((this.clockOutTime.getTime() - this.clockInTime.getTime()) / (1000 * 60 * 60) * 100) / 100;
+  }
+  return 0;
+};
+
+// Method to check if arrival was late
+attendanceSchema.methods.isLate = function(this: IAttendanceDocument): boolean {
+  if (!this.clockInTime) return false;
+  
+  const workStartTime = new Date(this.clockInTime);
+  workStartTime.setHours(9, 0, 0, 0); // 9 AM start time
+  
+  return this.clockInTime > workStartTime;
+};
+
+// Method to check if departure was early
+attendanceSchema.methods.isEarlyDeparture = function(this: IAttendanceDocument): boolean {
+  if (!this.clockOutTime || !this.totalHours) return false;
+  
+  const workEndTime = new Date(this.clockOutTime);
+  workEndTime.setHours(17, 0, 0, 0); // 5 PM end time
+  
+  return this.clockOutTime < workEndTime && this.totalHours < 8;
+};
+
+// Static method to find attendance for date range
+attendanceSchema.statics.findByDateRange = function(
+  userId: string,
+  startDate: Date,
+  endDate: Date
+) {
+  return this.find({
+    userId,
+    date: { $gte: startDate, $lte: endDate }
+  }).sort({ date: -1 });
+};
+
+// Static method to get attendance stats for user
+attendanceSchema.statics.getAttendanceStats = async function(
+  userId: string,
+  startDate: Date,
+  endDate: Date
+) {
+  const records = await this.find({
+    userId,
+    date: { $gte: startDate, $lte: endDate }
+  });
+  
+  const stats = {
+    totalDays: records.length,
+    presentDays: records.filter(r => r.status === 'present').length,
+    lateDays: records.filter(r => r.status === 'late').length,
+    earlyDepartures: records.filter(r => r.status === 'early_departure').length,
+    absentDays: records.filter(r => r.status === 'absent').length,
+    totalHours: records.reduce((sum, r) => sum + (r.totalHours || 0), 0),
+    averageHours: 0,
+    attendanceRate: 0
+  };
+  
+  if (stats.totalDays > 0) {
+    stats.averageHours = Math.round((stats.totalHours / stats.totalDays) * 100) / 100;
+    stats.attendanceRate = Math.round(((stats.presentDays + stats.lateDays) / stats.totalDays) * 100);
+  }
+  
+  return stats;
+};
+
+// Static method to find current clocked in users
+attendanceSchema.statics.findClockedInUsers = function(date?: Date) {
+  const queryDate = date || new Date();
+  queryDate.setHours(0, 0, 0, 0);
+  
+  return this.find({
+    date: queryDate,
+    clockInTime: { $exists: true, $ne: null },
+    clockOutTime: null
+  }).populate('userId', 'firstName lastName email department');
+};
+
+export const Attendance = mongoose.model<IAttendanceDocument>('Attendance', attendanceSchema);
+export default Attendance;

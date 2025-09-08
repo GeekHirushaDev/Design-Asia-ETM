@@ -1,110 +1,198 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { Login } from './components/auth/Login';
-import './index.css';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster } from 'react-hot-toast';
 
+// Import components and pages
+import Layout from './components/Layout';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Auth pages
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+
+// Employee pages
+import Dashboard from './pages/employee/Dashboard';
+import Tasks from './pages/employee/Tasks';
+import TimeTracking from './pages/employee/TimeTracking';
+import Calendar from './pages/employee/Calendar';
+import Chat from './pages/employee/Chat';
+import Profile from './pages/employee/Profile';
+
+// Admin pages
+import AdminDashboard from './pages/admin/Dashboard';
+import Users from './pages/admin/Users';
+import Projects from './pages/admin/Projects';
+import AdminTasks from './pages/admin/Tasks';
+import Attendance from './pages/admin/Attendance';
+import Reports from './pages/admin/Reports';
+
+// Import hooks and stores
+import { useAuthStore } from './store/authStore';
+
+// Create a query client
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
       retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
     },
   },
 });
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-  
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
-};
-
-const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    );
-  }
-  
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <>{children}</>;
-};
-
-const Dashboard: React.FC = () => {
-  const { user } = useAuth();
-  
+// Layout wrapper for protected routes
+const ProtectedLayout: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="border-4 border-dashed border-gray-200 rounded-lg h-96 flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Welcome to TaskVision!
-              </h1>
-              <p className="text-lg text-gray-600 mb-2">
-                Hello, {user?.firstName} {user?.lastName}
-              </p>
-              <p className="text-sm text-gray-500">
-                Role: {user?.role}
-              </p>
-              <div className="mt-8">
-                <p className="text-sm text-gray-600">
-                  Dashboard components will be implemented here:
-                </p>
-                <ul className="mt-4 text-sm text-gray-500 space-y-1">
-                  <li>• {user?.role === 'admin' ? 'Admin Dashboard' : 'Employee Dashboard'}</li>
-                  <li>• Task Management</li>
-                  <li>• Real-time Location Tracking</li>
-                  <li>• Time Tracking</li>
-                  <li>• Chat System</li>
-                  <li>• Reports & Analytics</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <ProtectedRoute>
+      <Layout>
+        <Outlet />
+      </Layout>
+    </ProtectedRoute>
   );
 };
 
-function App() {
+const App: React.FC = () => {
+  const { user, isAuthenticated } = useAuthStore();
+
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <div className="App">
-            <Routes>
-              <Route path="/login" element={
-                <PublicRoute>
+      <Router>
+        <div className="min-h-screen bg-gray-50">
+          <Routes>
+            {/* Public routes */}
+            <Route 
+              path="/login" 
+              element={
+                isAuthenticated ? (
+                  <Navigate to={user?.role === 'admin' ? '/admin/dashboard' : '/dashboard'} replace />
+                ) : (
                   <Login />
-                </PublicRoute>
-              } />
-              <Route path="/dashboard" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            </Routes>
-          </div>
-        </Router>
-      </AuthProvider>
+                )
+              } 
+            />
+            <Route 
+              path="/register" 
+              element={
+                isAuthenticated ? (
+                  <Navigate to={user?.role === 'admin' ? '/admin/dashboard' : '/dashboard'} replace />
+                ) : (
+                  <Register />
+                )
+              } 
+            />
+
+            {/* Protected routes */}
+            <Route path="/" element={<ProtectedLayout />}>
+              {/* Redirect root to appropriate dashboard */}
+              <Route 
+                index 
+                element={
+                  <Navigate 
+                    to={user?.role === 'admin' ? '/admin/dashboard' : '/dashboard'} 
+                    replace 
+                  />
+                } 
+              />
+
+              {/* Admin routes */}
+              <Route 
+                path="admin/dashboard" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="admin/users" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <Users />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="admin/projects" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <Projects />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="admin/tasks" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <AdminTasks />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="admin/attendance" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <Attendance />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="admin/reports" 
+                element={
+                  <ProtectedRoute requiredRole="admin">
+                    <Reports />
+                  </ProtectedRoute>
+                } 
+              />
+
+              {/* Employee routes */}
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="tasks" element={<Tasks />} />
+              <Route path="time-tracking" element={<TimeTracking />} />
+              <Route path="calendar" element={<Calendar />} />
+              <Route path="chat" element={<Chat />} />
+              <Route path="profile" element={<Profile />} />
+
+              {/* Catch all route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
+
+            {/* Catch all for non-authenticated users */}
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+
+          {/* Global toast notifications */}
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              className: 'toast',
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+              success: {
+                iconTheme: {
+                  primary: '#4ade80',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                iconTheme: {
+                  primary: '#ef4444',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
+        </div>
+      </Router>
+
+      {/* React Query DevTools (only in development) */}
+      {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
     </QueryClientProvider>
   );
-}
+};
 
 export default App;

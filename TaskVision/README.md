@@ -1,299 +1,317 @@
-# TaskVision - Advanced Task Management System
+# TaskVision - Task Management System
 
-A comprehensive MERN stack task management application with real-time collaboration, geolocation features, advanced reporting, and PWA capabilities.
+TaskVision is an internal staff and admin task management system built for Design Asia. It features real-time collaboration, location-based task assignment, time tracking, and comprehensive reporting.
 
 ## 🚀 Features
 
 ### Core Features
-- **User Authentication & Authorization** - JWT-based auth with role-based permissions
-- **Task Management** - Create, assign, track, and manage tasks with priority levels
-- **Project Management** - Organize tasks within projects with team collaboration
-- **Team Management** - Create teams, assign roles, and manage permissions
-- **Real-time Collaboration** - Live updates using Socket.IO
-- **Dashboard Analytics** - Visual insights into productivity and progress
-- **Advanced Reporting** - Generate comprehensive reports with data export
-- **PWA Support** - Offline functionality and mobile app-like experience
+- **Authentication & Authorization**: JWT-based login with role-based access (Admin/Employee)
+- **Task Management**: Complete CRUD operations with status flow (Not Started → In Progress → Paused → Completed)
+- **Real-time Collaboration**: Socket.io powered chat, notifications, and live updates
+- **Time Tracking**: Start, pause, resume timers with estimated vs actual duration tracking
+- **Location-based Tasks**: Assign tasks with geofenced locations using OpenStreetMap
+- **File Management**: Upload and attach files to tasks
+- **Employee Tracking**: Real-time location tracking with battery monitoring
 
 ### Advanced Features
-- **Geolocation & Geofencing** - Location-based task assignments and tracking
-- **Time Tracking** - Built-in time tracking with detailed analytics
-- **Comments & Attachments** - Rich collaboration tools for tasks
-- **Notifications System** - Real-time in-app and email notifications
-- **Dark/Light Theme** - User preference-based theming
-- **Responsive Design** - Mobile-first responsive interface
-- **Search & Filtering** - Advanced search and filtering capabilities
-- **Data Visualization** - Charts and graphs for analytics
+- **Attendance System**: Clock-in/out with geolocation verification
+- **Automated Task Carryover**: Incomplete tasks automatically roll over to the next day
+- **Comprehensive Reporting**: Weekly PDF reports with task performance metrics
+- **Push Notifications**: In-app and web push notifications for task updates
+- **Mobile-first Design**: Responsive design optimized for mobile, tablet, and desktop
 
-## 🛠️ Technology Stack
-
-### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database with Mongoose ODM
-- **Socket.IO** - Real-time communication
-- **JWT** - Authentication tokens
-- **bcryptjs** - Password hashing
-- **express-validator** - Input validation
-- **multer** - File upload handling
+## 🛠 Tech Stack
 
 ### Frontend
-- **React 18** - UI library with hooks
-- **React Router** - Client-side routing
-- **Tailwind CSS** - Utility-first CSS framework
-- **Socket.IO Client** - Real-time client
-- **Axios** - HTTP client
-- **React Hook Form** - Form handling
-- **React Hot Toast** - Notifications
-- **Headless UI** - Accessible UI components
-- **Chart.js** - Data visualization
-- **Leaflet** - Interactive maps
-- **Framer Motion** - Animations
+- **React 18** with **TypeScript**
+- **Vite** for fast development and building
+- **Tailwind CSS** + **Preline UI** for styling
+- **React Router** for navigation
+- **React Query** for server state management
+- **Zustand** for client state management
+- **Leaflet** for interactive maps
+- **Socket.io Client** for real-time features
+
+### Backend
+- **Node.js** with **Express.js**
+- **TypeScript** for type safety
+- **MongoDB** with **Mongoose** ODM
+- **Socket.io** for real-time communication
+- **JWT** for authentication
+- **BullMQ** with **Redis** for job queues
+- **PDFKit** for report generation
+- **Multer** for file uploads
+
+### Development Tools
+- **ESLint** + **Prettier** for code quality
+- **Husky** for git hooks
+- **Jest** for testing
+- **Swagger** for API documentation
 
 ## 📁 Project Structure
 
 ```
-taskvision/
-├── client/                 # React frontend
-│   ├── public/
+TaskVision/
+├── frontend/              # React frontend application
 │   ├── src/
-│   │   ├── components/     # Reusable UI components
-│   │   ├── contexts/       # React context providers
-│   │   ├── pages/          # Page components
-│   │   ├── hooks/          # Custom hooks
-│   │   ├── utils/          # Utility functions
-│   │   └── services/       # API services
-│   ├── package.json
-│   └── tailwind.config.js
-├── server/                 # Express backend
-│   ├── models/             # MongoDB schemas
-│   ├── routes/             # API routes
-│   ├── middleware/         # Custom middleware
-│   ├── utils/              # Utility functions
-│   ├── package.json
-│   └── server.js
-├── package.json            # Root package.json
-└── README.md
+│   │   ├── components/    # Reusable UI components
+│   │   ├── pages/         # Page components
+│   │   ├── hooks/         # Custom React hooks
+│   │   ├── services/      # API services
+│   │   ├── store/         # State management
+│   │   ├── types/         # TypeScript type definitions
+│   │   └── utils/         # Utility functions
+│   ├── public/            # Static assets
+│   └── package.json
+├── backend/               # Node.js backend application
+│   ├── src/
+│   │   ├── controllers/   # Route controllers (MVC)
+│   │   ├── models/        # Database models
+│   │   ├── routes/        # API route definitions
+│   │   ├── middleware/    # Custom middleware
+│   │   ├── services/      # Business logic services
+│   │   ├── utils/         # Utility functions
+│   │   ├── jobs/          # Background job definitions
+│   │   └── sockets/       # Socket.io event handlers
+│   └── package.json
+├── shared/                # Shared TypeScript interfaces
+│   ├── types/             # Common type definitions
+│   └── package.json
+└── package.json           # Root package.json for workspace
 ```
 
-## 🚀 Getting Started
+## 🚦 Getting Started
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- MongoDB (v4.4 or higher)
-- npm or yarn
+- **Node.js** >= 18.0.0
+- **npm** >= 9.0.0
+- **MongoDB** >= 5.0
+- **Redis** >= 6.0 (for background jobs)
 
 ### Installation
 
 1. **Clone the repository**
-```bash
-git clone <repository-url>
-cd taskvision
-```
+   ```bash
+   git clone <repository-url>
+   cd TaskVision
+   ```
 
 2. **Install dependencies**
-```bash
-# Install root dependencies
-npm install
-
-# Install server dependencies
-cd server
-npm install
-
-# Install client dependencies
-cd ../client
-npm install
-```
+   ```bash
+   npm run install:all
+   ```
 
 3. **Environment Setup**
+   
+   Copy example environment files and configure:
+   ```bash
+   # Backend environment
+   cp backend/.env.example backend/.env
+   
+   # Frontend environment  
+   cp frontend/.env.example frontend/.env
+   ```
 
-Create `.env` files in both `server` and `client` directories:
+4. **Configure Environment Variables**
 
-**Server (.env):**
-```env
-NODE_ENV=development
-PORT=5000
-CLIENT_URL=http://localhost:3000
-MONGODB_URI=mongodb://localhost:27017/taskvision
-JWT_SECRET=your_super_secret_jwt_key_here
-JWT_EXPIRES_IN=7d
-```
+   **Backend (.env)**:
+   ```env
+   NODE_ENV=development
+   PORT=5000
+   MONGODB_URI=mongodb://localhost:27017/taskvision
+   JWT_SECRET=your-super-secret-jwt-key
+   JWT_EXPIRE=7d
+   REDIS_URL=redis://localhost:6379
+   UPLOAD_PATH=./uploads
+   FRONTEND_URL=http://localhost:3000
+   ```
 
-**Client (.env):**
-```env
-REACT_APP_API_URL=http://localhost:5000/api
-REACT_APP_SERVER_URL=http://localhost:5000
-```
+   **Frontend (.env)**:
+   ```env
+   VITE_API_URL=http://localhost:5000/api
+   VITE_SOCKET_URL=http://localhost:5000
+   VITE_MAP_TILE_URL=https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+   ```
 
-4. **Start MongoDB**
-```bash
-# Make sure MongoDB is running on your system
-mongod
-```
+5. **Start MongoDB and Redis**
+   ```bash
+   # MongoDB (if using Docker)
+   docker run -d --name mongodb -p 27017:27017 mongo:latest
+   
+   # Redis (if using Docker)
+   docker run -d --name redis -p 6379:6379 redis:latest
+   ```
 
-5. **Start the application**
+6. **Seed Database** (Optional)
+   ```bash
+   cd backend
+   npm run seed
+   ```
 
-From the root directory:
-```bash
-# Development mode (starts both server and client)
-npm run dev
+7. **Start Development Servers**
+   ```bash
+   # Start both frontend and backend
+   npm run dev
+   
+   # Or start individually
+   npm run dev:frontend  # Frontend at http://localhost:3000
+   npm run dev:backend   # Backend at http://localhost:5000
+   ```
 
-# Or start individually:
-# Start server (from server directory)
-npm run dev
+## 📱 Default Login Credentials
 
-# Start client (from client directory)
-npm start
-```
+After seeding the database, you can use these test accounts:
 
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+**Admin Account:**
+- Email: `admin@designasia.com`
+- Password: `admin123`
 
-## 🔧 Available Scripts
+**Employee Account:**
+- Email: `employee@designasia.com`
+- Password: `employee123`
 
-### Root Directory
-- `npm run dev` - Start both client and server in development mode
-- `npm run build` - Build the client for production
-- `npm run start` - Start the production server
+## 🏗 Development
 
-### Server Directory
-- `npm run dev` - Start server in development mode with nodemon
-- `npm start` - Start server in production mode
-- `npm test` - Run server tests
-- `npm run seed` - Seed database with sample data
-
-### Client Directory
-- `npm start` - Start development server
-- `npm run build` - Build for production
-- `npm test` - Run tests
-- `npm run eject` - Eject from Create React App
-
-## 📊 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-- `GET /api/auth/me` - Get current user
-- `PUT /api/auth/profile` - Update user profile
-- `PUT /api/auth/change-password` - Change password
-
-### Tasks
-- `GET /api/tasks` - Get all tasks (with filtering)
-- `GET /api/tasks/my` - Get user's tasks
-- `POST /api/tasks` - Create new task
-- `PUT /api/tasks/:id` - Update task
-- `DELETE /api/tasks/:id` - Delete task
-- `POST /api/tasks/:id/comments` - Add comment to task
-
-### Projects
-- `GET /api/projects` - Get user's projects
-- `POST /api/projects` - Create new project
-- `GET /api/projects/:id` - Get project details
-- `PUT /api/projects/:id` - Update project
-
-### Teams
-- `GET /api/teams` - Get user's teams
-- `POST /api/teams` - Create new team
-
-### Reports & Analytics
-- `GET /api/reports/dashboard` - Get dashboard data
-- `GET /api/analytics/overview` - Get analytics overview
-
-## 🎨 Design System
-
-The application uses a consistent design system built with Tailwind CSS:
-
-### Colors
-- **Primary**: Blue (`#3B82F6`)
-- **Success**: Green (`#22C55E`)
-- **Warning**: Yellow (`#F59E0B`)
-- **Error**: Red (`#EF4444`)
-
-### Typography
-- **Font Family**: Inter
-- **Headings**: Bold weights
-- **Body**: Regular weight
-
-### Components
-- **Buttons**: Multiple variants (primary, secondary, outline, ghost)
-- **Forms**: Consistent input styling with validation states
-- **Cards**: Elevated surfaces with rounded corners
-- **Modals**: Overlay components with backdrop blur
-
-## 🔒 Security Features
-
-- JWT-based authentication
-- Password hashing with bcrypt
-- Input validation and sanitization
-- CORS protection
-- Rate limiting
-- Helmet.js security headers
-- MongoDB injection protection
-
-## 📱 PWA Features
-
-- Service worker for offline functionality
-- App manifest for installation
-- Responsive design for all devices
-- Touch-friendly interface
-- App-like navigation
-
-## 🧪 Testing
+### Available Scripts
 
 ```bash
-# Run server tests
-cd server
-npm test
+# Development
+npm run dev              # Start both frontend and backend
+npm run dev:frontend     # Start frontend only
+npm run dev:backend      # Start backend only
 
-# Run client tests
-cd client
-npm test
+# Building
+npm run build            # Build all packages
+npm run build:frontend   # Build frontend only
+npm run build:backend    # Build backend only
+
+# Code Quality
+npm run lint             # Lint all packages
+npm run test             # Run all tests
+npm run format           # Format code with Prettier
+
+# Database
+npm run seed             # Seed database with test data
+npm run migrate          # Run database migrations
+
+# Utilities
+npm run clean            # Clean all node_modules
+npm run install:all      # Install all dependencies
 ```
+
+### API Documentation
+
+Once the backend is running, visit:
+- **Swagger UI**: http://localhost:5000/api-docs
+- **API Health**: http://localhost:5000/health
+
+### Socket.io Events
+
+The application uses several real-time events:
+
+**Task Events:**
+- `task:created` - New task created
+- `task:updated` - Task details updated
+- `task:status_changed` - Task status changed
+- `task:assigned` - Task assigned to user
+
+**Chat Events:**
+- `chat:message` - New chat message
+- `chat:typing` - User typing indicator
+
+**Tracking Events:**
+- `tracking:update` - Location update from employee
+- `attendance:clock_in` - Employee clocked in
+- `attendance:clock_out` - Employee clocked out
+
+**Notification Events:**
+- `notification:new` - New notification for user
+- `notification:read` - Notification marked as read
+
+## 🔧 Configuration
+
+### Database Models
+
+The application uses these main models:
+
+- **User**: Employee and admin user accounts
+- **Task**: Task management with status, priority, location
+- **TimeLog**: Time tracking entries
+- **Comment**: Task comments with mentions
+- **Attendance**: Daily clock-in/out records
+- **TrackingPoint**: Real-time location tracking
+- **Notification**: In-app notifications
+- **Report**: Generated reports metadata
+
+### File Upload
+
+Files are stored locally in the `backend/uploads` directory by default. For production, configure cloud storage (AWS S3, Google Cloud Storage, etc.).
+
+### Map Integration
+
+The application uses OpenStreetMap with Leaflet for:
+- Task location assignment
+- Employee real-time tracking
+- Attendance geofence verification
+- Location-based task filtering
 
 ## 🚀 Deployment
 
 ### Production Build
-```bash
-# Build client
-cd client
-npm run build
 
-# The build files will be in client/build directory
-# Configure your server to serve these static files
+```bash
+npm run build
+npm start
 ```
 
-### Environment Variables
-Make sure to set production environment variables:
-- Use strong JWT secrets
-- Configure production MongoDB URI
-- Set NODE_ENV=production
-- Configure email settings for notifications
+### Environment Variables for Production
+
+Ensure these environment variables are set in production:
+
+```env
+NODE_ENV=production
+MONGODB_URI=mongodb://your-production-db
+REDIS_URL=redis://your-production-redis
+JWT_SECRET=your-production-jwt-secret
+FRONTEND_URL=https://your-domain.com
+```
+
+### Docker Deployment
+
+```bash
+# Build Docker images
+docker-compose build
+
+# Start services
+docker-compose up -d
+```
+
+## 📊 Monitoring
+
+The application includes:
+- Health check endpoint: `/health`
+- Performance metrics via built-in middleware
+- Error tracking and logging
+- Database connection monitoring
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature/new-feature`
+3. Commit changes: `git commit -am 'Add new feature'`
+4. Push to branch: `git push origin feature/new-feature`
+5. Submit a pull request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the ISC License - see the [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-If you encounter any issues or have questions:
+For support and questions:
+- Create an issue in the GitHub repository
+- Contact the development team at dev@designasia.com
 
-1. Check the existing issues on GitHub
-2. Create a new issue with detailed description
-3. Include steps to reproduce the problem
-4. Provide environment details
+---
 
-## 🙏 Acknowledgments
-
-- React team for the amazing framework
-- MongoDB team for the database
-- Tailwind CSS for the utility-first CSS framework
-- Socket.IO for real-time capabilities
-- All other open-source libraries used in this project
+**TaskVision** - Built with ❤️ for Design Asia

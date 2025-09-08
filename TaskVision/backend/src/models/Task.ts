@@ -1,381 +1,354 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
+import { ITask, TaskStatus, TaskPriority, ILocation } from '@shared/types';
 
-export interface ITask extends Document {
-  title: string;
-  description: string;
-  priority: 'High' | 'Medium' | 'Low';
-  status: 'Not Started' | 'In Progress' | 'Paused' | 'Completed' | 'Cancelled';
-  assignedTo: mongoose.Types.ObjectId;
-  createdBy: mongoose.Types.ObjectId;
-  dueDate: Date;
-  estimatedHours: number;
-  actualHours: number;
-  location: {
-    lat: number;
-    lng: number;
-    radius: number;
-    address?: string;
-    geofenceId?: mongoose.Types.ObjectId;
-    isLocationRequired: boolean;
-    validationStrict: boolean; // If true, must be within radius to complete
-    allowedTimeBuffer: number; // Minutes before/after due time for location flexibility
-  };
-  locationValidation?: {
-    completionLocation: {
-      lat: number;
-      lng: number;
-      accuracy: number;
-      timestamp: Date;
-      address?: string;
-    };
-    isValidLocation: boolean;
-    distanceFromRequired: number; // meters
-    validationMethod: 'gps' | 'geofence' | 'manual_override';
-    validatedBy?: mongoose.Types.ObjectId;
-    validatedAt?: Date;
-  };
-  proofSubmissions: {
-    type: 'image' | 'document' | 'note';
-    url?: string;
-    content: string;
-    submittedAt: Date;
-    approved: boolean;
-    approvedBy?: mongoose.Types.ObjectId;
-    approvedAt?: Date;
-    rejectionReason?: string;
-    location?: {
-      lat: number;
-      lng: number;
-      timestamp: Date;
-    };
-  }[];
-  timeTracking: {
-    startTime?: Date;
-    endTime?: Date;
-    isPaused: boolean;
-    pausedAt?: Date;
-    totalPausedTime: number;
-    sessions: {
-      startTime: Date;
-      endTime?: Date;
-      duration: number;
-    }[];
-  };
-  comments: {
-    user: mongoose.Types.ObjectId;
-    comment: string;
-    createdAt: Date;
-  }[];
-  attachments: {
-    name: string;
-    url: string;
-    type: string;
-    size: number;
-    uploadedAt: Date;
-  }[];
-  tags: string[];
-  isRecurring: boolean;
-  recurringPattern?: {
-    frequency: 'daily' | 'weekly' | 'monthly';
-    interval: number;
-    daysOfWeek?: number[];
-  };
-  parentTask?: mongoose.Types.ObjectId;
-  subTasks: mongoose.Types.ObjectId[];
-  completedAt?: Date;
-  approvalRequired: boolean;
-  isApproved: boolean;
-  approvedBy?: mongoose.Types.ObjectId;
-  approvedAt?: Date;
+export interface ITaskDocument extends ITask, Document {
+  calculateDuration(): number;
+  isOverdue(): boolean;
+  canBeEditedBy(userId: string): boolean;
 }
 
-const taskSchema = new Schema<ITask>({
-  title: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 200,
-  },
-  description: {
-    type: String,
-    required: true,
-    trim: true,
-    maxlength: 2000,
-  },
-  priority: {
-    type: String,
-    enum: ['High', 'Medium', 'Low'],
-    default: 'Medium',
-  },
-  status: {
-    type: String,
-    enum: ['Not Started', 'In Progress', 'Paused', 'Completed', 'Cancelled'],
-    default: 'Not Started',
-  },
-  assignedTo: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  createdBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  dueDate: {
-    type: Date,
-    required: true,
-  },
-  estimatedHours: {
-    type: Number,
-    required: true,
-    min: 0,
-  },
-  actualHours: {
-    type: Number,
-    default: 0,
-    min: 0,
-  },
-  location: {
-    lat: {
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Location:
+ *       type: object
+ *       properties:
+ *         latitude:
+ *           type: number
+ *           description: Latitude coordinate
+ *         longitude:
+ *           type: number
+ *           description: Longitude coordinate
+ *         address:
+ *           type: string
+ *           description: Human readable address
+ *         radius:
+ *           type: number
+ *           description: Geofence radius in meters
+ *     
+ *     Task:
+ *       type: object
+ *       required:
+ *         - title
+ *         - description
+ *         - status
+ *         - priority
+ *         - assignedTo
+ *         - assignedBy
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: Auto-generated task ID
+ *         title:
+ *           type: string
+ *           description: Task title
+ *         description:
+ *           type: string
+ *           description: Detailed task description
+ *         status:
+ *           type: string
+ *           enum: [not_started, in_progress, paused, completed]
+ *           description: Current task status
+ *         priority:
+ *           type: string
+ *           enum: [low, medium, high, urgent]
+ *           description: Task priority level
+ *         assignedTo:
+ *           type: string
+ *           description: ID of user assigned to the task
+ *         assignedBy:
+ *           type: string
+ *           description: ID of user who assigned the task
+ *         dueDate:
+ *           type: string
+ *           format: date-time
+ *           description: Task due date
+ *         estimatedDuration:
+ *           type: number
+ *           description: Estimated duration in minutes
+ *         actualDuration:
+ *           type: number
+ *           description: Actual duration in minutes
+ *         location:
+ *           $ref: '#/components/schemas/Location'
+ *         tags:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Task tags
+ *         attachments:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: File attachment URLs
+ *         completedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Task completion timestamp
+ *         startedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Task start timestamp
+ *         pausedAt:
+ *           type: string
+ *           format: date-time
+ *           description: Task pause timestamp
+ *         carriedOverFrom:
+ *           type: string
+ *           description: ID of task this was carried over from
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ *         updatedAt:
+ *           type: string
+ *           format: date-time
+ */
+
+// Location subdocument schema
+const locationSchema = new Schema<ILocation>(
+  {
+    latitude: {
       type: Number,
-      required: true,
+      required: [true, 'Latitude is required'],
+      min: [-90, 'Latitude must be between -90 and 90'],
+      max: [90, 'Latitude must be between -90 and 90']
     },
-    lng: {
+    longitude: {
       type: Number,
-      required: true,
-    },
-    radius: {
-      type: Number,
-      default: 100, // meters
+      required: [true, 'Longitude is required'],
+      min: [-180, 'Longitude must be between -180 and 180'],
+      max: [180, 'Longitude must be between -180 and 180']
     },
     address: {
       type: String,
-      trim: true,
+      default: null,
+      maxlength: [200, 'Address cannot be more than 200 characters']
     },
-    geofenceId: {
-      type: Schema.Types.ObjectId,
-      ref: 'Geofence'
-    },
-    isLocationRequired: {
-      type: Boolean,
-      default: true
-    },
-    validationStrict: {
-      type: Boolean,
-      default: false
-    },
-    allowedTimeBuffer: {
+    radius: {
       type: Number,
-      default: 30 // minutes
+      default: 100, // 100 meters default
+      min: [10, 'Radius must be at least 10 meters'],
+      max: [10000, 'Radius cannot exceed 10km']
     }
   },
-  locationValidation: {
-    completionLocation: {
-      lat: Number,
-      lng: Number,
-      accuracy: Number,
-      timestamp: Date,
-      address: String
-    },
-    isValidLocation: {
-      type: Boolean,
-      default: false
-    },
-    distanceFromRequired: {
-      type: Number,
-      default: 0
-    },
-    validationMethod: {
+  { _id: false }
+);
+
+const taskSchema = new Schema<ITaskDocument>(
+  {
+    title: {
       type: String,
-      enum: ['gps', 'geofence', 'manual_override'],
-      default: 'gps'
+      required: [true, 'Task title is required'],
+      trim: true,
+      maxlength: [200, 'Title cannot be more than 200 characters']
     },
-    validatedBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    validatedAt: Date
-  },
-  proofSubmissions: [{
-    type: {
+    description: {
       type: String,
-      enum: ['image', 'document', 'note'],
-      required: true,
+      required: [true, 'Task description is required'],
+      trim: true,
+      maxlength: [2000, 'Description cannot be more than 2000 characters']
     },
-    url: String,
-    content: {
+    status: {
       type: String,
-      required: true,
+      enum: Object.values(TaskStatus),
+      default: TaskStatus.NOT_STARTED,
+      required: [true, 'Task status is required']
     },
-    submittedAt: {
-      type: Date,
-      default: Date.now,
+    priority: {
+      type: String,
+      enum: Object.values(TaskPriority),
+      default: TaskPriority.MEDIUM,
+      required: [true, 'Task priority is required']
     },
-    approved: {
-      type: Boolean,
-      default: false,
-    },
-    approvedBy: {
+    assignedTo: {
       type: Schema.Types.ObjectId,
       ref: 'User',
+      required: [true, 'Task must be assigned to a user']
     },
-    approvedAt: Date,
-    rejectionReason: String,
+    assignedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Task must have an assigner']
+    },
+    dueDate: {
+      type: Date,
+      default: null,
+      validate: {
+        validator: function(this: ITaskDocument, value: Date) {
+          return !value || value > new Date();
+        },
+        message: 'Due date must be in the future'
+      }
+    },
+    estimatedDuration: {
+      type: Number,
+      default: null,
+      min: [1, 'Estimated duration must be at least 1 minute'],
+      max: [60 * 24 * 7, 'Estimated duration cannot exceed 1 week (10080 minutes)'] // 1 week in minutes
+    },
+    actualDuration: {
+      type: Number,
+      default: null,
+      min: [0, 'Actual duration cannot be negative']
+    },
     location: {
-      lat: Number,
-      lng: Number,
-      timestamp: Date
-    }
-  }],
-  timeTracking: {
-    startTime: Date,
-    endTime: Date,
-    isPaused: {
-      type: Boolean,
-      default: false,
+      type: locationSchema,
+      default: null
     },
-    pausedAt: Date,
-    totalPausedTime: {
-      type: Number,
-      default: 0, // in milliseconds
+    tags: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function(tags: string[]) {
+          return tags.length <= 10; // Maximum 10 tags
+        },
+        message: 'Cannot have more than 10 tags'
+      }
     },
-    sessions: [{
-      startTime: {
-        type: Date,
-        required: true,
-      },
-      endTime: Date,
-      duration: {
-        type: Number,
-        default: 0, // in milliseconds
-      },
-    }],
-  },
-  comments: [{
-    user: {
+    attachments: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: function(attachments: string[]) {
+          return attachments.length <= 20; // Maximum 20 attachments
+        },
+        message: 'Cannot have more than 20 attachments'
+      }
+    },
+    completedAt: {
+      type: Date,
+      default: null
+    },
+    startedAt: {
+      type: Date,
+      default: null
+    },
+    pausedAt: {
+      type: Date,
+      default: null
+    },
+    carriedOverFrom: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    comment: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
-  }],
-  attachments: [{
-    name: {
-      type: String,
-      required: true,
-    },
-    url: {
-      type: String,
-      required: true,
-    },
-    type: {
-      type: String,
-      required: true,
-    },
-    size: {
-      type: Number,
-      required: true,
-    },
-    uploadedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  }],
-  tags: [{
-    type: String,
-    trim: true,
-  }],
-  isRecurring: {
-    type: Boolean,
-    default: false,
+      ref: 'Task',
+      default: null
+    }
   },
-  recurringPattern: {
-    frequency: {
-      type: String,
-      enum: ['daily', 'weekly', 'monthly'],
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: function(doc, ret) {
+        return ret;
+      }
     },
-    interval: {
-      type: Number,
-      min: 1,
-    },
-    daysOfWeek: [{
-      type: Number,
-      min: 0,
-      max: 6,
-    }],
-  },
-  parentTask: {
-    type: Schema.Types.ObjectId,
-    ref: 'Task',
-  },
-  subTasks: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Task',
-  }],
-  completedAt: Date,
-  approvalRequired: {
-    type: Boolean,
-    default: false,
-  },
-  isApproved: {
-    type: Boolean,
-    default: false,
-  },
-  approvedBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-  },
-  approvedAt: Date,
-}, {
-  timestamps: true,
-});
+    toObject: {
+      virtuals: true
+    }
+  }
+);
 
 // Indexes for better query performance
 taskSchema.index({ assignedTo: 1, status: 1 });
+taskSchema.index({ assignedBy: 1 });
+taskSchema.index({ status: 1, priority: 1 });
 taskSchema.index({ dueDate: 1 });
-taskSchema.index({ 'location.lat': 1, 'location.lng': 1 });
-taskSchema.index({ priority: 1, status: 1 });
 taskSchema.index({ createdAt: -1 });
-
-// Virtual for calculating current duration
-taskSchema.virtual('currentDuration').get(function() {
-  if (!this.timeTracking.startTime) return 0;
-  
-  const endTime = this.timeTracking.endTime || new Date();
-  const duration = endTime.getTime() - this.timeTracking.startTime.getTime();
-  return Math.max(0, duration - this.timeTracking.totalPausedTime);
-});
+taskSchema.index({ tags: 1 });
+taskSchema.index({ 'location.latitude': 1, 'location.longitude': 1 });
 
 // Virtual for checking if task is overdue
-taskSchema.virtual('isOverdue').get(function() {
-  return this.dueDate < new Date() && this.status !== 'Completed';
+taskSchema.virtual('isOverdue').get(function(this: ITaskDocument) {
+  return this.dueDate && 
+         this.status !== TaskStatus.COMPLETED && 
+         new Date() > this.dueDate;
 });
 
-// Pre-save middleware
-taskSchema.pre('save', function(next) {
-  // Update actualHours based on timeTracking
-  if (this.timeTracking.sessions && this.timeTracking.sessions.length > 0) {
-    const totalMs = this.timeTracking.sessions.reduce((total, session) => {
-      return total + (session.duration || 0);
-    }, 0);
-    this.actualHours = totalMs / (1000 * 60 * 60); // Convert to hours
+// Virtual for progress percentage (based on time tracking)
+taskSchema.virtual('progressPercentage').get(function(this: ITaskDocument) {
+  if (!this.estimatedDuration || !this.actualDuration) return 0;
+  return Math.min(100, Math.round((this.actualDuration / this.estimatedDuration) * 100));
+});
+
+// Pre-save middleware to set status-specific timestamps
+taskSchema.pre('save', function(this: ITaskDocument, next) {
+  const now = new Date();
+  
+  // Set startedAt when status changes to in_progress for the first time
+  if (this.isModified('status') && this.status === TaskStatus.IN_PROGRESS && !this.startedAt) {
+    this.startedAt = now;
   }
   
   // Set completedAt when status changes to completed
-  if (this.isModified('status') && this.status === 'Completed' && !this.completedAt) {
-    this.completedAt = new Date();
+  if (this.isModified('status') && this.status === TaskStatus.COMPLETED && !this.completedAt) {
+    this.completedAt = now;
+  }
+  
+  // Set pausedAt when status changes to paused
+  if (this.isModified('status') && this.status === TaskStatus.PAUSED) {
+    this.pausedAt = now;
+  }
+  
+  // Clear completedAt if status changes from completed to something else
+  if (this.isModified('status') && this.status !== TaskStatus.COMPLETED && this.completedAt) {
+    this.completedAt = null;
   }
   
   next();
 });
 
-export const Task = mongoose.model<ITask>('Task', taskSchema);
+// Method to calculate duration (for completed tasks)
+taskSchema.methods.calculateDuration = function(this: ITaskDocument): number {
+  if (this.startedAt && this.completedAt) {
+    return Math.round((this.completedAt.getTime() - this.startedAt.getTime()) / (1000 * 60)); // minutes
+  }
+  return 0;
+};
+
+// Method to check if task is overdue
+taskSchema.methods.isOverdue = function(this: ITaskDocument): boolean {
+  return this.dueDate && 
+         this.status !== TaskStatus.COMPLETED && 
+         new Date() > this.dueDate;
+};
+
+// Method to check if user can edit this task
+taskSchema.methods.canBeEditedBy = function(this: ITaskDocument, userId: string): boolean {
+  return this.assignedTo.toString() === userId || this.assignedBy.toString() === userId;
+};
+
+// Static method to find overdue tasks
+taskSchema.statics.findOverdue = function() {
+  return this.find({
+    dueDate: { $lt: new Date() },
+    status: { $ne: TaskStatus.COMPLETED }
+  });
+};
+
+// Static method to find tasks for carryover
+taskSchema.statics.findForCarryover = function(date: Date) {
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+  
+  const endOfDay = new Date(date);
+  endOfDay.setHours(23, 59, 59, 999);
+  
+  return this.find({
+    createdAt: { $gte: startOfDay, $lte: endOfDay },
+    status: { $in: [TaskStatus.NOT_STARTED, TaskStatus.IN_PROGRESS, TaskStatus.PAUSED] }
+  });
+};
+
+// Static method to find tasks by location radius
+taskSchema.statics.findByLocation = function(latitude: number, longitude: number, radiusKm: number = 1) {
+  return this.find({
+    location: {
+      $geoWithin: {
+        $centerSphere: [[longitude, latitude], radiusKm / 6378.1] // Earth's radius in km
+      }
+    }
+  });
+};
+
+export const Task = mongoose.model<ITaskDocument>('Task', taskSchema);
+export default Task;

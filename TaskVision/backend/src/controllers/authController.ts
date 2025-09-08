@@ -2,418 +2,481 @@ import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { User } from '../models/User';
-import { AuthRequest } from '../middleware/auth';
+import { asyncHandler, createError, createValidationError, createAuthError, createNotFoundError } from '../middleware/errorHandler';
+import { LoginRequest, RegisterRequest, AuthResponse, ResetPasswordRequest, ConfirmResetPasswordRequest, ChangePasswordRequest } from '@shared/types/api';
 
-// Generate JWT Token
-const generateToken = (userId: string) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET!, {
-    expiresIn: process.env.JWT_EXPIRE || '7d',
+/**
+ * Generate JWT token
+ */
+const generateToken = (userId: string, email: string, role: string): string => {
+  const jwtSecret = process.env.JWT_SECRET;
+  const jwtExpire = process.env.JWT_EXPIRE || '7d';
+
+  if (!jwtSecret) {
+    throw new Error('JWT_SECRET is not configured');
+  }
+
+  return jwt.sign(
+    { userId, email, role },
+    jwtSecret,
+    { expiresIn: jwtExpire }
+  );
+};
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *               - firstName
+ *               - lastName
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               department:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: User registered successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *                     token:
+ *                       type: string
+ *       400:
+ *         description: Validation error
+ *       409:
+ *         description: Email already exists
+ */
+export const register = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { email, password, firstName, lastName, phone, department }: RegisterRequest = req.body;
+
+  // Check if required fields are provided
+  if (!email || !password || !firstName || !lastName) {
+    throw createValidationError('Email, password, first name, and last name are required');
+  }
+
+  // Check if user already exists
+  const existingUser = await User.findOne({ email: email.toLowerCase() });
+  if (existingUser) {
+    throw createError('Email already registered', 409, 'DUPLICATE_ERROR', 'email');
+  }
+
+  // Create new user
+  const user = await User.create({
+    email: email.toLowerCase(),
+    password,
+    firstName,
+    lastName,
+    phone,
+    department
   });
-};
 
-// Generate Refresh Token
-const generateRefreshToken = (userId: string) => {
-  return jwt.sign({ userId }, process.env.JWT_REFRESH_SECRET!, {
-    expiresIn: '30d',
+  // Generate token
+  const token = generateToken(user._id!.toString(), user.email, user.role);
+
+  // Prepare response
+  const authResponse: AuthResponse = {
+    user: {
+      id: user._id!.toString(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      avatar: user.avatar,
+      department: user.department
+    },
+    token
+  };
+
+  res.status(201).json({
+    success: true,
+    message: 'User registered successfully',
+    data: authResponse
   });
-};
+});
 
-// @desc    Register user
-// @route   POST /api/auth/register
-// @access  Public
-export const register = async (req: Request, res: Response) => {
-  try {
-    const { email, password, firstName, lastName, role, phoneNumber, department } = req.body;
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     user:
+ *                       $ref: '#/components/schemas/User'
+ *                     token:
+ *                       type: string
+ *       400:
+ *         description: Invalid credentials
+ *       401:
+ *         description: Authentication failed
+ */
+export const login = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { email, password }: LoginRequest = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'User already exists with this email',
-      });
-    }
-
-    // Create user
-    const user = await User.create({
-      email,
-      password,
-      firstName,
-      lastName,
-      role: role || 'employee',
-      phoneNumber,
-      department,
-    });
-
-    // Generate tokens
-    const token = generateToken(user._id.toString());
-    const refreshToken = generateRefreshToken(user._id.toString());
-
-    res.status(201).json({
-      success: true,
-      message: 'User registered successfully',
-      data: {
-        user: {
-          id: user._id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          isActive: user.isActive,
-        },
-        token,
-        refreshToken,
-      },
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
+  // Check if email and password are provided
+  if (!email || !password) {
+    throw createValidationError('Email and password are required');
   }
-};
 
-// @desc    Login user
-// @route   POST /api/auth/login
-// @access  Public
-export const login = async (req: Request, res: Response) => {
-  try {
-    const { email, password } = req.body;
-
-    // Check if user exists
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials',
-      });
-    }
-
-    // Check if user is active
-    if (!user.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: 'Account is deactivated',
-      });
-    }
-
-    // Check password
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid credentials',
-      });
-    }
-
-    // Update last active
-    user.lastActive = new Date();
-    await user.save();
-
-    // Generate tokens
-    const token = generateToken(user._id.toString());
-    const refreshToken = generateRefreshToken(user._id.toString());
-
-    res.json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        user: {
-          id: user._id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          role: user.role,
-          isActive: user.isActive,
-          location: user.location,
-          profileImage: user.profileImage,
-        },
-        token,
-        refreshToken,
-      },
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
+  // Find user and include password field
+  const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
+  
+  if (!user) {
+    throw createAuthError('Invalid email or password');
   }
-};
 
-// @desc    Get current user
-// @route   GET /api/auth/me
-// @access  Private
-export const getMe = async (req: AuthRequest, res: Response) => {
-  try {
-    const user = req.user;
-    
-    res.json({
-      success: true,
-      data: {
-        user: {
-          id: user?._id,
-          email: user?.email,
-          firstName: user?.firstName,
-          lastName: user?.lastName,
-          role: user?.role,
-          isActive: user?.isActive,
-          location: user?.location,
-          profileImage: user?.profileImage,
-          phoneNumber: user?.phoneNumber,
-          department: user?.department,
-          workingHours: user?.workingHours,
-          batteryLevel: user?.batteryLevel,
-        },
-      },
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
+  // Check if account is active
+  if (!user.isActive) {
+    throw createAuthError('Account is deactivated. Please contact administrator.');
   }
-};
 
-// @desc    Update user profile
-// @route   PUT /api/auth/profile
-// @access  Private
-export const updateProfile = async (req: AuthRequest, res: Response) => {
-  try {
-    const { firstName, lastName, phoneNumber, department, workingHours } = req.body;
-    
-    const user = await User.findByIdAndUpdate(
-      req.user?._id,
-      {
-        firstName,
-        lastName,
-        phoneNumber,
-        department,
-        workingHours,
-      },
-      { new: true, runValidators: true }
-    );
-
-    res.json({
-      success: true,
-      message: 'Profile updated successfully',
-      data: { user },
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
+  // Check password
+  const isPasswordValid = await user.comparePassword(password);
+  if (!isPasswordValid) {
+    throw createAuthError('Invalid email or password');
   }
-};
 
-// @desc    Update user location
-// @route   PUT /api/auth/location
-// @access  Private
-export const updateLocation = async (req: AuthRequest, res: Response) => {
-  try {
-    const { lat, lng, address, batteryLevel } = req.body;
-    
-    const updateData: any = {
-      'location.lat': lat,
-      'location.lng': lng,
-      lastActive: new Date(),
-    };
+  // Update last login
+  user.lastLogin = new Date();
+  await user.save();
 
-    if (address) {
-      updateData['location.address'] = address;
-    }
+  // Generate token
+  const token = generateToken(user._id!.toString(), user.email, user.role);
 
-    if (batteryLevel !== undefined) {
-      updateData.batteryLevel = batteryLevel;
-    }
+  // Prepare response
+  const authResponse: AuthResponse = {
+    user: {
+      id: user._id!.toString(),
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      role: user.role,
+      avatar: user.avatar,
+      department: user.department
+    },
+    token
+  };
 
-    const user = await User.findByIdAndUpdate(
-      req.user?._id,
-      updateData,
-      { new: true }
-    );
+  res.status(200).json({
+    success: true,
+    message: 'Login successful',
+    data: authResponse
+  });
+});
 
-    res.json({
-      success: true,
-      message: 'Location updated successfully',
-      data: { 
-        location: user?.location,
-        batteryLevel: user?.batteryLevel,
-      },
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
+/**
+ * @swagger
+ * /api/auth/me:
+ *   get:
+ *     summary: Get current user profile
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User profile retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 data:
+ *                   $ref: '#/components/schemas/User'
+ *       401:
+ *         description: Authentication required
+ */
+export const getMe = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  if (!req.user) {
+    throw createAuthError('Authentication required');
   }
-};
 
-// @desc    Change password
-// @route   PUT /api/auth/password
-// @access  Private
-export const changePassword = async (req: AuthRequest, res: Response) => {
-  try {
-    const { currentPassword, newPassword } = req.body;
-    
-    const user = await User.findById(req.user?._id).select('+password');
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
-
-    // Check current password
-    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
-    if (!isCurrentPasswordValid) {
-      return res.status(401).json({
-        success: false,
-        message: 'Current password is incorrect',
-      });
-    }
-
-    // Update password
-    user.password = newPassword;
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'Password changed successfully',
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
+  const user = await User.findById(req.user.id);
+  
+  if (!user) {
+    throw createNotFoundError('User not found');
   }
-};
 
-// @desc    Forgot password
-// @route   POST /api/auth/forgot-password
-// @access  Public
-export const forgotPassword = async (req: Request, res: Response) => {
-  try {
-    const { email } = req.body;
-    
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'No user found with this email',
-      });
-    }
+  res.status(200).json({
+    success: true,
+    message: 'User profile retrieved successfully',
+    data: user
+  });
+});
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    user.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-
-    await user.save();
-
-    // In a real application, you would send an email here
-    // For demo purposes, we'll just return the token
-    res.json({
-      success: true,
-      message: 'Password reset token generated',
-      resetToken, // Remove this in production
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
+/**
+ * @swagger
+ * /api/auth/change-password:
+ *   patch:
+ *     summary: Change user password
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - currentPassword
+ *               - newPassword
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 6
+ *     responses:
+ *       200:
+ *         description: Password changed successfully
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Current password is incorrect
+ */
+export const changePassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  if (!req.user) {
+    throw createAuthError('Authentication required');
   }
-};
 
-// @desc    Reset password
-// @route   PUT /api/auth/reset-password/:token
-// @access  Public
-export const resetPassword = async (req: Request, res: Response) => {
-  try {
-    const { token } = req.params;
-    const { password } = req.body;
+  const { currentPassword, newPassword }: ChangePasswordRequest = req.body;
 
-    // Hash the token
-    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
-
-    const user = await User.findOne({
-      resetPasswordToken: hashedToken,
-      resetPasswordExpires: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: 'Invalid or expired reset token',
-      });
-    }
-
-    // Update password
-    user.password = password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpires = undefined;
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'Password reset successfully',
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      success: false,
-      message: 'Server error',
-      error: error.message,
-    });
+  if (!currentPassword || !newPassword) {
+    throw createValidationError('Current password and new password are required');
   }
-};
 
-// @desc    Refresh token
-// @route   POST /api/auth/refresh
-// @access  Public
-export const refreshToken = async (req: Request, res: Response) => {
-  try {
-    const { refreshToken } = req.body;
-
-    if (!refreshToken) {
-      return res.status(401).json({
-        success: false,
-        message: 'Refresh token is required',
-      });
-    }
-
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as { userId: string };
-    const user = await User.findById(decoded.userId);
-
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid refresh token',
-      });
-    }
-
-    // Generate new tokens
-    const newToken = generateToken(user._id.toString());
-    const newRefreshToken = generateRefreshToken(user._id.toString());
-
-    res.json({
-      success: true,
-      data: {
-        token: newToken,
-        refreshToken: newRefreshToken,
-      },
-    });
-  } catch (error: any) {
-    res.status(401).json({
-      success: false,
-      message: 'Invalid refresh token',
-    });
+  if (newPassword.length < 6) {
+    throw createValidationError('New password must be at least 6 characters long');
   }
-};
+
+  // Find user with password
+  const user = await User.findById(req.user.id).select('+password');
+  
+  if (!user) {
+    throw createNotFoundError('User not found');
+  }
+
+  // Verify current password
+  const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+  if (!isCurrentPasswordValid) {
+    throw createAuthError('Current password is incorrect');
+  }
+
+  // Update password
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Password changed successfully'
+  });
+});
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Request password reset
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Password reset email sent
+ *       404:
+ *         description: Email not found
+ */
+export const forgotPassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { email }: ResetPasswordRequest = req.body;
+
+  if (!email) {
+    throw createValidationError('Email is required');
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase() });
+  
+  if (!user) {
+    throw createNotFoundError('No user found with that email address');
+  }
+
+  if (!user.isActive) {
+    throw createAuthError('Account is deactivated. Please contact administrator.');
+  }
+
+  // Generate reset token
+  const resetToken = user.generateResetToken();
+  await user.save();
+
+  // TODO: Send email with reset token
+  // For now, we'll just return the token (in production, this should be sent via email)
+  
+  res.status(200).json({
+    success: true,
+    message: 'Password reset instructions sent to email',
+    // Remove this in production - only for development
+    ...(process.env.NODE_ENV === 'development' && { resetToken })
+  });
+});
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Reset password with token
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - token
+ *               - newPassword
+ *             properties:
+ *               token:
+ *                 type: string
+ *               newPassword:
+ *                 type: string
+ *                 minLength: 6
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *       400:
+ *         description: Invalid or expired token
+ */
+export const resetPassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  const { token, newPassword }: ConfirmResetPasswordRequest = req.body;
+
+  if (!token || !newPassword) {
+    throw createValidationError('Token and new password are required');
+  }
+
+  if (newPassword.length < 6) {
+    throw createValidationError('Password must be at least 6 characters long');
+  }
+
+  // Hash token and find user
+  const hashedToken = crypto
+    .createHash('sha256')
+    .update(token)
+    .digest('hex');
+
+  const user = await User.findOne({
+    resetPasswordToken: hashedToken,
+    resetPasswordExpire: { $gt: Date.now() }
+  }).select('+resetPasswordToken +resetPasswordExpire');
+
+  if (!user) {
+    throw createError('Invalid or expired password reset token', 400, 'VALIDATION_ERROR');
+  }
+
+  // Update password and clear reset token
+  user.password = newPassword;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: 'Password reset successful'
+  });
+});
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Logout user (client-side token removal)
+ *     tags: [Authentication]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ */
+export const logout = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  // Since we're using stateless JWT tokens, logout is handled client-side
+  // In a production app, you might want to implement a token blacklist
+  
+  res.status(200).json({
+    success: true,
+    message: 'Logout successful'
+  });
+});
