@@ -18,11 +18,13 @@ interface AuthState {
   isLoading: boolean;
 }
 
+
 interface AuthActions {
   login: (user: User, token: string) => void;
   logout: () => void;
   updateUser: (user: Partial<User>) => void;
   setLoading: (loading: boolean) => void;
+  register: (user: User, token: string) => void;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -66,6 +68,15 @@ export const useAuthStore = create<AuthStore>()(
 
       setLoading: (loading: boolean) => {
         set({ isLoading: loading });
+      },
+
+      register: (user: User, token: string) => {
+        set({
+          user,
+          token,
+          isAuthenticated: true,
+          isLoading: false,
+        });
       },
     }),
     {
