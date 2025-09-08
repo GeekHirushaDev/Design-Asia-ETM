@@ -1,0 +1,16 @@
+{
+  "name": "TaskVision",
+  "version": "1.0.0",
+  "description": "TaskVision monorepo workspace",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.15.1",
+  "workspaces": [
+    "apps/*"
+  ]
+}
