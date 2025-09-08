@@ -4,6 +4,7 @@
   "description": "TaskVision monorepo workspace",
   "main": "index.js",
   "scripts": {
+    "dev": "concurrently \"pnpm --filter taskvision-frontend dev\" \"pnpm --filter taskvision-backend dev\" -k",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -12,5 +13,8 @@
   "packageManager": "pnpm@10.15.1",
   "workspaces": [
     "apps/*"
-  ]
+  ],
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
 }
