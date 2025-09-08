@@ -29,6 +29,9 @@ import { notFound } from './middleware/notFound';
 // Import socket handlers
 import { initializeSocket } from './sockets';
 
+// Import utils
+import { createInitialUsers } from './utils/createInitialUsers';
+
 // Import scheduled jobs
 import './jobs/taskCarryover';
 import './jobs/cleanupFiles';
@@ -197,10 +200,15 @@ const gracefulShutdown = (): void => {
   httpServer.close(() => {
     console.log('✅ HTTP server closed');
     
-    mongoose.connection.close(false, () => {
-      console.log('✅ MongoDB connection closed');
-      process.exit(0);
-    });
+    mongoose.connection.close()
+      .then(() => {
+        console.log('✅ MongoDB connection closed');
+        process.exit(0);
+      })
+      .catch(err => {
+        console.error('❌ Error closing MongoDB connection:', err);
+        process.exit(1);
+      });
   });
 
   // Force close after 10 seconds
@@ -231,6 +239,9 @@ const PORT = process.env.PORT || 5000;
 const startServer = async (): Promise<void> => {
   try {
     await connectDB();
+    
+    // Create initial users if none exist
+    await createInitialUsers();
     
     httpServer.listen(PORT, () => {
       console.log(`

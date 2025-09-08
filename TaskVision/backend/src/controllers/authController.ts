@@ -3,7 +3,8 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { User } from '../models/User';
 import { asyncHandler, createError, createValidationError, createAuthError, createNotFoundError } from '../middleware/errorHandler';
-import { LoginRequest, RegisterRequest, AuthResponse, ResetPasswordRequest, ConfirmResetPasswordRequest, ChangePasswordRequest } from '@shared/types/api';
+import { LoginRequest, RegisterRequest, AuthResponse, ResetPasswordRequest, ConfirmResetPasswordRequest, ChangePasswordRequest } from '../shared/types/api';
+import { sendWelcomeEmail, sendPasswordResetEmail } from '../services/emailService';
 
 /**
  * Generate JWT token
@@ -102,6 +103,9 @@ export const register = asyncHandler(async (req: Request, res: Response): Promis
     phone,
     department
   });
+
+  // Send welcome email
+  await sendWelcomeEmail(user);
 
   // Generate token
   const token = generateToken(user._id!.toString(), user.email, user.role);
@@ -383,8 +387,8 @@ export const forgotPassword = asyncHandler(async (req: Request, res: Response): 
   const resetToken = user.generateResetToken();
   await user.save();
 
-  // TODO: Send email with reset token
-  // For now, we'll just return the token (in production, this should be sent via email)
+  // Send password reset email
+  await sendPasswordResetEmail(user, resetToken);
   
   res.status(200).json({
     success: true,

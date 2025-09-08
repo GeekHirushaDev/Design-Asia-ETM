@@ -1,8 +1,19 @@
 import mongoose, { Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
-import { IUser, UserRole } from '@shared/types';
+import { IUser, UserRole } from '../shared/types';
 
-export interface IUserDocument extends IUser, Document {
+export interface IUserDocument extends Document {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+  department?: string;
+  avatar?: string;
+  isActive: boolean;
+  lastLogin?: Date;
+  resetPasswordToken?: string;
+  resetPasswordExpire?: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
   generateResetToken(): string;
 }
