@@ -5,6 +5,7 @@ import config from './config';
 
 // Import routes
 import healthRoutes from './routes/health';
+import usersRoutes from './routes/users';
 
 class App {
   public app: Application;
@@ -54,6 +55,7 @@ class App {
   private initializeRoutes(): void {
     // API routes
     this.app.use('/api/health', healthRoutes);
+    this.app.use('/api/users', usersRoutes);
 
     // Root endpoint
     this.app.get('/', (req: Request, res: Response) => {
@@ -65,7 +67,7 @@ class App {
     });
 
     // Catch-all for undefined routes
-    this.app.all('*', (req: Request, res: Response) => {
+    this.app.use((req: Request, res: Response) => {
       res.status(404).json({
         success: false,
         message: `Route ${req.originalUrl} not found`,
