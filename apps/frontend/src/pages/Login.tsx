@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { apiService, LoginCredentials } from '../services/api';
+import { apiService, type LoginCredentials } from '../services/api';
 
 const Login: React.FC = () => {
   const [credentials, setCredentials] = useState<LoginCredentials>({
@@ -10,6 +10,8 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  console.log('Login component rendered');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,14 +1,15 @@
 import { Router, Request, Response } from 'express';
 import { User } from '../models/User';
+import { authMiddleware } from '../middleware/authMiddleware';
 
 const router = Router();
 
 /**
  * @route   GET /api/users
  * @desc    Get all users (for testing purposes)
- * @access  Public
+ * @access  Private (requires JWT)
  */
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', authMiddleware, async (req: Request, res: Response) => {
   try {
     const users = await User.find({}).select('-password');
     

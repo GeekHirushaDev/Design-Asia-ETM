@@ -6,6 +6,7 @@ import config from './config';
 // Import routes
 import healthRoutes from './routes/health';
 import usersRoutes from './routes/users';
+import authRoutes from './routes/auth';
 
 class App {
   public app: Application;
@@ -44,17 +45,18 @@ class App {
     this.app.use(express.urlencoded({ extended: true }));
 
     // Request logging in development
-    if (config.nodeEnv === 'development') {
-      this.app.use((req: Request, res: Response, next: NextFunction) => {
-        console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
-        next();
-      });
-    }
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
+      console.log(`🌐 ${req.method} ${req.path} - ${new Date().toISOString()}`);
+      console.log(`📋 Headers:`, req.headers);
+      console.log(`📝 Body:`, req.body);
+      next();
+    });
   }
 
   private initializeRoutes(): void {
     // API routes
     this.app.use('/api/health', healthRoutes);
+    this.app.use('/api/auth', authRoutes);
     this.app.use('/api/users', usersRoutes);
 
     // Root endpoint
@@ -117,9 +119,12 @@ class App {
   }
 
   public listen(): void {
-    this.app.listen(config.port, () => {
-      console.log(`🚀 Server running on port ${config.port} in ${config.nodeEnv} mode`);
-      console.log(`📍 Health check: http://localhost:${config.port}/api/health`);
+    const host = '0.0.0.0'; // Listen on all interfaces
+    const port = typeof config.port === 'string' ? parseInt(config.port, 10) : config.port;
+    this.app.listen(port, host, () => {
+      console.log(`🚀 Server running on ${host}:${port} in ${config.nodeEnv} mode`);
+      console.log(`📍 Health check: http://localhost:${port}/api/health`);
+      console.log(`📍 CORS Origin: ${config.corsOrigin}`);
     });
   }
 }

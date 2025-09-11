@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiService, User } from '../services/api';
+import { apiService, type User } from '../services/api';
 
 const Dashboard: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -9,12 +9,22 @@ const Dashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  console.log('Dashboard component rendered');
+
   useEffect(() => {
-    if (!apiService.isAuthenticated()) {
+    const token = localStorage.getItem('token');
+    if (!token) {
       navigate('/login');
       return;
     }
 
+    // Get current user from localStorage first
+    const currentUser = apiService.getCurrentUser();
+    if (!currentUser) {
+      console.warn('No current user found');
+    }
+
+    // Fetch fresh data from API
     fetchUserData();
   }, [navigate]);
 
@@ -22,15 +32,34 @@ const Dashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      // For now, we'll get users from the /users endpoint since we don't have auth routes yet
-      const usersData = await apiService.getUsers();
+      // Fetch users and get current user profile in parallel
+      const [usersData, currentUserProfile] = await Promise.all([
+        apiService.getUsers(),
+        apiService.getCurrentUserProfile().catch(() => null) // Don't fail if this fails
+      ]);
+      
       setUsers(usersData);
       
-      // Mock current user based on stored token (in real app, decode JWT or call /auth/me)
-      const mockCurrentUser = usersData[0]; // Using first user as current user for demo
-      setUser(mockCurrentUser);
+      if (currentUserProfile) {
+        setUser(currentUserProfile);
+        // Update localStorage with fresh user data
+        localStorage.setItem('user', JSON.stringify(currentUserProfile));
+      } else {
+        // Fallback to localStorage user if API call fails
+        const localUser = apiService.getCurrentUser();
+        if (localUser) {
+          setUser(localUser);
+        }
+      }
+      
+      setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch user data');
+      console.error('Error fetching data:', err);
+      if (err instanceof Error && err.message === 'Authentication required') {
+        navigate('/login');
+      } else {
+        setError(err instanceof Error ? err.message : 'Failed to fetch data');
+      }
     } finally {
       setLoading(false);
     }

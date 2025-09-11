@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -6,9 +6,16 @@ import Dashboard from './pages/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
+  console.log('App component rendered');
+
   useEffect(() => {
     // Initialize Preline components
-    import('preline/dist/preline.js');
+    import('preline/dist/preline.js').then(() => {
+      // Preline components initialized
+      console.log('Preline initialized');
+    }).catch(err => {
+      console.log('Preline not available:', err);
+    });
   }, []);
 
   return (
