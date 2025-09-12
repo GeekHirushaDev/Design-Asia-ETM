@@ -37,6 +37,10 @@ const userSchema = new Schema<IUser>(
       enum: ['active', 'inactive'],
       default: 'active',
     },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
     lastLoginAt: {
       type: Date,
     },

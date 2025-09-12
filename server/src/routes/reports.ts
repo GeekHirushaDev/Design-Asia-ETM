@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Response } from 'express';
 import { body, validationResult } from 'express-validator';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
 import { AuthRequest } from '../types/index.js';
@@ -13,7 +13,7 @@ const router = express.Router();
 router.post('/weekly/generate', [
   authenticateToken,
   requireRole('admin'),
-], async (req: AuthRequest, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 7);
@@ -88,7 +88,7 @@ router.post('/weekly/generate', [
 
     // In a real implementation, you would generate a PDF here
     // For now, we'll return the data structure
-    res.json({
+    return res.json({
       message: 'Weekly report generated successfully',
       reportId: `weekly-${Date.now()}`,
       data: reportData,
@@ -96,7 +96,7 @@ router.post('/weekly/generate', [
     });
   } catch (error) {
     console.error('Generate weekly report error:', error);
-    res.status(500).json({ error: 'Failed to generate weekly report' });
+    return res.status(500).json({ error: 'Failed to generate weekly report' });
   }
 });
 
@@ -107,14 +107,18 @@ router.post('/custom/generate', [
   body('type').isIn(['task_performance', 'attendance', 'custom']),
   body('dateRange.start').isISO8601(),
   body('dateRange.end').isISO8601(),
-], async (req: AuthRequest, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { type, dateRange, filters } = req.body;
+    const { type, dateRange, filters } = req.body as {
+      type: string;
+      dateRange: { start: string; end: string };
+      filters: any;
+    };
     const startDate = new Date(dateRange.start);
     const endDate = new Date(dateRange.end);
 
@@ -163,7 +167,7 @@ router.post('/custom/generate', [
         return res.status(400).json({ error: 'Invalid report type' });
     }
 
-    res.json({
+    return res.json({
       message: 'Custom report generated successfully',
       reportId: `${type}-${Date.now()}`,
       data: reportData,
@@ -171,7 +175,7 @@ router.post('/custom/generate', [
     });
   } catch (error) {
     console.error('Generate custom report error:', error);
-    res.status(500).json({ error: 'Failed to generate custom report' });
+    return res.status(500).json({ error: 'Failed to generate custom report' });
   }
 });
 
@@ -179,23 +183,23 @@ router.post('/custom/generate', [
 router.get('/:reportId/download', [
   authenticateToken,
   requireRole('admin'),
-], async (req: AuthRequest, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
-    const { reportId } = req.params;
+    const { reportId } = req.params as { reportId: string };
     
     // In a real implementation, you would:
     // 1. Fetch the report data from database
     // 2. Generate PDF using puppeteer or similar
     // 3. Return the PDF file
     
-    res.json({
+    return res.json({
       message: 'Report download endpoint',
       reportId,
       note: 'PDF generation not implemented in this demo'
     });
   } catch (error) {
     console.error('Download report error:', error);
-    res.status(500).json({ error: 'Failed to download report' });
+    return res.status(500).json({ error: 'Failed to download report' });
   }
 });
 

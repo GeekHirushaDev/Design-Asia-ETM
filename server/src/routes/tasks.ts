@@ -1,8 +1,10 @@
 import express from 'express';
-import { body, validationResult } from 'express-validator';
 import Task from '../models/Task.js';
 import TimeLog from '../models/TimeLog.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { validate } from '../middleware/validation.js';
+import { createTaskSchema, updateTaskSchema } from '../validation/schemas.js';
+import { PushService } from '../services/pushService.js';
 import { AuthRequest } from '../types/index.js';
 
 const router = express.Router();
@@ -53,17 +55,9 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 router.post('/', [
   authenticateToken,
   requireRole('admin'),
-  body('title').trim().notEmpty().withMessage('Title is required'),
-  body('description').trim().notEmpty().withMessage('Description is required'),
-  body('priority').optional().isIn(['high', 'medium', 'low']),
-  body('assignedTo').optional().isArray(),
+  validate(createTaskSchema),
 ], async (req: AuthRequest, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     const taskData = {
       ...req.body,
       createdBy: req.user?._id,
@@ -76,6 +70,18 @@ router.post('/', [
       { path: 'createdBy', select: 'name email' },
       { path: 'assignedTo', select: 'name email' },
     ]);
+
+    // Send notifications to assigned users
+    if (task.assignedTo && task.assignedTo.length > 0) {
+      const assigneeIds = task.assignedTo.map((user: any) => user._id.toString());
+      
+      await PushService.sendBulkNotification(assigneeIds, {
+        type: 'task_assigned',
+        title: 'New Task Assigned',
+        body: `You have been assigned to "${task.title}"`,
+        meta: { taskId: task._id },
+      });
+    }
 
     res.status(201).json({ task });
   } catch (error) {
@@ -131,17 +137,9 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 // Update task
 router.patch('/:id', [
   authenticateToken,
-  body('title').optional().trim().notEmpty(),
-  body('description').optional().trim().notEmpty(),
-  body('status').optional().isIn(['not_started', 'in_progress', 'paused', 'completed']),
-  body('priority').optional().isIn(['high', 'medium', 'low']),
+  validate(updateTaskSchema),
 ], async (req: AuthRequest, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
-
     const task = await Task.findById(req.params.id);
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
@@ -175,6 +173,18 @@ router.patch('/:id', [
       { path: 'createdBy', select: 'name email' },
       { path: 'assignedTo', select: 'name email' },
     ]);
+
+    // Send notification if task is completed
+    if (req.body.status === 'completed' && task.status !== 'completed') {
+      const creatorId = task.createdBy.toString();
+      
+      await PushService.sendNotification(creatorId, {
+        type: 'task_completed',
+        title: 'Task Completed',
+        body: `"${updatedTask.title}" has been completed by ${req.user?.name}`,
+        meta: { taskId: updatedTask._id },
+      });
+    }
 
     res.json({ task: updatedTask });
   } catch (error) {
@@ -256,6 +266,77 @@ router.post('/:id/time/stop', authenticateToken, async (req: AuthRequest, res) =
   } catch (error) {
     console.error('Stop time tracking error:', error);
     res.status(500).json({ error: 'Failed to stop time tracking' });
+  }
+});
+
+// Pause time tracking
+router.post('/:id/time/pause', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const timeLog = await TimeLog.findOne({
+      taskId: req.params.id,
+      userId: req.user?._id,
+      endTime: null,
+    });
+
+    if (!timeLog) {
+      return res.status(400).json({ error: 'No active time tracking found' });
+    }
+
+    // For pause functionality, we'll end the current log and create a new one when resumed
+    const pauseTime = new Date();
+    const durationSeconds = Math.floor((pauseTime.getTime() - timeLog.startTime.getTime()) / 1000);
+
+    timeLog.endTime = pauseTime;
+    timeLog.durationSeconds = durationSeconds;
+    await timeLog.save();
+
+    res.json({ timeLog, message: 'Timer paused' });
+  } catch (error) {
+    console.error('Pause time tracking error:', error);
+    res.status(500).json({ error: 'Failed to pause time tracking' });
+  }
+});
+
+// Resume time tracking
+router.post('/:id/time/resume', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    // Check if user is assigned to this task
+    const isAssigned = task.assignedTo.some((assignee: any) => 
+      assignee.toString() === req.user?._id.toString()
+    );
+    
+    if (!isAssigned && req.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'You are not assigned to this task' });
+    }
+
+    // Check for existing active time log
+    const existingLog = await TimeLog.findOne({
+      taskId: req.params.id,
+      userId: req.user?._id,
+      endTime: null,
+    });
+
+    if (existingLog) {
+      return res.status(400).json({ error: 'Time tracking already active for this task' });
+    }
+
+    const timeLog = new TimeLog({
+      taskId: req.params.id,
+      userId: req.user?._id,
+      startTime: new Date(),
+    });
+
+    await timeLog.save();
+
+    res.json({ timeLog, message: 'Timer resumed' });
+  } catch (error) {
+    console.error('Resume time tracking error:', error);
+    res.status(500).json({ error: 'Failed to resume time tracking' });
   }
 });
 

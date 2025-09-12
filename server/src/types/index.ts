@@ -1,4 +1,5 @@
 import { Document } from 'mongoose';
+import { Request } from 'express';
 
 export interface IUser extends Document {
   _id: string;
@@ -63,7 +64,11 @@ export interface IComment extends Document {
     filename: string;
     url: string;
     size: number;
+    mimeType: string;
   }[];
+  mentions: string[];
+  isEdited: boolean;
+  editedAt?: Date;
   createdAt: Date;
 }
 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Bell, X, Check, AlertCircle, CheckCircle, Clock, User } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { socketManager } from '../../lib/socket';
+import { api } from '../../lib/api';
+import { PushService } from '../../services/pushService';
 
 interface Notification {
   _id: string;
@@ -25,6 +27,7 @@ export const NotificationCenter: React.FC = () => {
 
   useEffect(() => {
     loadNotifications();
+    initializePushNotifications();
     
     const socket = socketManager.getSocket();
     if (socket) {
@@ -41,6 +44,18 @@ export const NotificationCenter: React.FC = () => {
     };
   }, []);
 
+  const initializePushNotifications = async () => {
+    const hasPermission = await PushService.requestPermission();
+    if (hasPermission) {
+      await PushService.subscribeToPush();
+      
+      // Update battery level periodically
+      setInterval(() => {
+        PushService.updateBatteryLevel();
+      }, 5 * 60 * 1000); // Every 5 minutes
+    }
+  };
+
   useEffect(() => {
     const unread = notifications.filter(n => !n.read).length;
     setUnreadCount(unread);
@@ -48,29 +63,8 @@ export const NotificationCenter: React.FC = () => {
 
   const loadNotifications = async () => {
     try {
-      // In a real app, you'd fetch from API
-      // For now, we'll simulate some notifications
-      const mockNotifications: Notification[] = [
-        {
-          _id: '1',
-          type: 'task_assigned',
-          title: 'New Task Assigned',
-          body: 'You have been assigned to "Setup Development Environment"',
-          read: false,
-          createdAt: new Date().toISOString(),
-          meta: { taskId: 'task1' }
-        },
-        {
-          _id: '2',
-          type: 'task_overdue',
-          title: 'Task Overdue',
-          body: 'Task "Design Database Schema" is overdue',
-          read: false,
-          createdAt: new Date(Date.now() - 3600000).toISOString(),
-          meta: { taskId: 'task2' }
-        }
-      ];
-      setNotifications(mockNotifications);
+      const response = await api.get('/notifications');
+      setNotifications(response.data.notifications);
     } catch (error) {
       console.error('Failed to load notifications:', error);
     }
@@ -95,18 +89,28 @@ export const NotificationCenter: React.FC = () => {
     }
   };
 
-  const markAsRead = (notificationId: string) => {
-    setNotifications(prev =>
-      prev.map(n =>
-        n._id === notificationId ? { ...n, read: true } : n
-      )
-    );
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await api.put(`/notifications/${notificationId}/read`);
+      setNotifications(prev =>
+        prev.map(n =>
+          n._id === notificationId ? { ...n, read: true } : n
+        )
+      );
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(n => ({ ...n, read: true }))
-    );
+  const markAllAsRead = async () => {
+    try {
+      await api.put('/notifications/read-all');
+      setNotifications(prev =>
+        prev.map(n => ({ ...n, read: true }))
+      );
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
   };
 
   const getNotificationIcon = (type: string) => {

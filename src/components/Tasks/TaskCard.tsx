@@ -38,7 +38,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
     try {
       setIsUpdating(true);
       await taskApi.updateTask(task._id, { status: newStatus });
-      updateTask(task._id, { status: newStatus });
+      updateTask(task._id, { status: newStatus as 'not_started' | 'in_progress' | 'paused' | 'completed' });
       onUpdate();
       toast.success('Task status updated');
     } catch (error: any) {
@@ -70,6 +70,32 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
     }
   };
 
+  const handlePauseTimer = async (taskId: string) => {
+    try {
+      await taskApi.pauseTimer(taskId);
+      stopTimer();
+      toast.success('Timer paused');
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to pause timer');
+    }
+  };
+
+  const handleResumeTimer = async (taskId: string) => {
+    try {
+      if (activeTimer) {
+        toast.error('Please stop the current timer first');
+        return;
+      }
+      await taskApi.resumeTimer(taskId);
+      startTimer(taskId);
+      toast.success('Timer resumed');
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to resume timer');
+    }
+  };
+
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
 
   return (
@@ -81,7 +107,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
         </div>
         
         <div className="flex flex-col items-end space-y-2">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${priorityColors[task.priority]}`}>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${priorityColors[task.priority as keyof typeof priorityColors] || priorityColors.low}`}>
             {task.priority}
           </span>
           
@@ -138,6 +164,26 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
             </button>
           )}
           
+          {task.status === 'paused' && (
+            <button
+              onClick={() => handleResumeTimer(task._id)}
+              disabled={isUpdating}
+              className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+            >
+              <Play size={14} fill="currentColor" />
+            </button>
+          )}
+          
+          {activeTimer?.taskId === task._id && (
+            <button
+              onClick={() => handlePauseTimer(task._id)}
+              disabled={isUpdating}
+              className="p-2 rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-colors"
+            >
+              <Clock size={14} />
+            </button>
+          )}
+          
           {user?.role === 'employee' && task.assignedTo.some((assignee: any) => assignee._id === user._id) && (
             <select
               value={task.status}
@@ -153,8 +199,8 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
           )}
         </div>
         
-        <span className={`text-xs font-medium ${statusColors[task.status]}`}>
-          {task.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+        <span className={`text-xs font-medium ${statusColors[task.status as keyof typeof statusColors] || statusColors.not_started}`}>
+          {task.status.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
         </span>
       </div>
     </div>

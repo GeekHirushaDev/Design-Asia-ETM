@@ -7,6 +7,8 @@ import rateLimit from 'express-rate-limit';
 
 import { config } from './config/config.js';
 import { connectDatabase } from './config/database.js';
+import { connectRedis } from './config/redis.js';
+import { scheduleJobs } from './services/jobService.js';
 import { initializeSocket } from './sockets/index.js';
 
 // Routes
@@ -15,6 +17,12 @@ import taskRoutes from './routes/tasks.js';
 import attendanceRoutes from './routes/attendance.js';
 import trackingRoutes from './routes/tracking.js';
 import reportRoutes from './routes/reports.js';
+import deviceRoutes from './routes/devices.js';
+import commentRoutes from './routes/comments.js';
+import notificationRoutes from './routes/notifications.js';
+import geofenceRoutes from './routes/geofences.js';
+import roleRoutes from './routes/roles.js';
+import uploadRoutes from './routes/uploads.js';
 
 const app = express();
 const server = createServer(app);
@@ -56,6 +64,12 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/tracking', trackingRoutes);
 app.use('/api/reports', reportRoutes);
+app.use('/api/devices', deviceRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/geofences', geofenceRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/uploads', uploadRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -72,6 +86,22 @@ app.use((error: any, req: express.Request, res: express.Response, next: express.
 const startServer = async () => {
   try {
     await connectDatabase();
+    
+    // Try to connect to Redis, but don't fail if it's not available
+    try {
+      await connectRedis();
+      console.log('✅ Redis connected successfully');
+    } catch (redisError) {
+      console.warn('⚠️ Redis connection failed, continuing without Redis:', redisError);
+    }
+    
+    // Schedule background jobs only if Redis is available
+    try {
+      await scheduleJobs();
+      console.log('✅ Background jobs scheduled');
+    } catch (jobError) {
+      console.warn('⚠️ Background jobs failed to schedule, continuing without them:', jobError);
+    }
     
     server.listen(config.PORT, () => {
       console.log(`🚀 Server running on port ${config.PORT}`);

@@ -70,6 +70,8 @@ export const taskApi = {
   deleteTask: (id: string) => api.delete(`/tasks/${id}`),
   startTimer: (id: string) => api.post(`/tasks/${id}/time/start`),
   stopTimer: (id: string) => api.post(`/tasks/${id}/time/stop`),
+  pauseTimer: (id: string) => api.post(`/tasks/${id}/time/pause`),
+  resumeTimer: (id: string) => api.post(`/tasks/${id}/time/resume`),
 };
 
 export const attendanceApi = {
@@ -90,5 +92,52 @@ export const trackingApi = {
 export const reportsApi = {
   generateWeekly: () => api.post('/reports/weekly/generate'),
   generateCustom: (config: any) => api.post('/reports/custom/generate', config),
-  download: (reportId: string) => api.get(`/reports/${reportId}/download`),
+  getJobStatus: (jobId: string) => api.get(`/reports/job/${jobId}/status`),
+  download: (reportId: string) => api.get(`/reports/${reportId}/download`, { responseType: 'blob' }),
+  getReports: () => api.get('/reports'),
+};
+
+export const commentApi = {
+  getComments: (taskId: string, params?: any) => api.get(`/comments/task/${taskId}`, { params }),
+  createComment: (taskId: string, data: any) => api.post(`/comments/task/${taskId}`, data),
+  updateComment: (commentId: string, data: any) => api.put(`/comments/${commentId}`, data),
+  deleteComment: (commentId: string) => api.delete(`/comments/${commentId}`),
+};
+
+export const notificationApi = {
+  getNotifications: (params?: any) => api.get('/notifications', { params }),
+  markAsRead: (notificationId: string) => api.put(`/notifications/${notificationId}/read`),
+  markAllAsRead: () => api.put('/notifications/read-all'),
+  deleteNotification: (notificationId: string) => api.delete(`/notifications/${notificationId}`),
+};
+
+export const deviceApi = {
+  registerDevice: (data: any) => api.post('/devices/register', data),
+  updateTelemetry: (deviceId: string, data: any) => api.put(`/devices/${deviceId}/telemetry`, data),
+  getDevices: () => api.get('/devices'),
+  removeDevice: (deviceId: string) => api.delete(`/devices/${deviceId}`),
+};
+
+export const geofenceApi = {
+  getGeofences: (params?: any) => api.get('/geofences', { params }),
+  createGeofence: (data: any) => api.post('/geofences', data),
+  updateGeofence: (id: string, data: any) => api.put(`/geofences/${id}`, data),
+  deleteGeofence: (id: string) => api.delete(`/geofences/${id}`),
+};
+
+export const roleApi = {
+  getRoles: () => api.get('/roles'),
+  createRole: (data: any) => api.post('/roles', data),
+  updateRole: (id: string, data: any) => api.put(`/roles/${id}`, data),
+  deleteRole: (id: string) => api.delete(`/roles/${id}`),
+  getPermissions: () => api.get('/roles/permissions'),
+};
+
+export const uploadApi = {
+  getPresignedUrl: (data: any) => api.post('/uploads/presign', data),
+  directUpload: (formData: FormData) => api.post('/uploads/direct', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  }),
+  getDownloadUrl: (key: string) => api.get(`/uploads/download/${key}`),
+  deleteFile: (key: string) => api.delete(`/uploads/${key}`),
 };
