@@ -23,6 +23,7 @@ export const initializeSocket = (io: SocketServer) => {
       socket.data = {
         userId: user._id.toString(),
         role: user.role,
+        userName: user.name,
       } as SocketAuthData;
 
       next();
@@ -80,6 +81,50 @@ export const initializeSocket = (io: SocketServer) => {
           ...data,
         });
       }
+    });
+
+    // Handle chat events
+    socket.on('join-chat', (data) => {
+      const { roomId, roomType } = data;
+      const room = `${roomType}:${roomId}`;
+      socket.join(room);
+    });
+
+    socket.on('leave-chat', (data) => {
+      const { roomId, roomType } = data;
+      const room = `${roomType}:${roomId}`;
+      socket.leave(room);
+    });
+
+    socket.on('send-message', (data) => {
+      const { roomId, roomType, content, type } = data;
+      const room = `${roomType}:${roomId}`;
+      
+      const message = {
+        _id: Date.now().toString(),
+        content,
+        senderId: userId,
+        senderName: socket.data.userName || 'Unknown',
+        timestamp: new Date().toISOString(),
+        type,
+      };
+      
+      io.to(room).emit('chat-message', message);
+    });
+
+    socket.on('start-typing', (data) => {
+      const { roomId } = data;
+      socket.to(`chat:${roomId}`).emit('user-typing', {
+        userId,
+        userName: socket.data.userName || 'Unknown',
+      });
+    });
+
+    socket.on('stop-typing', (data) => {
+      const { roomId } = data;
+      socket.to(`chat:${roomId}`).emit('user-stopped-typing', {
+        userId,
+      });
     });
 
     // Handle disconnection

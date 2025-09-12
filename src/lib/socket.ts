@@ -77,6 +77,27 @@ class SocketManager {
   emitLocationUpdate(data: { location: { lat: number; lng: number }; batteryLevel?: number }) {
     this.socket?.emit('location-update', data);
   }
+
+  // Chat methods
+  joinChat(roomId: string, roomType: 'task' | 'dm') {
+    this.socket?.emit('join-chat', { roomId, roomType });
+  }
+
+  leaveChat(roomId: string, roomType: 'task' | 'dm') {
+    this.socket?.emit('leave-chat', { roomId, roomType });
+  }
+
+  sendMessage(roomId: string, roomType: 'task' | 'dm', content: string, type: 'text' | 'file' = 'text') {
+    this.socket?.emit('send-message', { roomId, roomType, content, type });
+  }
+
+  startTyping(roomId: string) {
+    this.socket?.emit('start-typing', { roomId });
+  }
+
+  stopTyping(roomId: string) {
+    this.socket?.emit('stop-typing', { roomId });
+  }
 }
 
 export const socketManager = new SocketManager();

@@ -111,4 +111,5 @@ export interface AuthRequest extends Request {
 export interface SocketAuthData {
   userId: string;
   role: string;
+  userName: string;
 }

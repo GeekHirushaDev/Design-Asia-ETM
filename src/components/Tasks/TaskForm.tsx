@@ -23,7 +23,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
 
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -195,13 +194,33 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
               <label className="block text-sm font-medium text-gray-700">
                 Location
               </label>
-              <button
-                type="button"
-                onClick={() => setShowLocationPicker(!showLocationPicker)}
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                {formData.location ? 'Change Location' : 'Add Location'}
-              </button>
+              {!formData.location && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (navigator.geolocation) {
+                      navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                          setFormData({
+                            ...formData,
+                            location: {
+                              lat: position.coords.latitude,
+                              lng: position.coords.longitude,
+                              radiusMeters: 100,
+                            },
+                          });
+                        },
+                        (error) => {
+                          toast.error('Failed to get current location');
+                        }
+                      );
+                    }
+                  }}
+                  className="text-sm text-blue-600 hover:text-blue-800"
+                >
+                  Use Current Location
+                </button>
+              )}
             </div>
             
             {formData.location && (

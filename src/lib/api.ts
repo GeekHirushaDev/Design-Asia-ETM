@@ -86,3 +86,9 @@ export const trackingApi = {
   getCurrentLocations: () => api.get('/tracking/current'),
   getHistory: (params?: any) => api.get('/tracking/history', { params }),
 };
+
+export const reportsApi = {
+  generateWeekly: () => api.post('/reports/weekly/generate'),
+  generateCustom: (config: any) => api.post('/reports/custom/generate', config),
+  download: (reportId: string) => api.get(`/reports/${reportId}/download`),
+};

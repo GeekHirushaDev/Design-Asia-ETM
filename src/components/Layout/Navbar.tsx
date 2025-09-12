@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useTaskStore } from '../../store/taskStore';
+import { NotificationCenter } from '../Notifications/NotificationCenter';
 import { Bell, Menu, User, LogOut } from 'lucide-react';
 import { socketManager } from '../../lib/socket';
 
@@ -67,10 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onMenuToggle }) => {
         </div>
 
         <div className="flex items-center space-x-3">
-          <button className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors relative">
-            <Bell size={20} />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-          </button>
+          <NotificationCenter />
 
           <div className="flex items-center space-x-3 pl-3 border-l border-gray-200">
             <div className="flex items-center space-x-3">

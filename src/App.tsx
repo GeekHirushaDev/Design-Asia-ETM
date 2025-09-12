@@ -7,6 +7,10 @@ import { Sidebar } from './components/Layout/Sidebar';
 import { AdminDashboard } from './components/Dashboard/AdminDashboard';
 import { EmployeeDashboard } from './components/Dashboard/EmployeeDashboard';
 import { TaskBoard } from './components/Tasks/TaskBoard';
+import { LiveMap } from './components/Maps/LiveMap';
+import { ChatInterface } from './components/Chat/ChatInterface';
+import { AttendanceTracker } from './components/Attendance/AttendanceTracker';
+import { ReportGenerator } from './components/Reports/ReportGenerator';
 import { socketManager } from './lib/socket';
 
 function App() {
@@ -52,20 +56,28 @@ function App() {
       case 'tasks':
         return <TaskBoard />;
       case 'teams':
-        return <div className="p-6"><h1>Teams Management</h1><p>Coming soon...</p></div>;
+        return <div className="p-6"><h1>Teams Management</h1><p>Feature in development...</p></div>;
       case 'attendance':
-        return <div className="p-6"><h1>Attendance</h1><p>Coming soon...</p></div>;
+        return <AttendanceTracker />;
       case 'tracking':
       case 'map':
-        return <div className="p-6"><h1>Location Tracking</h1><p>Coming soon...</p></div>;
+        return <LiveMap />;
       case 'reports':
-        return <div className="p-6"><h1>Reports</h1><p>Coming soon...</p></div>;
+        return <ReportGenerator />;
       case 'settings':
-        return <div className="p-6"><h1>Settings</h1><p>Coming soon...</p></div>;
+        return <div className="p-6"><h1>Settings</h1><p>Feature in development...</p></div>;
       case 'timer':
         return <TaskBoard />;
       case 'chat':
-        return <div className="p-6"><h1>Messages</h1><p>Coming soon...</p></div>;
+        return (
+          <div className="p-6">
+            <ChatInterface 
+              roomId="general" 
+              roomType="dm" 
+              roomName="General Chat" 
+            />
+          </div>
+        );
       default:
         return user?.role === 'admin' ? <AdminDashboard /> : <EmployeeDashboard />;
     }

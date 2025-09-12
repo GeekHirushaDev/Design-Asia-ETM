@@ -14,6 +14,7 @@ import authRoutes from './routes/auth.js';
 import taskRoutes from './routes/tasks.js';
 import attendanceRoutes from './routes/attendance.js';
 import trackingRoutes from './routes/tracking.js';
+import reportRoutes from './routes/reports.js';
 
 const app = express();
 const server = createServer(app);
@@ -54,6 +55,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/tracking', trackingRoutes);
+app.use('/api/reports', reportRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
