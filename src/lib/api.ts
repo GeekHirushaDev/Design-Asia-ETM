@@ -83,6 +83,12 @@ export const attendanceApi = {
   clockOut: (location: { lat: number; lng: number }) =>
     api.post('/attendance/clock-out', { location }),
   getAttendance: (params?: any) => api.get('/attendance', { params }),
+  getTodayAttendance: () => api.get('/attendance', {
+    params: {
+      startDate: new Date().toISOString().split('T')[0],
+      endDate: new Date().toISOString().split('T')[0],
+    }
+  }),
 };
 
 export const trackingApi = {
@@ -200,6 +206,7 @@ export const timeTrackingApi = {
 export const userApi = {
   getUsers: (params?: any) => api.get('/users', { params }),
   getUser: (id: string) => api.get(`/users/${id}`),
+  createUser: (data: any) => api.post('/users', data),
   updateUser: (id: string, data: any) => api.put(`/users/${id}`, data),
   deleteUser: (id: string) => api.delete(`/users/${id}`),
   resetPassword: (id: string, data: { newPassword: string }) => api.post(`/users/${id}/reset-password`, data),

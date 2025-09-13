@@ -47,6 +47,53 @@ router.get('/', authenticateToken, requireRole(['admin']), async (req: AuthReque
   }
 });
 
+// Create new user (admin only)
+router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+  try {
+    const { name, email, password, role = 'employee', phone } = req.body;
+
+    // Validation
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: 'Name, email, and password are required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      role,
+      phone,
+      status: 'active'
+    });
+
+    await newUser.save();
+
+    // Return user without password
+    const userResponse = newUser.toObject();
+    delete userResponse.password;
+
+    res.status(201).json(userResponse);
+  } catch (error) {
+    console.error('Create user error:', error);
+    res.status(500).json({ error: 'Failed to create user' });
+  }
+});
+
 // Get user by ID (admin only)
 router.get('/:userId', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
   try {

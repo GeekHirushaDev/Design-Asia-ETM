@@ -11,6 +11,10 @@ import { LiveMap } from './components/Maps/LiveMap';
 import { ChatInterface } from './components/Chat/ChatInterface';
 import { AttendanceTracker } from './components/Attendance/AttendanceTracker';
 import { ReportGenerator } from './components/Reports/ReportGenerator';
+import { WeeklyReport } from './components/Reports/WeeklyReport';
+import { TaskProgressDashboard } from './components/Dashboard/TaskProgressDashboard';
+import { TeamManagement } from './components/Admin/TeamManagement';
+import { SettingsSection } from './components/Admin/SettingsSection';
 import { socketManager } from './lib/socket';
 
 function App() {
@@ -23,10 +27,17 @@ function App() {
       socketManager.connect(accessToken);
     }
 
+    // Listen for navigation events
+    const handleNavigateToMap = () => {
+      setActiveView('tracking');
+    };
+
+    window.addEventListener('navigate-to-map', handleNavigateToMap);
     return () => {
       if (!isAuthenticated) {
         socketManager.disconnect();
       }
+      window.removeEventListener('navigate-to-map', handleNavigateToMap);
     };
   }, [isAuthenticated, accessToken, user]);
 
@@ -56,16 +67,18 @@ function App() {
       case 'tasks':
         return <TaskBoard />;
       case 'teams':
-        return <div className="p-6"><h1>Teams Management</h1><p>Feature in development...</p></div>;
+        return <TeamManagement />;
       case 'attendance':
         return <AttendanceTracker />;
       case 'tracking':
       case 'map':
         return <LiveMap />;
+      case 'analytics':
+        return <TaskProgressDashboard />;
       case 'reports':
-        return <ReportGenerator />;
+        return <WeeklyReport />;
       case 'settings':
-        return <div className="p-6"><h1>Settings</h1><p>Feature in development...</p></div>;
+        return <SettingsSection />;
       case 'timer':
         return <TaskBoard />;
       case 'chat':

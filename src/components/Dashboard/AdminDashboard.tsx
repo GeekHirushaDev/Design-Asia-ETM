@@ -11,15 +11,10 @@ import {
   UserPlus,
   Settings
 } from 'lucide-react';
-import { taskApi, trackingApi, authApi } from '../../lib/api';
+import { taskApi, trackingApi, authApi, api } from '../../lib/api';
 import { TaskProgressDashboard } from './TaskProgressDashboard';
 import { OverdueUpcomingSummary } from './OverdueUpcomingSummary';
-import { WeeklyReport } from '../Reports/WeeklyReport';
-import { TimeTracker } from '../TimeTracking/TimeTracker';
-import { TimeAnalytics } from '../TimeTracking/TimeAnalytics';
 import { EmployeeRegistrationForm } from '../Admin/EmployeeRegistrationForm';
-import { TeamManagement } from '../Admin/TeamManagement';
-import { SettingsSection } from '../Admin/SettingsSection';
 
 interface DashboardStats {
   totalTasks: number;
@@ -41,8 +36,8 @@ export const AdminDashboard: React.FC = () => {
   });
   const [recentTasks, setRecentTasks] = useState([]);
   const [currentLocations, setCurrentLocations] = useState([]);
+  const [activeEmployees, setActiveEmployees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'analytics' | 'timetracking' | 'team' | 'settings'>('overview');
   const [showEmployeeForm, setShowEmployeeForm] = useState(false);
 
   useEffect(() => {
@@ -51,13 +46,20 @@ export const AdminDashboard: React.FC = () => {
 
   const loadDashboardData = async () => {
     try {
-      const [tasksResponse, locationsResponse] = await Promise.all([
+      const [tasksResponse, locationsResponse, attendanceResponse] = await Promise.all([
         taskApi.getTasks(),
         trackingApi.getCurrentLocations(),
+        api.get('/attendance', {
+          params: {
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: new Date().toISOString().split('T')[0],
+          }
+        }),
       ]);
 
       const tasks = tasksResponse.data.tasks;
       const locations = locationsResponse.data.locations;
+      const todayAttendance = attendanceResponse.data.attendance;
 
       // Calculate stats
       const totalTasks = tasks.length;
@@ -66,6 +68,12 @@ export const AdminDashboard: React.FC = () => {
         t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'completed'
       ).length;
       const activeEmployees = locations.length;
+      
+      // Get employees who clocked in but not out (currently active)
+      const currentlyActive = todayAttendance.filter((att: any) => 
+        att.clockIn && !att.clockOut
+      );
+      setActiveEmployees(currentlyActive);
       const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
       setStats({
@@ -84,6 +92,11 @@ export const AdminDashboard: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleViewMap = () => {
+    // This will be handled by the parent App component
+    window.dispatchEvent(new CustomEvent('navigate-to-map'));
   };
 
   const StatCard: React.FC<{
@@ -125,7 +138,7 @@ export const AdminDashboard: React.FC = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -141,38 +154,9 @@ export const AdminDashboard: React.FC = () => {
         </button>
       </div>
 
-      {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
-          {[
-            { id: 'overview', label: 'Overview', icon: Users },
-            { id: 'analytics', label: 'Analytics', icon: TrendingUp },
-            { id: 'timetracking', label: 'Time Tracking', icon: Clock },
-            { id: 'reports', label: 'Weekly Reports', icon: Calendar },
-            { id: 'team', label: 'Team Management', icon: Users },
-            { id: 'settings', label: 'Settings', icon: Settings }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
-              className={`flex items-center px-1 py-4 border-b-2 font-medium text-sm ${
-                activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <tab.icon className="w-5 h-5 mr-2" />
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-      </div>
 
-      {/* Tab Content */}
-      {activeTab === 'overview' && (
-        <>
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
             {renderStatCard(
               "Total Tasks",
               stats.totalTasks.toString(),
@@ -194,15 +178,15 @@ export const AdminDashboard: React.FC = () => {
               "bg-red-500"
             )}
             {renderStatCard(
-              "Active Employees",
-              stats.activeEmployees.toString(),
+              "Currently Active",
+              activeEmployees.length.toString(),
               <Users className="text-white" size={24} />,
               "bg-purple-500"
             )}
-          </div>
+      </div>
 
-          {/* Recent Tasks and Active Employees */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Recent Tasks and Active Employees */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             {/* Recent Tasks with Time Tracking */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-4">
@@ -254,45 +238,42 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Active Employees */}
+            {/* Currently Active Employees */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Active Employees</h2>
-                <button className="text-sm text-blue-600 hover:text-blue-800">
+                <h2 className="text-lg font-semibold text-gray-900">Currently Active Employees</h2>
+                  
+                <button onClick={handleViewMap} className="text-sm text-blue-600 hover:text-blue-800">
                   View Map
                 </button>
               </div>
               
               <div className="space-y-3">
-                {currentLocations.map((location: any) => (
-                  <div key={location.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                {activeEmployees.map((employee: any) => (
+                  <div key={employee._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                         <span className="text-white text-xs font-medium">
-                          {location.user.name.charAt(0).toUpperCase()}
+                          {employee.userId?.name?.charAt(0).toUpperCase() || 'U'}
                         </span>
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-gray-900">
-                          {location.user.name}
+                          {employee.userId?.name || 'Unknown User'}
                         </h4>
                         <p className="text-xs text-gray-600">
-                          Last seen: {new Date(location.timestamp).toLocaleTimeString()}
+                          Clocked in: {employee.clockIn?.time ? new Date(employee.clockIn.time).toLocaleTimeString() : 'Unknown'}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      {location.batteryLevel && (
-                        <span className="text-xs text-gray-600">
-                          {location.batteryLevel}%
-                        </span>
-                      )}
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-xs text-green-600 font-medium">Active</span>
                     </div>
                   </div>
                 ))}
                 
-                {currentLocations.length === 0 && (
+                {activeEmployees.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
                     <MapPin size={24} className="mx-auto mb-2" />
                     <p className="text-sm">No active employees</p>
@@ -300,52 +281,13 @@ export const AdminDashboard: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
-        </>
-      )}
 
-      {activeTab === 'analytics' && (
-        <>
-          {/* Task Progress Dashboard */}
-          <div>
-            <TaskProgressDashboard />
-          </div>
 
-          {/* Overdue and Upcoming Tasks Summary */}
-          <div>
-            <OverdueUpcomingSummary />
-          </div>
-        </>
-      )}
 
-      {activeTab === 'timetracking' && (
-        <>
-          <div>
-            <TimeTracker tasks={recentTasks} />
-          </div>
-          <div>
-            <TimeAnalytics />
-          </div>
-        </>
-      )}
 
-      {activeTab === 'reports' && (
-        <div>
-          <WeeklyReport />
-        </div>
-      )}
 
-      {activeTab === 'team' && (
-        <div>
-          <TeamManagement />
-        </div>
-      )}
 
-      {activeTab === 'settings' && (
-        <div>
-          <SettingsSection />
-        </div>
-      )}
+      </div>
 
       {/* Employee Registration Modal */}
       {showEmployeeForm && (

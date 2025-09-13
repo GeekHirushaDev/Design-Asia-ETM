@@ -59,11 +59,15 @@ export const LiveMap: React.FC = () => {
     };
   }, [user]);
 
+  useEffect(() => {
+    // Refresh locations when component becomes visible
+    loadCurrentLocations();
+  }, []);
   const loadCurrentLocations = async () => {
     try {
       if (user?.role === 'admin') {
         const response = await trackingApi.getCurrentLocations();
-        setLocations(response.data.locations);
+        setLocations(response.data.locations || []);
       }
     } catch (error) {
       console.error('Failed to load locations:', error);
@@ -202,8 +206,12 @@ export const LiveMap: React.FC = () => {
                 <div className="p-2">
                   <h4 className="font-semibold">{location.user.name}</h4>
                   <p className="text-sm text-gray-600">{location.user.email}</p>
+                  <p className="text-sm text-gray-600">Role: {location.user.role}</p>
                   <p className="text-xs text-gray-500">
                     Last seen: {new Date(location.timestamp).toLocaleTimeString()}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Coordinates: {location.location.lat.toFixed(6)}, {location.location.lng.toFixed(6)}
                   </p>
                   {location.batteryLevel && (
                     <p className="text-xs text-gray-500">
@@ -229,6 +237,9 @@ export const LiveMap: React.FC = () => {
                     <h4 className="font-semibold">Your Location</h4>
                     <p className="text-sm text-gray-600">
                       {userLocation.lat.toFixed(6)}, {userLocation.lng.toFixed(6)}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Updated: {new Date().toLocaleTimeString()}
                     </p>
                   </div>
                 </Popup>

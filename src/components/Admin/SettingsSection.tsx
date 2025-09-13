@@ -31,6 +31,12 @@ const SettingsModal: React.FC<{
     try {
       await onSave(formData);
       toast.success('Settings saved successfully');
+      
+      // Force a small delay to ensure settings are applied
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+      
       onClose();
     } catch (error) {
       toast.error('Failed to save settings');
@@ -165,6 +171,16 @@ const SettingsModal: React.FC<{
                 />
                 <span className="ml-2 text-sm text-gray-700">Weekly Reports</span>
               </label>
+              
+              <div className="pt-3 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={testNotification}
+                  className="w-full px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors text-sm"
+                >
+                  Test Notification
+                </button>
+              </div>
             </div>
           </>
         );
@@ -269,14 +285,27 @@ export const SettingsSection: React.FC = () => {
 
   useEffect(() => {
     loadSettings();
+    // Apply saved settings on component mount
+    applyTheme(settings.theme);
+    applyAccentColor(settings.accentColor);
   }, []);
 
+  useEffect(() => {
+    // Apply settings when they change
+    applyTheme(settings.theme);
+    applyAccentColor(settings.accentColor);
+  }, [settings.theme, settings.accentColor]);
   const loadSettings = async () => {
     try {
       // Load settings from localStorage for now
       const savedSettings = localStorage.getItem('taskmanager-settings');
       if (savedSettings) {
-        setSettings(JSON.parse(savedSettings));
+        const parsed = JSON.parse(savedSettings);
+        setSettings(parsed);
+        
+        // Apply loaded settings immediately
+        applyTheme(parsed.theme);
+        applyAccentColor(parsed.accentColor);
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -301,28 +330,104 @@ export const SettingsSection: React.FC = () => {
     if (categoryData.accentColor) {
       applyAccentColor(categoryData.accentColor);
     }
+    
+    // Apply other settings
+    if (categoryData.timezone) {
+      // Store timezone preference
+      localStorage.setItem('user-timezone', categoryData.timezone);
+    }
+    
+    if (categoryData.language) {
+      // Store language preference
+      localStorage.setItem('user-language', categoryData.language);
+    }
+    
+    if (categoryData.dateFormat) {
+      // Store date format preference
+      localStorage.setItem('user-date-format', categoryData.dateFormat);
+    }
+    
+    // Handle notification settings
+    if (categoryData.pushNotifications !== undefined) {
+      if (categoryData.pushNotifications) {
+        // Enable push notifications
+        const hasPermission = await requestNotificationPermission();
+        if (!hasPermission) {
+          toast.error('Push notification permission denied');
+          setSettings(prev => ({ ...prev, pushNotifications: false }));
+          localStorage.setItem('taskmanager-settings', JSON.stringify({ ...updatedSettings, pushNotifications: false }));
+        }
+      }
+    }
   };
 
   const applyTheme = (theme: string) => {
     const root = document.documentElement;
+    
+    // Remove existing theme classes
+    root.classList.remove('dark', 'light');
+    
     if (theme === 'dark') {
       root.classList.add('dark');
+      document.body.style.backgroundColor = '#1f2937';
+      document.body.style.color = '#f9fafb';
     } else if (theme === 'light') {
-      root.classList.remove('dark');
+      root.classList.add('light');
+      document.body.style.backgroundColor = '#ffffff';
+      document.body.style.color = '#111827';
     } else {
       // Auto theme - check system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (prefersDark) {
         root.classList.add('dark');
+        document.body.style.backgroundColor = '#1f2937';
+        document.body.style.color = '#f9fafb';
       } else {
-        root.classList.remove('dark');
+        root.classList.add('light');
+        document.body.style.backgroundColor = '#ffffff';
+        document.body.style.color = '#111827';
       }
     }
   };
 
   const applyAccentColor = (color: string) => {
     const root = document.documentElement;
-    root.style.setProperty('--accent-color', color);
+    
+    // Apply accent color to CSS custom properties
+    root.style.setProperty('--color-primary', color);
+    root.style.setProperty('--color-primary-50', `${color}10`);
+    root.style.setProperty('--color-primary-100', `${color}20`);
+    root.style.setProperty('--color-primary-500', color);
+    root.style.setProperty('--color-primary-600', color);
+    root.style.setProperty('--color-primary-700', color);
+    
+    // Update button colors dynamically
+    const buttons = document.querySelectorAll('.btn-primary, .bg-blue-600, .bg-blue-500');
+    buttons.forEach(button => {
+      (button as HTMLElement).style.backgroundColor = color;
+    });
+  };
+
+  const requestNotificationPermission = async (): Promise<boolean> => {
+    if (!('Notification' in window)) {
+      toast.error('This browser does not support notifications');
+      return false;
+    }
+
+    const permission = await Notification.requestPermission();
+    return permission === 'granted';
+  };
+
+  const testNotification = () => {
+    if (Notification.permission === 'granted') {
+      new Notification('TaskFlow Test', {
+        body: 'Notifications are working correctly!',
+        icon: '/favicon.ico',
+      });
+      toast.success('Test notification sent');
+    } else {
+      toast.error('Notification permission not granted');
+    }
   };
 
   const exportSettings = () => {
