@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { IComment } from '../types/index.js';
+import { TimezoneUtils } from '../utils/timezone.js';
 
 const commentSchema = new Schema<IComment>(
   {
@@ -96,7 +97,7 @@ const commentSchema = new Schema<IComment>(
       },
       createdAt: {
         type: Date,
-        default: Date.now,
+        default: () => TimezoneUtils.now(),
       },
     }],
     isDeleted: {

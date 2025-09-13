@@ -1,4 +1,5 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, Document } from 'mongoose';
+import { TimezoneUtils } from '../utils/timezone.js';
 import { ITask } from '../types/index.js';
 
 const taskSchema = new Schema<ITask>(
@@ -61,7 +62,7 @@ const taskSchema = new Schema<ITask>(
         from: { type: Date },
         to: { type: Date },
         reason: { type: String, default: 'Auto carryover - task not completed' },
-        carriedAt: { type: Date, default: Date.now }
+        carriedAt: { type: Date, default: () => TimezoneUtils.now() }
       }]
     },
     progress: {

@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { ITrackingPoint } from '../types/index.js';
+import { TimezoneUtils } from '../utils/timezone.js';
 
 const trackingPointSchema = new Schema<ITrackingPoint>(
   {
@@ -11,7 +12,7 @@ const trackingPointSchema = new Schema<ITrackingPoint>(
     timestamp: {
       type: Date,
       required: true,
-      default: Date.now,
+      default: () => TimezoneUtils.now(),
     },
     location: {
       lat: { type: Number, required: true },

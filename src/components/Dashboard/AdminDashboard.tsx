@@ -8,7 +8,8 @@ import {
   MapPin,
   Calendar,
   Plus,
-  UserPlus
+  UserPlus,
+  Settings
 } from 'lucide-react';
 import { taskApi, trackingApi, authApi } from '../../lib/api';
 import { TaskProgressDashboard } from './TaskProgressDashboard';
@@ -18,6 +19,7 @@ import { TimeTracker } from '../TimeTracking/TimeTracker';
 import { TimeAnalytics } from '../TimeTracking/TimeAnalytics';
 import { EmployeeRegistrationForm } from '../Admin/EmployeeRegistrationForm';
 import { TeamManagement } from '../Admin/TeamManagement';
+import { SettingsSection } from '../Admin/SettingsSection';
 
 interface DashboardStats {
   totalTasks: number;
@@ -40,7 +42,7 @@ export const AdminDashboard: React.FC = () => {
   const [recentTasks, setRecentTasks] = useState([]);
   const [currentLocations, setCurrentLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'analytics' | 'timetracking' | 'team'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'analytics' | 'timetracking' | 'team' | 'settings'>('overview');
   const [showEmployeeForm, setShowEmployeeForm] = useState(false);
 
   useEffect(() => {
@@ -147,7 +149,8 @@ export const AdminDashboard: React.FC = () => {
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
             { id: 'timetracking', label: 'Time Tracking', icon: Clock },
             { id: 'reports', label: 'Weekly Reports', icon: Calendar },
-            { id: 'team', label: 'Team Management', icon: Users }
+            { id: 'team', label: 'Team Management', icon: Users },
+            { id: 'settings', label: 'Settings', icon: Settings }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -335,6 +338,12 @@ export const AdminDashboard: React.FC = () => {
       {activeTab === 'team' && (
         <div>
           <TeamManagement />
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div>
+          <SettingsSection />
         </div>
       )}
 

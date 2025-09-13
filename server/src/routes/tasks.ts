@@ -6,6 +6,7 @@ import { validate } from '../middleware/validation.js';
 import { createTaskSchema, updateTaskSchema } from '../validation/schemas.js';
 import { PushService } from '../services/pushService.js';
 import { TaskCarryoverService } from '../services/taskCarryoverService.js';
+import { TimezoneUtils } from '../utils/timezone.js';
 import { AuthRequest } from '../types/index.js';
 
 const router = express.Router();
@@ -225,7 +226,7 @@ router.post('/:id/time/start', authenticateToken, async (req: AuthRequest, res: 
     const timeLog = new TimeLog({
       taskId: req.params.id,
       userId: req.user?._id,
-      startTime: new Date(),
+      startTime: TimezoneUtils.now(),
     });
 
     await timeLog.save();
@@ -256,7 +257,7 @@ router.post('/:id/time/stop', authenticateToken, async (req: AuthRequest, res: R
       return res.status(400).json({ error: 'No active time tracking found' });
     }
 
-    const endTime = new Date();
+    const endTime = TimezoneUtils.now();
     const durationSeconds = Math.floor((endTime.getTime() - timeLog.startTime.getTime()) / 1000);
 
     timeLog.endTime = endTime;
@@ -284,7 +285,7 @@ router.post('/:id/time/pause', authenticateToken, async (req: AuthRequest, res: 
     }
 
     // For pause functionality, we'll end the current log and create a new one when resumed
-    const pauseTime = new Date();
+    const pauseTime = TimezoneUtils.now();
     const durationSeconds = Math.floor((pauseTime.getTime() - timeLog.startTime.getTime()) / 1000);
 
     timeLog.endTime = pauseTime;
@@ -329,7 +330,7 @@ router.post('/:id/time/resume', authenticateToken, async (req: AuthRequest, res:
     const timeLog = new TimeLog({
       taskId: req.params.id,
       userId: req.user?._id,
-      startTime: new Date(),
+      startTime: TimezoneUtils.now(),
     });
 
     await timeLog.save();

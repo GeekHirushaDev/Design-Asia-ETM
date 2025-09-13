@@ -10,6 +10,7 @@ import { connectDatabase } from './config/database.js';
 import { connectRedis } from './config/redis.js';
 import { scheduleJobs } from './services/jobService.js';
 import { initializeSocket } from './sockets/index.js';
+import { TimezoneUtils } from './utils/timezone.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -24,6 +25,8 @@ import notificationRoutes from './routes/notifications.js';
 import geofenceRoutes from './routes/geofences.js';
 import roleRoutes from './routes/roles.js';
 import uploadRoutes from './routes/uploads.js';
+import usersRoutes from './routes/users.js';
+import teamsRoutes from './routes/teams.js';
 
 const app = express();
 const server = createServer(app);
@@ -72,10 +75,12 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/geofences', geofenceRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/uploads', uploadRoutes);
+app.use('/api/users', usersRoutes);
+app.use('/api/teams', teamsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ status: 'OK', timestamp: TimezoneUtils.now().toISOString() });
 });
 
 // Error handling middleware

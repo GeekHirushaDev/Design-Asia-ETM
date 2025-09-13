@@ -202,4 +202,15 @@ export const userApi = {
   getUser: (id: string) => api.get(`/users/${id}`),
   updateUser: (id: string, data: any) => api.put(`/users/${id}`, data),
   deleteUser: (id: string) => api.delete(`/users/${id}`),
+  resetPassword: (id: string, data: { newPassword: string }) => api.post(`/users/${id}/reset-password`, data),
+};
+
+export const teamApi = {
+  getTeams: (params?: any) => api.get('/teams', { params }),
+  getTeam: (id: string) => api.get(`/teams/${id}`),
+  createTeam: (data: any) => api.post('/teams', data),
+  updateTeam: (id: string, data: any) => api.put(`/teams/${id}`, data),
+  deleteTeam: (id: string) => api.delete(`/teams/${id}`),
+  addMember: (teamId: string, userId: string) => api.post(`/teams/${teamId}/members`, { userId }),
+  removeMember: (teamId: string, userId: string) => api.delete(`/teams/${teamId}/members/${userId}`),
 };

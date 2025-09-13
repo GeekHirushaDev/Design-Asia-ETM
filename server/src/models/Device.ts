@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import { TimezoneUtils } from '../utils/timezone.js';
 
 export interface IDevice extends mongoose.Document {
   _id: string;
@@ -53,7 +54,7 @@ const deviceSchema = new Schema<IDevice>(
     },
     lastSeen: {
       type: Date,
-      default: Date.now,
+      default: () => TimezoneUtils.now(),
     },
     batteryLevel: {
       type: Number,
