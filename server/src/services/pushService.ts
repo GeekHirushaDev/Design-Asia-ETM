@@ -3,11 +3,14 @@ import { config } from '../config/config.js';
 import Device from '../models/Device.js';
 import Notification from '../models/Notification.js';
 
-webpush.setVapidDetails(
-  `mailto:${config.VAPID_EMAIL}`,
-  config.VAPID_PUBLIC_KEY,
-  config.VAPID_PRIVATE_KEY
-);
+// Only setup VAPID if keys are provided
+if (config.VAPID_PUBLIC_KEY && config.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    `mailto:${config.VAPID_EMAIL}`,
+    config.VAPID_PUBLIC_KEY,
+    config.VAPID_PRIVATE_KEY
+  );
+}
 
 export class PushService {
   static async sendNotification(userId: string, notification: {
@@ -23,6 +26,12 @@ export class PushService {
         ...notification,
       });
       await dbNotification.save();
+
+      // Skip push notifications if VAPID keys are not configured
+      if (!config.VAPID_PUBLIC_KEY || !config.VAPID_PRIVATE_KEY) {
+        console.warn('VAPID keys not configured, skipping push notifications');
+        return dbNotification;
+      }
 
       // Get user's devices with push subscriptions
       const devices = await Device.find({

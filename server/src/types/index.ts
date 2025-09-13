@@ -10,6 +10,7 @@ export interface IUser extends Document {
   avatarUrl?: string;
   phone?: string;
   status: 'active' | 'inactive';
+  emailVerified: boolean;
   lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;

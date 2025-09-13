@@ -8,7 +8,7 @@ import bcrypt from 'bcryptjs';
 const router = express.Router();
 
 // Get all users (admin only)
-router.get('/', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.get('/', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
     const { page = 1, limit = 20, role, status, search } = req.query;
     const filter: any = {};
@@ -48,7 +48,7 @@ router.get('/', authenticateToken, requireRole(['admin']), async (req: AuthReque
 });
 
 // Create new user (admin only)
-router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.post('/', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
     const { name, email, password, role = 'employee', phone } = req.body;
 
@@ -85,9 +85,9 @@ router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthRequ
 
     // Return user without password
     const userResponse = newUser.toObject();
-    delete userResponse.password;
+    const { password: _, ...userWithoutPassword } = userResponse;
 
-    res.status(201).json(userResponse);
+    res.status(201).json(userWithoutPassword);
   } catch (error) {
     console.error('Create user error:', error);
     res.status(500).json({ error: 'Failed to create user' });
@@ -95,7 +95,7 @@ router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthRequ
 });
 
 // Get user by ID (admin only)
-router.get('/:userId', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.get('/:userId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
     const user = await User.findById(req.params.userId).select('-password');
     if (!user) {
@@ -109,7 +109,7 @@ router.get('/:userId', authenticateToken, requireRole(['admin']), async (req: Au
 });
 
 // Update user (admin only)
-router.put('/:userId', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.put('/:userId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
     const { name, email, role, status, phone } = req.body;
     const userId = req.params.userId;
@@ -147,7 +147,7 @@ router.put('/:userId', authenticateToken, requireRole(['admin']), async (req: Au
 });
 
 // Delete user (admin only)
-router.delete('/:userId', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.delete('/:userId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
     const userId = req.params.userId;
 
@@ -169,7 +169,7 @@ router.delete('/:userId', authenticateToken, requireRole(['admin']), async (req:
 });
 
 // Reset user password (admin only)
-router.post('/:userId/reset-password', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.post('/:userId/reset-password', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
     const { newPassword } = req.body;
     const userId = req.params.userId;

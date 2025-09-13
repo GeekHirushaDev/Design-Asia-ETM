@@ -1,6 +1,6 @@
 // Sample data for demo purposes
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import Team from '../models/Team.js';
 import Task from '../models/Task.js';
@@ -177,10 +177,11 @@ async function createSampleData() {
     const createdUsers: any[] = [];
     
     for (const userData of sampleUsers) {
-      const hashedPassword = await bcrypt.hash(userData.password, 10);
+      // Don't pre-hash here; User model has a pre-save hook that hashes passwords.
       const user = new User({
         ...userData,
-        password: hashedPassword
+        email: userData.email.toLowerCase(),
+        password: userData.password
       });
       const savedUser = await user.save();
       createdUsers.push(savedUser);

@@ -16,7 +16,7 @@ export interface ISession extends mongoose.Document {
 const sessionSchema = new Schema<ISession>(
   {
     userId: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: true,
     },

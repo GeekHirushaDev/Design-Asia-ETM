@@ -5,7 +5,7 @@ import { TimezoneUtils } from '../utils/timezone.js';
 const trackingPointSchema = new Schema<ITrackingPoint>(
   {
     userId: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: true,
     },

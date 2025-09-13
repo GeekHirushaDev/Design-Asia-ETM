@@ -38,7 +38,7 @@ const getDeviceInfo = (req: express.Request) => {
 };
 
 // Register
-router.post('/register', validate(registerSchema), async (req, res) => {
+router.post('/register', validate(registerSchema), async (req, res): Promise<void> => {
   try {
     const { name, email, password, role = 'employee' } = req.body;
 
@@ -91,7 +91,7 @@ router.post('/register', validate(registerSchema), async (req, res) => {
 });
 
 // Login
-router.post('/login', validate(loginSchema), async (req, res) => {
+router.post('/login', validate(loginSchema), async (req, res): Promise<void> => {
   try {
     const { email, password } = req.body;
 
@@ -138,7 +138,7 @@ router.post('/login', validate(loginSchema), async (req, res) => {
 });
 
 // Forgot password
-router.post('/forgot-password', validate(forgotPasswordSchema), async (req, res) => {
+router.post('/forgot-password', validate(forgotPasswordSchema), async (req, res): Promise<void> => {
   try {
     const { email } = req.body;
     
@@ -158,7 +158,7 @@ router.post('/forgot-password', validate(forgotPasswordSchema), async (req, res)
 });
 
 // Reset password
-router.post('/reset-password', validate(resetPasswordSchema), async (req, res) => {
+router.post('/reset-password', validate(resetPasswordSchema), async (req, res): Promise<void> => {
   try {
     const { token, password } = req.body;
     
@@ -189,7 +189,7 @@ router.post('/reset-password', validate(resetPasswordSchema), async (req, res) =
 });
 
 // Verify email
-router.post('/verify-email', async (req, res) => {
+router.post('/verify-email', async (req, res): Promise<void> => {
   try {
     const { token } = req.body;
     
@@ -210,7 +210,7 @@ router.post('/verify-email', async (req, res) => {
 });
 
 // Refresh token
-router.post('/refresh', async (req, res) => {
+router.post('/refresh', async (req, res): Promise<void> => {
   try {
     const { refreshToken } = req.body;
 
@@ -307,7 +307,7 @@ router.get('/sessions', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Revoke session
-router.delete('/sessions/:sessionId', authenticateToken, async (req: AuthRequest, res) => {
+router.delete('/sessions/:sessionId', authenticateToken, async (req: AuthRequest, res): Promise<void> => {
   try {
     const { sessionId } = req.params;
     

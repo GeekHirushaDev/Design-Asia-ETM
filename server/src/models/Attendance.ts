@@ -4,7 +4,7 @@ import { IAttendance } from '../types/index.js';
 const attendanceSchema = new Schema<IAttendance>(
   {
     userId: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: true,
     },

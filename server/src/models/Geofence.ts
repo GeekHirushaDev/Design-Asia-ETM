@@ -45,7 +45,7 @@ const geofenceSchema = new Schema<IGeofence>(
       ref: 'Task',
     }],
     createdBy: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: true,
     },

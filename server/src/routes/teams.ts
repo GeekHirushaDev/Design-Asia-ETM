@@ -48,18 +48,20 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Create team (admin only)
-router.post('/', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.post('/', authenticateToken, requireRole('admin'), async (req: AuthRequest, res): Promise<void> => {
   try {
     const { name, description, members, leader } = req.body;
 
     if (!name || !name.trim()) {
-      return res.status(400).json({ error: 'Team name is required' });
+      res.status(400).json({ error: 'Team name is required' });
+      return;
     }
 
     // Check if team name already exists
     const existingTeam = await Team.findOne({ name: name.trim() });
     if (existingTeam) {
-      return res.status(400).json({ error: 'Team name already exists' });
+      res.status(400).json({ error: 'Team name already exists' });
+      return;
     }
 
     // Validate members exist
@@ -123,7 +125,7 @@ router.get('/:teamId', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Update team (admin only)
-router.put('/:teamId', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.put('/:teamId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
     const { name, description, members, leader, status } = req.body;
     const teamId = req.params.teamId;
@@ -183,7 +185,7 @@ router.put('/:teamId', authenticateToken, requireRole(['admin']), async (req: Au
 });
 
 // Delete team (admin only)
-router.delete('/:teamId', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.delete('/:teamId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
     const team = await Team.findByIdAndDelete(req.params.teamId);
     if (!team) {
@@ -198,7 +200,7 @@ router.delete('/:teamId', authenticateToken, requireRole(['admin']), async (req:
 });
 
 // Add member to team (admin only)
-router.post('/:teamId/members', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.post('/:teamId/members', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
     const { userId } = req.body;
     const teamId = req.params.teamId;
@@ -240,7 +242,7 @@ router.post('/:teamId/members', authenticateToken, requireRole(['admin']), async
 });
 
 // Remove member from team (admin only)
-router.delete('/:teamId/members/:userId', authenticateToken, requireRole(['admin']), async (req: AuthRequest, res) => {
+router.delete('/:teamId/members/:userId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
     const { teamId, userId } = req.params;
 

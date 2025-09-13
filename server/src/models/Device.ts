@@ -26,7 +26,7 @@ export interface IDevice extends mongoose.Document {
 const deviceSchema = new Schema<IDevice>(
   {
     userId: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: true,
     },
