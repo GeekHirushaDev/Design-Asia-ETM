@@ -40,6 +40,30 @@ export interface ITask extends Document {
     at?: Date;
     comment?: string;
   };
+  carryoverInfo?: {
+    isCarriedOver: boolean;
+    originalDueDate?: Date;
+    carryoverCount: number;
+    carryoverHistory: Array<{
+      from: Date;
+      to: Date;
+      reason: string;
+      carriedAt: Date;
+    }>;
+  };
+  progress?: {
+    percentage: number;
+    milestones: Array<{
+      name: string;
+      completed: boolean;
+      completedAt?: Date;
+    }>;
+  };
+  restrictions?: {
+    employeeCanEdit: boolean;
+    restrictedFields: string[];
+    editableBy: string[];
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,7 +75,21 @@ export interface ITimeLog extends Document {
   startTime: Date;
   endTime?: Date;
   durationSeconds: number;
-  source: 'manual' | 'auto';
+  source: 'manual' | 'auto' | 'timer';
+  description?: string;
+  isBreak: boolean;
+  breakType?: 'lunch' | 'coffee' | 'meeting' | 'other';
+  isActive: boolean;
+  estimatedDurationSeconds: number;
+  efficiency: number;
+  tags: string[];
+  location?: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  };
+  device?: string;
+  billable: boolean;
   createdAt: Date;
 }
 
@@ -60,6 +98,8 @@ export interface IComment extends Document {
   taskId: string;
   userId: string;
   content: string;
+  commentType: 'comment' | 'approval_request' | 'approval_response' | 'status_change' | 'mention';
+  parentCommentId?: string;
   attachments: {
     filename: string;
     url: string;
@@ -69,6 +109,31 @@ export interface IComment extends Document {
   mentions: string[];
   isEdited: boolean;
   editedAt?: Date;
+  approvalInfo?: {
+    status: 'pending' | 'approved' | 'rejected' | 'cancelled';
+    requestedBy?: string;
+    reviewedBy?: string;
+    reviewedAt?: Date;
+    reviewComments?: string;
+    requiredApprovers: string[];
+    approvers: {
+      userId: string;
+      status: 'pending' | 'approved' | 'rejected';
+      reviewedAt?: Date;
+      comments?: string;
+    }[];
+  };
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  isPrivate: boolean;
+  tags: string[];
+  reactions: {
+    userId: string;
+    type: 'like' | 'love' | 'laugh' | 'angry' | 'sad';
+    createdAt: Date;
+  }[];
+  isDeleted: boolean;
+  deletedAt?: Date;
+  deletedBy?: string;
   createdAt: Date;
 }
 

@@ -1,10 +1,11 @@
-import express from 'express';
+import express, { Response } from 'express';
 import Task from '../models/Task.js';
 import TimeLog from '../models/TimeLog.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
 import { validate } from '../middleware/validation.js';
 import { createTaskSchema, updateTaskSchema } from '../validation/schemas.js';
 import { PushService } from '../services/pushService.js';
+import { TaskCarryoverService } from '../services/taskCarryoverService.js';
 import { AuthRequest } from '../types/index.js';
 
 const router = express.Router();
@@ -56,7 +57,7 @@ router.post('/', [
   authenticateToken,
   requireRole('admin'),
   validate(createTaskSchema),
-], async (req: AuthRequest, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const taskData = {
       ...req.body,
@@ -91,7 +92,7 @@ router.post('/', [
 });
 
 // Get single task
-router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const task = await Task.findById(req.params.id)
       .populate('createdBy', 'name email')
@@ -120,7 +121,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 
     const totalTime = timeLogs.reduce((sum, log) => sum + log.durationSeconds, 0);
 
-    res.json({ 
+    return res.json({ 
       task, 
       timeLogs,
       stats: {
@@ -130,7 +131,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
     });
   } catch (error) {
     console.error('Get task error:', error);
-    res.status(500).json({ error: 'Failed to fetch task' });
+    return res.status(500).json({ error: 'Failed to fetch task' });
   }
 });
 
@@ -138,7 +139,7 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res) => {
 router.patch('/:id', [
   authenticateToken,
   validate(updateTaskSchema),
-], async (req: AuthRequest, res) => {
+], async (req: AuthRequest, res: Response) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) {
@@ -175,7 +176,7 @@ router.patch('/:id', [
     ]);
 
     // Send notification if task is completed
-    if (req.body.status === 'completed' && task.status !== 'completed') {
+    if (req.body.status === 'completed' && task.status !== 'completed' && updatedTask) {
       const creatorId = task.createdBy.toString();
       
       await PushService.sendNotification(creatorId, {
@@ -186,15 +187,15 @@ router.patch('/:id', [
       });
     }
 
-    res.json({ task: updatedTask });
+    return res.json({ task: updatedTask });
   } catch (error) {
     console.error('Update task error:', error);
-    res.status(500).json({ error: 'Failed to update task' });
+    return res.status(500).json({ error: 'Failed to update task' });
   }
 });
 
 // Start time tracking
-router.post('/:id/time/start', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/:id/time/start', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) {
@@ -235,15 +236,15 @@ router.post('/:id/time/start', authenticateToken, async (req: AuthRequest, res) 
       await task.save();
     }
 
-    res.json({ timeLog });
+    return res.json({ timeLog });
   } catch (error) {
     console.error('Start time tracking error:', error);
-    res.status(500).json({ error: 'Failed to start time tracking' });
+    return res.status(500).json({ error: 'Failed to start time tracking' });
   }
 });
 
 // Stop time tracking
-router.post('/:id/time/stop', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/:id/time/stop', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const timeLog = await TimeLog.findOne({
       taskId: req.params.id,
@@ -262,15 +263,15 @@ router.post('/:id/time/stop', authenticateToken, async (req: AuthRequest, res) =
     timeLog.durationSeconds = durationSeconds;
     await timeLog.save();
 
-    res.json({ timeLog });
+    return res.json({ timeLog });
   } catch (error) {
     console.error('Stop time tracking error:', error);
-    res.status(500).json({ error: 'Failed to stop time tracking' });
+    return res.status(500).json({ error: 'Failed to stop time tracking' });
   }
 });
 
 // Pause time tracking
-router.post('/:id/time/pause', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/:id/time/pause', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const timeLog = await TimeLog.findOne({
       taskId: req.params.id,
@@ -290,15 +291,15 @@ router.post('/:id/time/pause', authenticateToken, async (req: AuthRequest, res) 
     timeLog.durationSeconds = durationSeconds;
     await timeLog.save();
 
-    res.json({ timeLog, message: 'Timer paused' });
+    return res.json({ timeLog, message: 'Timer paused' });
   } catch (error) {
     console.error('Pause time tracking error:', error);
-    res.status(500).json({ error: 'Failed to pause time tracking' });
+    return res.status(500).json({ error: 'Failed to pause time tracking' });
   }
 });
 
 // Resume time tracking
-router.post('/:id/time/resume', authenticateToken, async (req: AuthRequest, res) => {
+router.post('/:id/time/resume', authenticateToken, async (req: AuthRequest, res: Response) => {
   try {
     const task = await Task.findById(req.params.id);
     if (!task) {
@@ -333,10 +334,136 @@ router.post('/:id/time/resume', authenticateToken, async (req: AuthRequest, res)
 
     await timeLog.save();
 
-    res.json({ timeLog, message: 'Timer resumed' });
+    return res.json({ timeLog, message: 'Timer resumed' });
   } catch (error) {
     console.error('Resume time tracking error:', error);
-    res.status(500).json({ error: 'Failed to resume time tracking' });
+    return res.status(500).json({ error: 'Failed to resume time tracking' });
+  }
+});
+
+// Get task progress summary
+router.get('/progress-summary', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const filter: any = {};
+    
+    // Role-based filtering
+    if (req.user?.role === 'employee') {
+      filter.assignedTo = req.user._id;
+    }
+
+    // Get all tasks with filter
+    const allTasks = await Task.find(filter);
+    const totalTasks = allTasks.length;
+
+    // Progress by priority
+    const priorityStats = await Task.aggregate([
+      { $match: filter },
+      { $group: {
+        _id: '$priority',
+        count: { $sum: 1 },
+        totalProgress: { $sum: { $ifNull: ['$progress.percentage', 0] } }
+      }}
+    ]);
+
+    const byPriority = priorityStats.map(stat => ({
+      priority: stat._id,
+      count: stat.count,
+      percentage: totalTasks > 0 ? (stat.count / totalTasks) * 100 : 0,
+      avgProgress: stat.count > 0 ? stat.totalProgress / stat.count : 0,
+      totalTasks
+    }));
+
+    // Progress by status
+    const statusStats = await Task.aggregate([
+      { $match: filter },
+      { $group: {
+        _id: '$status',
+        count: { $sum: 1 },
+        totalProgress: { $sum: { $ifNull: ['$progress.percentage', 0] } }
+      }}
+    ]);
+
+    const byStatus = statusStats.map(stat => ({
+      status: stat._id,
+      count: stat.count,
+      percentage: totalTasks > 0 ? (stat.count / totalTasks) * 100 : 0,
+      avgProgress: stat.count > 0 ? stat.totalProgress / stat.count : 0,
+      totalTasks
+    }));
+
+    // Overall progress calculation
+    const overallProgressAgg = await Task.aggregate([
+      { $match: filter },
+      { $group: {
+        _id: null,
+        totalProgress: { $sum: { $ifNull: ['$progress.percentage', 0] } },
+        count: { $sum: 1 }
+      }}
+    ]);
+
+    const overallProgress = overallProgressAgg[0] ? 
+      (overallProgressAgg[0].totalProgress / overallProgressAgg[0].count) : 0;
+
+    // Completion rate
+    const completedTasks = await Task.countDocuments({ ...filter, status: 'completed' });
+    const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+    res.json({
+      byPriority,
+      byStatus,
+      overallProgress: Math.round(overallProgress * 100) / 100,
+      completionRate: Math.round(completionRate * 100) / 100,
+      totalTasks
+    });
+  } catch (error) {
+    console.error('Get progress summary error:', error);
+    res.status(500).json({ error: 'Failed to get progress summary' });
+  }
+});
+
+// Get carryover statistics
+router.get('/carryover-stats', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { startDate, endDate } = req.query;
+    
+    const filter: any = {};
+    
+    // Role-based filtering
+    if (req.user?.role === 'employee') {
+      filter.assignedTo = req.user._id;
+    }
+
+    if (startDate && endDate) {
+      filter.createdAt = {
+        $gte: new Date(startDate as string),
+        $lte: new Date(endDate as string)
+      };
+    }
+
+    const stats = await TaskCarryoverService.getCarryoverStats(
+      req.user?.role === 'employee' ? req.user._id : undefined,
+      startDate ? new Date(startDate as string) : undefined,
+      endDate ? new Date(endDate as string) : undefined
+    );
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Get carryover stats error:', error);
+    res.status(500).json({ error: 'Failed to get carryover statistics' });
+  }
+});
+
+// Get upcoming overdue tasks
+router.get('/upcoming-overdue', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const tasks = await TaskCarryoverService.getUpcomingOverdueTasks(
+      req.user?.role === 'employee' ? req.user._id : undefined
+    );
+
+    res.json(tasks);
+  } catch (error) {
+    console.error('Get upcoming overdue tasks error:', error);
+    res.status(500).json({ error: 'Failed to get upcoming overdue tasks' });
   }
 });
 

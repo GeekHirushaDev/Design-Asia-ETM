@@ -8,7 +8,12 @@ import {
   MapPin,
   Calendar
 } from 'lucide-react';
-import { taskApi, trackingApi, attendanceApi } from '../../lib/api';
+import { taskApi, trackingApi } from '../../lib/api';
+import { TaskProgressDashboard } from './TaskProgressDashboard';
+import { OverdueUpcomingSummary } from './OverdueUpcomingSummary';
+import { WeeklyReport } from '../Reports/WeeklyReport';
+import { TimeTracker } from '../TimeTracking/TimeTracker';
+import { TimeAnalytics } from '../TimeTracking/TimeAnalytics';
 
 interface DashboardStats {
   totalTasks: number;
@@ -31,6 +36,7 @@ export const AdminDashboard: React.FC = () => {
   const [recentTasks, setRecentTasks] = useState([]);
   const [currentLocations, setCurrentLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'analytics' | 'timetracking'>('overview');
 
   useEffect(() => {
     loadDashboardData();
@@ -99,6 +105,10 @@ export const AdminDashboard: React.FC = () => {
     </div>
   );
 
+  const renderStatCard = (title: string, value: string | number, icon: React.ReactNode, color: string, trend?: string) => (
+    <StatCard title={title} value={value} icon={icon} color={color} trend={trend} />
+  );
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -115,138 +125,192 @@ export const AdminDashboard: React.FC = () => {
         <p className="text-gray-600">Overview of your team's performance and activity</p>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          title="Total Tasks"
-          value={stats.totalTasks}
-          icon={<CheckSquare size={24} className="text-blue-600" />}
-          color="bg-blue-100"
-          trend="+12% from last week"
-        />
-        
-        <StatCard
-          title="Completion Rate"
-          value={`${stats.completionRate.toFixed(1)}%`}
-          icon={<TrendingUp size={24} className="text-green-600" />}
-          color="bg-green-100"
-          trend="+5% from last week"
-        />
-        
-        <StatCard
-          title="Overdue Tasks"
-          value={stats.overdueTasks}
-          icon={<AlertTriangle size={24} className="text-red-600" />}
-          color="bg-red-100"
-        />
-        
-        <StatCard
-          title="Active Employees"
-          value={stats.activeEmployees}
-          icon={<Users size={24} className="text-purple-600" />}
-          color="bg-purple-100"
-        />
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          {[
+            { id: 'overview', label: 'Overview', icon: Users },
+            { id: 'analytics', label: 'Analytics', icon: TrendingUp },
+            { id: 'timetracking', label: 'Time Tracking', icon: Clock },
+            { id: 'reports', label: 'Weekly Reports', icon: Calendar }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              className={`flex items-center px-1 py-4 border-b-2 font-medium text-sm ${
+                activeTab === tab.id
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <tab.icon className="w-5 h-5 mr-2" />
+              {tab.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Tasks */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Tasks</h2>
-            <button className="text-sm text-blue-600 hover:text-blue-800">
-              View All
-            </button>
-          </div>
-          
-          <div className="space-y-3">
-            {recentTasks.map((task: any) => (
-              <div key={task._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex-1">
-                  <h4 className="text-sm font-medium text-gray-900 truncate">
-                    {task.title}
-                  </h4>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Assigned to: {task.assignedTo.map((u: any) => u.name).join(', ')}
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    task.priority === 'high' 
-                      ? 'bg-red-100 text-red-800' 
-                      : task.priority === 'medium'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-green-100 text-green-800'
-                  }`}>
-                    {task.priority}
-                  </span>
-                  <span className={`w-2 h-2 rounded-full ${
-                    task.status === 'completed'
-                      ? 'bg-green-500'
-                      : task.status === 'in_progress'
-                      ? 'bg-blue-500'
-                      : 'bg-gray-400'
-                  }`}></span>
-                </div>
-              </div>
-            ))}
-            
-            {recentTasks.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <CheckSquare size={24} className="mx-auto mb-2" />
-                <p className="text-sm">No tasks yet</p>
-              </div>
+      {/* Tab Content */}
+      {activeTab === 'overview' && (
+        <>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {renderStatCard(
+              "Total Tasks",
+              stats.totalTasks.toString(),
+              <CheckSquare className="text-white" size={24} />,
+              "bg-blue-500",
+              "12% increase"
+            )}
+            {renderStatCard(
+              "Completed",
+              stats.completedTasks.toString(),
+              <CheckSquare className="text-white" size={24} />,
+              "bg-green-500",
+              `${stats.completionRate.toFixed(1)}% rate`
+            )}
+            {renderStatCard(
+              "Overdue",
+              stats.overdueTasks.toString(),
+              <AlertTriangle className="text-white" size={24} />,
+              "bg-red-500"
+            )}
+            {renderStatCard(
+              "Active Employees",
+              stats.activeEmployees.toString(),
+              <Users className="text-white" size={24} />,
+              "bg-purple-500"
             )}
           </div>
-        </div>
 
-        {/* Active Employees */}
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Active Employees</h2>
-            <button className="text-sm text-blue-600 hover:text-blue-800">
-              View Map
-            </button>
-          </div>
-          
-          <div className="space-y-3">
-            {currentLocations.map((location: any) => (
-              <div key={location.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-medium">
-                      {location.user.name.charAt(0).toUpperCase()}
+          {/* Recent Tasks and Active Employees */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Recent Tasks */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Recent Tasks</h2>
+                <button className="text-sm text-blue-600 hover:text-blue-800">
+                  View All
+                </button>
+              </div>
+              
+              <div className="space-y-3">
+                {recentTasks.map((task: any) => (
+                  <div key={task._id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${
+                        task.priority === 'high' ? 'bg-red-500' :
+                        task.priority === 'medium' ? 'bg-yellow-500' :
+                        'bg-green-500'
+                      }`}></div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {task.title}
+                        </h4>
+                        <p className="text-xs text-gray-600">
+                          Due: {new Date(task.dueDate).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                      task.status === 'completed' ? 'bg-green-100 text-green-800' :
+                      task.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {task.status.replace('_', ' ')}
                     </span>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">
-                      {location.user.name}
-                    </h4>
-                    <p className="text-xs text-gray-600">
-                      Last seen: {new Date(location.timestamp).toLocaleTimeString()}
-                    </p>
+                ))}
+                
+                {recentTasks.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <CheckSquare size={24} className="mx-auto mb-2" />
+                    <p className="text-sm">No recent tasks</p>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {location.batteryLevel && (
-                    <span className="text-xs text-gray-600">
-                      {location.batteryLevel}%
-                    </span>
-                  )}
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                </div>
+                )}
               </div>
-            ))}
-            
-            {currentLocations.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <MapPin size={24} className="mx-auto mb-2" />
-                <p className="text-sm">No active employees</p>
+            </div>
+
+            {/* Active Employees */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-gray-900">Active Employees</h2>
+                <button className="text-sm text-blue-600 hover:text-blue-800">
+                  View Map
+                </button>
               </div>
-            )}
+              
+              <div className="space-y-3">
+                {currentLocations.map((location: any) => (
+                  <div key={location.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-medium">
+                          {location.user.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {location.user.name}
+                        </h4>
+                        <p className="text-xs text-gray-600">
+                          Last seen: {new Date(location.timestamp).toLocaleTimeString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {location.batteryLevel && (
+                        <span className="text-xs text-gray-600">
+                          {location.batteryLevel}%
+                        </span>
+                      )}
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    </div>
+                  </div>
+                ))}
+                
+                {currentLocations.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <MapPin size={24} className="mx-auto mb-2" />
+                    <p className="text-sm">No active employees</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
+        </>
+      )}
+
+      {activeTab === 'analytics' && (
+        <>
+          {/* Task Progress Dashboard */}
+          <div>
+            <TaskProgressDashboard />
+          </div>
+
+          {/* Overdue and Upcoming Tasks Summary */}
+          <div>
+            <OverdueUpcomingSummary />
+          </div>
+        </>
+      )}
+
+      {activeTab === 'timetracking' && (
+        <>
+          <div>
+            <TimeTracker tasks={recentTasks} />
+          </div>
+          <div>
+            <TimeAnalytics />
+          </div>
+        </>
+      )}
+
+      {activeTab === 'reports' && (
+        <div>
+          <WeeklyReport />
         </div>
-      </div>
+      )}
     </div>
   );
 };

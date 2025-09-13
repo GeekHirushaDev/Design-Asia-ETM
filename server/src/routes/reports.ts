@@ -6,6 +6,7 @@ import Task from '../models/Task.js';
 import User from '../models/User.js';
 import Attendance from '../models/Attendance.js';
 import TimeLog from '../models/TimeLog.js';
+import { WeeklyReportService } from '../services/weeklyReportService.js';
 
 const router = express.Router();
 
@@ -15,79 +16,10 @@ router.post('/weekly/generate', [
   requireRole('admin'),
 ], async (req: AuthRequest, res: Response) => {
   try {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 7);
-    const endDate = new Date();
+    const { weekOffset = 0, userId } = req.body;
+    
+    const reportData = await WeeklyReportService.generateWeeklyTaskReport(weekOffset, userId);
 
-    // Gather data for the report
-    const [tasks, users, attendance, timeLogs] = await Promise.all([
-      Task.find({
-        createdAt: { $gte: startDate, $lte: endDate }
-      }).populate('createdBy assignedTo', 'name email'),
-      User.find({ role: 'employee' }),
-      Attendance.find({
-        date: { $gte: startDate, $lte: endDate }
-      }).populate('userId', 'name email'),
-      TimeLog.find({
-        from: { $gte: startDate, $lte: endDate }
-      }).populate('userId taskId', 'name title')
-    ]);
-
-    // Calculate KPIs
-    const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(t => t.status === 'completed').length;
-    const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-    const overdueTasks = tasks.filter(t => 
-      t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'completed'
-    ).length;
-
-    const totalWorkingHours = timeLogs.reduce((sum, log) => sum + log.durationSeconds, 0) / 3600;
-    const avgTaskTime = completedTasks > 0 ? totalWorkingHours / completedTasks : 0;
-
-    const attendanceRate = attendance.length > 0 ? 
-      (attendance.filter(a => a.clockIn && a.clockOut).length / attendance.length) * 100 : 0;
-
-    const reportData = {
-      period: {
-        start: startDate.toISOString(),
-        end: endDate.toISOString()
-      },
-      kpis: {
-        totalTasks,
-        completedTasks,
-        completionRate: Math.round(completionRate * 100) / 100,
-        overdueTasks,
-        totalWorkingHours: Math.round(totalWorkingHours * 100) / 100,
-        avgTaskTime: Math.round(avgTaskTime * 100) / 100,
-        attendanceRate: Math.round(attendanceRate * 100) / 100
-      },
-      tasks: tasks.map(task => ({
-        title: task.title,
-        status: task.status,
-        priority: task.priority,
-        assignedTo: task.assignedTo.map((u: any) => u.name).join(', '),
-        createdAt: task.createdAt,
-        completedAt: task.status === 'completed' ? task.updatedAt : null
-      })),
-      topPerformers: users.slice(0, 5).map(user => ({
-        name: user.name,
-        tasksCompleted: tasks.filter(t => 
-          t.status === 'completed' && 
-          t.assignedTo.some((u: any) => u._id.toString() === user._id.toString())
-        ).length,
-        hoursWorked: timeLogs
-          .filter(log => log.userId.toString() === user._id.toString())
-          .reduce((sum, log) => sum + log.durationSeconds, 0) / 3600
-      })),
-      attendance: {
-        totalRecords: attendance.length,
-        presentDays: attendance.filter(a => a.clockIn && a.clockOut).length,
-        rate: attendanceRate
-      }
-    };
-
-    // In a real implementation, you would generate a PDF here
-    // For now, we'll return the data structure
     return res.json({
       message: 'Weekly report generated successfully',
       reportId: `weekly-${Date.now()}`,
@@ -97,6 +29,26 @@ router.post('/weekly/generate', [
   } catch (error) {
     console.error('Generate weekly report error:', error);
     return res.status(500).json({ error: 'Failed to generate weekly report' });
+  }
+});
+
+// Generate weekly comparison report
+router.get('/weekly/comparison', [
+  authenticateToken,
+  requireRole('admin'),
+], async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.query;
+    
+    const comparisonData = await WeeklyReportService.generateWeeklyComparison(userId as string);
+
+    return res.json({
+      message: 'Weekly comparison report generated successfully',
+      data: comparisonData
+    });
+  } catch (error) {
+    console.error('Generate weekly comparison error:', error);
+    return res.status(500).json({ error: 'Failed to generate weekly comparison' });
   }
 });
 

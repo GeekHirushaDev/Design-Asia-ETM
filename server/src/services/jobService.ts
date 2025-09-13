@@ -2,6 +2,7 @@ import { Queue, Worker } from 'bullmq';
 import { config } from '../config/config.js';
 import { PDFService } from './pdfService.js';
 import { PushService } from './pushService.js';
+import { TaskCarryoverService } from './taskCarryoverService.js';
 import Task from '../models/Task.js';
 import User from '../models/User.js';
 import Attendance from '../models/Attendance.js';
@@ -236,37 +237,9 @@ async function generateTaskPerformanceReportData(config: any) {
 
 // Auto-carryover incomplete tasks to today (runs at 00:05 Asia/Colombo)
 async function autoCarryoverTasks() {
-  const today = new Date();
-  const yesterday = new Date(today);
-  yesterday.setDate(yesterday.getDate() - 1);
-  
-  // Find incomplete tasks that were due yesterday or earlier
-  const incompleteTasks = await Task.find({
-    status: { $nin: ['completed'] },
-    dueDate: { $lt: today },
-    updatedAt: { $lt: today } // Avoid double-processing
-  });
-  
-  console.log(`Auto-carryover: Found ${incompleteTasks.length} incomplete tasks`);
-  
-  for (const task of incompleteTasks) {
-    // Add overdue tag if not already present
-    if (!task.tags.includes('overdue')) {
-      task.tags.push('overdue');
-    }
-    
-    // Add carryover history to tags
-    const carryoverTag = `carried-over-${today.toISOString().split('T')[0]}`;
-    if (!task.tags.includes(carryoverTag)) {
-      task.tags.push(carryoverTag);
-    }
-    
-    // Update task with carryover information
-    task.updatedAt = today;
-    await task.save();
-    
-    console.log(`Carried over task: ${task.title} (ID: ${task._id})`);
-  }
+  console.log('Starting auto carryover of pending tasks...');
+  await TaskCarryoverService.carryOverPendingTasks();
+  console.log('Auto carryover completed');
 }
 
 async function sendOverdueReminders() {

@@ -72,6 +72,9 @@ export const taskApi = {
   stopTimer: (id: string) => api.post(`/tasks/${id}/time/stop`),
   pauseTimer: (id: string) => api.post(`/tasks/${id}/time/pause`),
   resumeTimer: (id: string) => api.post(`/tasks/${id}/time/resume`),
+  getProgressSummary: (params?: any) => api.get('/tasks/progress-summary', { params }),
+  getCarryoverStats: (params?: any) => api.get('/tasks/carryover-stats', { params }),
+  getUpcomingOverdue: () => api.get('/tasks/upcoming-overdue'),
 };
 
 export const attendanceApi = {
@@ -140,4 +143,56 @@ export const uploadApi = {
   }),
   getDownloadUrl: (key: string) => api.get(`/uploads/download/${key}`),
   deleteFile: (key: string) => api.delete(`/uploads/${key}`),
+};
+
+export const timeTrackingApi = {
+  // Timer controls
+  startTracking: (data: { taskId: string; description?: string; estimatedDurationSeconds?: number }) => 
+    api.post('/time-tracking/start', data),
+  stopTracking: (timeLogId: string, data?: { description?: string }) => 
+    api.post(`/time-tracking/stop/${timeLogId}`, data),
+  stopAllActive: () => api.post('/time-tracking/stop-all'),
+  getActiveTracking: () => api.get('/time-tracking/active'),
+
+  // Manual entries
+  logManualTime: (data: {
+    taskId: string;
+    startTime: string;
+    endTime: string;
+    description?: string;
+    tags?: string[];
+    billable?: boolean;
+  }) => api.post('/time-tracking/manual', data),
+  
+  logBreakTime: (data: {
+    startTime: string;
+    endTime: string;
+    breakType: 'lunch' | 'coffee' | 'meeting' | 'other';
+    description?: string;
+  }) => api.post('/time-tracking/break', data),
+
+  // Data retrieval
+  getTimeLogs: (params?: {
+    startDate?: string;
+    endDate?: string;
+    taskId?: string;
+    includeBreaks?: boolean;
+    billableOnly?: boolean;
+  }) => api.get('/time-tracking/logs', { params }),
+  
+  getDailySummary: (date: string) => api.get(`/time-tracking/summary/daily/${date}`),
+  getWeeklySummary: (weekStart: string) => api.get(`/time-tracking/summary/weekly/${weekStart}`),
+  getTaskAnalysis: (taskId: string) => api.get(`/time-tracking/task/${taskId}/analysis`),
+  getUserStatistics: (days?: number) => api.get('/time-tracking/statistics', { params: { days } }),
+
+  // CRUD operations
+  updateTimeLog: (timeLogId: string, data: {
+    startTime?: string;
+    endTime?: string;
+    description?: string;
+    tags?: string[];
+    billable?: boolean;
+  }) => api.put(`/time-tracking/${timeLogId}`, data),
+  
+  deleteTimeLog: (timeLogId: string) => api.delete(`/time-tracking/${timeLogId}`),
 };

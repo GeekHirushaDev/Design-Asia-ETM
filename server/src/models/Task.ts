@@ -35,13 +35,11 @@ const taskSchema = new Schema<ITask>(
       type: Date,
     },
     createdBy: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
+      type: String,
       required: true,
     },
     assignedTo: [{
-      type: Schema.Types.ObjectId,
-      ref: 'User',
+      type: String,
     }],
     tags: [String],
     approvals: {
@@ -51,10 +49,34 @@ const taskSchema = new Schema<ITask>(
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending',
       },
-      by: { type: Schema.Types.ObjectId, ref: 'User' },
+      by: { type: String },
       at: { type: Date },
       comment: { type: String },
     },
+    carryoverInfo: {
+      isCarriedOver: { type: Boolean, default: false },
+      originalDueDate: { type: Date },
+      carryoverCount: { type: Number, default: 0 },
+      carryoverHistory: [{
+        from: { type: Date },
+        to: { type: Date },
+        reason: { type: String, default: 'Auto carryover - task not completed' },
+        carriedAt: { type: Date, default: Date.now }
+      }]
+    },
+    progress: {
+      percentage: { type: Number, default: 0, min: 0, max: 100 },
+      milestones: [{
+        name: { type: String },
+        completed: { type: Boolean, default: false },
+        completedAt: { type: Date }
+      }]
+    },
+    restrictions: {
+      employeeCanEdit: { type: Boolean, default: true },
+      restrictedFields: [{ type: String }],
+      editableBy: [{ type: String }]
+    }
   },
   {
     timestamps: true,
