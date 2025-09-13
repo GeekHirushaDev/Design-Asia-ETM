@@ -6,11 +6,14 @@ import {
   Square, 
   Calendar,
   MapPin,
-  TrendingUp
+  TrendingUp,
+  Pause,
+  CheckCircle
 } from 'lucide-react';
 import { useTaskStore } from '../../store/taskStore';
 import { useAuthStore } from '../../store/authStore';
 import { taskApi, attendanceApi } from '../../lib/api';
+import { format, isToday } from 'date-fns';
 import toast from 'react-hot-toast';
 
 export const EmployeeDashboard: React.FC = () => {
@@ -20,10 +23,18 @@ export const EmployeeDashboard: React.FC = () => {
   const [attendance, setAttendance] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     loadDashboardData();
     getCurrentLocation();
+    
+    // Update current time every second for timer display
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
   }, []);
 
   const loadDashboardData = async () => {
@@ -41,8 +52,26 @@ export const EmployeeDashboard: React.FC = () => {
         task.assignedTo.some((assignee: any) => assignee._id === user?._id)
       );
 
-      setTasks(myTasks);
-      setTodaysTasks(myTasks.filter((task: any) => task.status !== 'completed'));
+      // Sort tasks by priority (high first) and then by due date
+      const sortedTasks = myTasks.sort((a: any, b: any) => {
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        const aPriority = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+        const bPriority = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+        
+        if (aPriority !== bPriority) {
+          return bPriority - aPriority; // High priority first
+        }
+        
+        // If same priority, sort by due date
+        if (a.dueDate && b.dueDate) {
+          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+        }
+        
+        return 0;
+      });
+
+      setTasks(sortedTasks);
+      setTodaysTasks(sortedTasks);
       
       const todayAttendance = attendanceResponse.data.attendance[0];
       setAttendance(todayAttendance);
@@ -76,9 +105,9 @@ export const EmployeeDashboard: React.FC = () => {
     }
 
     try {
-      await attendanceApi.clockIn(location);
+      const response = await attendanceApi.clockIn(location);
+      setAttendance(response.data.attendance);
       toast.success('Clocked in successfully');
-      loadDashboardData();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to clock in');
     }
@@ -91,9 +120,9 @@ export const EmployeeDashboard: React.FC = () => {
     }
 
     try {
-      await attendanceApi.clockOut(location);
+      const response = await attendanceApi.clockOut(location);
+      setAttendance(response.data.attendance);
       toast.success('Clocked out successfully');
-      loadDashboardData();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to clock out');
     }
@@ -112,11 +141,48 @@ export const EmployeeDashboard: React.FC = () => {
         }
         await taskApi.startTimer(taskId);
         startTimer(taskId);
+        
+        // Update task status to in_progress
+        await taskApi.updateTask(taskId, { status: 'in_progress' });
+        
         toast.success('Timer started');
       }
       loadDashboardData();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to toggle timer');
+    }
+  };
+
+  const handlePauseTimer = async (taskId: string) => {
+    try {
+      await taskApi.pauseTimer(taskId);
+      stopTimer();
+      
+      // Update task status to paused
+      await taskApi.updateTask(taskId, { status: 'paused' });
+      
+      toast.success('Timer paused');
+      loadDashboardData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to pause timer');
+    }
+  };
+
+  const handleCompleteTask = async (taskId: string) => {
+    try {
+      // Stop timer if running
+      if (activeTimer?.taskId === taskId) {
+        await taskApi.stopTimer(taskId);
+        stopTimer();
+      }
+      
+      // Mark task as completed
+      await taskApi.updateTask(taskId, { status: 'completed' });
+      
+      toast.success('Task completed!');
+      loadDashboardData();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to complete task');
     }
   };
 
@@ -136,6 +202,21 @@ export const EmployeeDashboard: React.FC = () => {
       case 'low': return 'bg-green-100 text-green-800 border-green-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const formatTimer = (startTime: Date) => {
+    const diff = currentTime.getTime() - startTime.getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+    return `${hours.toString().padStart(2, '0')}:${minutes
+      .toString()
+      .padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const getTasksByStatus = (status: string) => {
+    return todaysTasks.filter((task: any) => task.status === status);
   };
 
   if (isLoading) {
@@ -200,77 +281,182 @@ export const EmployeeDashboard: React.FC = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Today's Tasks */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-semibold text-gray-900">Today's Tasks</h2>
-            {activeTimer && (
-              <div className="flex items-center space-x-2 bg-green-100 px-3 py-1 rounded-full">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-green-700">Timer Running</span>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Task Columns */}
+        <div className="lg:col-span-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Not Started Tasks */}
+            <div className="bg-gray-100 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-800">Not Started</h3>
+                <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-600">
+                  {getTasksByStatus('not_started').length}
+                </span>
               </div>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            {todaysTasks.map((task: any) => (
-              <div key={task._id} className="border border-gray-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <h4 className="font-medium text-gray-900">{task.title}</h4>
-                      <span className={`px-2 py-1 text-xs rounded-full border ${getPriorityColor(task.priority)}`}>
-                        {task.priority}
+              
+              <div className="space-y-3">
+                {getTasksByStatus('not_started').map((task: any) => (
+                  <div key={task._id} className="bg-white rounded-lg p-4 shadow-sm">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h4 className="font-medium text-gray-900 text-sm">{task.title}</h4>
+                          <span className={`px-2 py-1 text-xs rounded-full border ${getPriorityColor(task.priority)}`}>
+                            {task.priority}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 line-clamp-2">{task.description}</p>
+                        
+                        {task.dueDate && (
+                          <div className="text-xs text-gray-500 mt-2">
+                            Due: {format(new Date(task.dueDate), 'MMM dd')}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <button
+                        onClick={() => handleTimerToggle(task._id)}
+                        className="p-2 bg-green-100 text-green-600 hover:bg-green-200 rounded-lg transition-colors"
+                        title="Start Task"
+                      >
+                        <Play size={14} fill="currentColor" />
+                      </button>
+                      
+                      <span className="text-xs text-gray-500">
+                        {task.estimateMinutes ? `${task.estimateMinutes}m` : 'No estimate'}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">{task.description}</p>
-                    
-                    {task.location && (
-                      <div className="flex items-center mt-2 text-xs text-gray-500">
-                        <MapPin size={12} className="mr-1" />
-                        <span>Location required</span>
-                      </div>
-                    )}
                   </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => handleTimerToggle(task._id)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        activeTimer?.taskId === task._id
-                          ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                          : 'bg-green-100 text-green-600 hover:bg-green-200'
-                      }`}
-                    >
-                      {activeTimer?.taskId === task._id ? (
-                        <Square size={16} fill="currentColor" />
-                      ) : (
-                        <Play size={16} fill="currentColor" />
-                      )}
-                    </button>
-                    
-                    <span className={`px-3 py-1 text-xs rounded-full ${getTaskStatusColor(task.status)}`}>
-                      {task.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                    </span>
-                  </div>
-                </div>
+                ))}
                 
-                {task.dueDate && (
-                  <div className="text-xs text-gray-500">
-                    Due: {new Date(task.dueDate).toLocaleDateString()}
+                {getTasksByStatus('not_started').length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-sm">No pending tasks</p>
                   </div>
                 )}
               </div>
-            ))}
+            </div>
 
-            {todaysTasks.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <CheckSquare size={32} className="mx-auto mb-4" />
-                <p className="text-lg font-medium mb-2">All caught up!</p>
-                <p className="text-sm">No pending tasks for today</p>
+            {/* In Progress Tasks */}
+            <div className="bg-blue-100 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-800">In Progress</h3>
+                <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-600">
+                  {getTasksByStatus('in_progress').length}
+                </span>
               </div>
-            )}
+              
+              <div className="space-y-3">
+                {getTasksByStatus('in_progress').map((task: any) => (
+                  <div key={task._id} className="bg-white rounded-lg p-4 shadow-sm">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h4 className="font-medium text-gray-900 text-sm">{task.title}</h4>
+                          <span className={`px-2 py-1 text-xs rounded-full border ${getPriorityColor(task.priority)}`}>
+                            {task.priority}
+                          </span>
+                        </div>
+                        
+                        {activeTimer?.taskId === task._id && (
+                          <div className="text-sm font-mono text-blue-600 mb-2">
+                            ⏱️ {formatTimer(activeTimer.startTime)}
+                          </div>
+                        )}
+                        
+                        <p className="text-xs text-gray-600 line-clamp-2">{task.description}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        {activeTimer?.taskId === task._id ? (
+                          <>
+                            <button
+                              onClick={() => handlePauseTimer(task._id)}
+                              className="p-2 bg-yellow-100 text-yellow-600 hover:bg-yellow-200 rounded-lg transition-colors"
+                              title="Pause Task"
+                            >
+                              <Pause size={14} />
+                            </button>
+                            <button
+                              onClick={() => handleTimerToggle(task._id)}
+                              className="p-2 bg-red-100 text-red-600 hover:bg-red-200 rounded-lg transition-colors"
+                              title="Stop Timer"
+                            >
+                              <Square size={14} fill="currentColor" />
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => handleTimerToggle(task._id)}
+                            className="p-2 bg-green-100 text-green-600 hover:bg-green-200 rounded-lg transition-colors"
+                            title="Resume Timer"
+                          >
+                            <Play size={14} fill="currentColor" />
+                          </button>
+                        )}
+                        
+                        <button
+                          onClick={() => handleCompleteTask(task._id)}
+                          className="p-2 bg-green-100 text-green-600 hover:bg-green-200 rounded-lg transition-colors"
+                          title="Complete Task"
+                        >
+                          <CheckCircle size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {getTasksByStatus('in_progress').length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-sm">No active tasks</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Completed Tasks */}
+            <div className="bg-green-100 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-gray-800">Completed</h3>
+                <span className="bg-white px-2 py-1 rounded-full text-xs font-medium text-gray-600">
+                  {getTasksByStatus('completed').length}
+                </span>
+              </div>
+              
+              <div className="space-y-3">
+                {getTasksByStatus('completed').map((task: any) => (
+                  <div key={task._id} className="bg-white rounded-lg p-4 shadow-sm">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <h4 className="font-medium text-gray-900 text-sm">{task.title}</h4>
+                          <span className={`px-2 py-1 text-xs rounded-full border ${getPriorityColor(task.priority)}`}>
+                            {task.priority}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 line-clamp-2">{task.description}</p>
+                        
+                        <div className="text-xs text-green-600 mt-2 flex items-center">
+                          <CheckCircle size={12} className="mr-1" />
+                          Completed
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                
+                {getTasksByStatus('completed').length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p className="text-sm">No completed tasks</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -285,7 +471,7 @@ export const EmployeeDashboard: React.FC = () => {
                 <span className="text-sm font-medium text-gray-600">Clock In:</span>
                 <span className="text-sm text-gray-900">
                   {attendance?.clockIn?.time 
-                    ? new Date(attendance.clockIn.time).toLocaleTimeString()
+                    ? format(new Date(attendance.clockIn.time), 'HH:mm:ss')
                     : 'Not clocked in'
                   }
                 </span>
@@ -295,7 +481,7 @@ export const EmployeeDashboard: React.FC = () => {
                 <span className="text-sm font-medium text-gray-600">Clock Out:</span>
                 <span className="text-sm text-gray-900">
                   {attendance?.clockOut?.time 
-                    ? new Date(attendance.clockOut.time).toLocaleTimeString()
+                    ? format(new Date(attendance.clockOut.time), 'HH:mm:ss')
                     : 'Not clocked out'
                   }
                 </span>
@@ -305,7 +491,8 @@ export const EmployeeDashboard: React.FC = () => {
                 {!attendance?.clockIn ? (
                   <button
                     onClick={handleClockIn}
-                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    disabled={!location}
+                    className="w-full bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <Calendar size={16} className="inline mr-2" />
                     Clock In
@@ -313,19 +500,51 @@ export const EmployeeDashboard: React.FC = () => {
                 ) : !attendance?.clockOut ? (
                   <button
                     onClick={handleClockOut}
-                    className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition-colors"
+                    disabled={!location}
+                    className="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     <Calendar size={16} className="inline mr-2" />
                     Clock Out
                   </button>
                 ) : (
-                  <div className="text-center text-sm text-green-600 font-medium">
-                    ✓ Attendance Complete
+                  <div className="text-center text-green-600 font-medium py-3">
+                    <CheckCircle size={16} className="inline mr-2" />
+                    Attendance Complete
                   </div>
                 )}
               </div>
+              
+              {!location && (
+                <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-xs text-yellow-700">
+                    Please enable location access for attendance.
+                  </p>
+                  <button
+                    onClick={getCurrentLocation}
+                    className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
+                  >
+                    Enable Location Access
+                  </button>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Active Timer */}
+          {activeTimer && (
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Timer</h3>
+              
+              <div className="text-center">
+                <div className="text-3xl font-mono font-bold text-blue-600 mb-2">
+                  {formatTimer(activeTimer.startTime)}
+                </div>
+                <p className="text-sm text-gray-600">
+                  {todaysTasks.find((t: any) => t._id === activeTimer.taskId)?.title || 'Unknown Task'}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Location Status */}
           <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -341,14 +560,6 @@ export const EmployeeDashboard: React.FC = () => {
                 <span className="text-xs font-medium">{location ? 'Active' : 'Inactive'}</span>
               </div>
             </div>
-            
-            {!location && (
-              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-xs text-yellow-700">
-                  Please enable location access for attendance and location-based tasks.
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>

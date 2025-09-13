@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useTaskStore } from '../../store/taskStore';
 import { useAuthStore } from '../../store/authStore';
-import { taskApi } from '../../lib/api';
+import { taskApi, timeTrackingApi } from '../../lib/api';
 import { TaskCard } from './TaskCard';
 import { TaskForm } from './TaskForm';
 import { Plus, Filter, Search } from 'lucide-react';
@@ -20,16 +20,40 @@ export const TaskBoard: React.FC = () => {
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  const [taskTimeLogs, setTaskTimeLogs] = useState<{ [taskId: string]: any }>({});
 
   useEffect(() => {
     loadTasks();
+    if (user?.role === 'admin') {
+      loadTaskTimeLogs();
+    }
   }, []);
 
   const loadTasks = async () => {
     try {
       setLoading(true);
       const response = await taskApi.getTasks();
-      setTasks(response.data.tasks);
+      
+      let tasksToShow = response.data.tasks;
+      
+      // Filter tasks based on user role
+      if (user?.role === 'employee') {
+        tasksToShow = tasksToShow.filter((task: any) => 
+          task.assignedTo.some((assignee: any) => assignee._id === user._id)
+        );
+      }
+      
+      // Sort tasks by priority (high first) for employees
+      if (user?.role === 'employee') {
+        tasksToShow = tasksToShow.sort((a: any, b: any) => {
+          const priorityOrder = { high: 3, medium: 2, low: 1 };
+          const aPriority = priorityOrder[a.priority as keyof typeof priorityOrder] || 0;
+          const bPriority = priorityOrder[b.priority as keyof typeof priorityOrder] || 0;
+          return bPriority - aPriority;
+        });
+      }
+      
+      setTasks(tasksToShow);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to load tasks');
     } finally {
@@ -37,6 +61,25 @@ export const TaskBoard: React.FC = () => {
     }
   };
 
+  const loadTaskTimeLogs = async () => {
+    try {
+      const timeLogsMap: { [taskId: string]: any } = {};
+      
+      // Get time logs for all tasks (admin only)
+      for (const task of tasks) {
+        try {
+          const response = await timeTrackingApi.getTaskAnalysis(task._id);
+          timeLogsMap[task._id] = response.data;
+        } catch (error) {
+          // Ignore errors for individual tasks
+        }
+      }
+      
+      setTaskTimeLogs(timeLogsMap);
+    } catch (error) {
+      console.error('Failed to load task time logs:', error);
+    }
+  };
   const handleTaskCreated = () => {
     setShowTaskForm(false);
     loadTasks();
@@ -125,11 +168,33 @@ export const TaskBoard: React.FC = () => {
               
               <div className="space-y-3">
                 {columnTasks.map((task) => (
-                  <TaskCard
-                    key={task._id}
-                    task={task}
-                    onUpdate={loadTasks}
-                  />
+                  <div key={task._id}>
+                    <TaskCard
+                      task={task}
+                      onUpdate={loadTasks}
+                    />
+                    {/* Admin can see time tracking info */}
+                    {user?.role === 'admin' && taskTimeLogs[task._id] && (
+                      <div className="mt-2 p-2 bg-white bg-opacity-50 rounded text-xs">
+                        <div className="flex justify-between">
+                          <span>Time Spent:</span>
+                          <span className="font-medium">
+                            {taskTimeLogs[task._id].totalActualTime?.toFixed(1) || 0}h
+                          </span>
+                        </div>
+                        {taskTimeLogs[task._id].estimatedTime > 0 && (
+                          <div className="flex justify-between">
+                            <span>Efficiency:</span>
+                            <span className={`font-medium ${
+                              taskTimeLogs[task._id].efficiency >= 100 ? 'text-green-600' : 'text-red-600'
+                            }`}>
+                              {taskTimeLogs[task._id].efficiency?.toFixed(1) || 0}%
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 ))}
                 
                 {columnTasks.length === 0 && (

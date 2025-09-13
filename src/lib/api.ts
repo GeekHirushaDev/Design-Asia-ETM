@@ -196,3 +196,10 @@ export const timeTrackingApi = {
   
   deleteTimeLog: (timeLogId: string) => api.delete(`/time-tracking/${timeLogId}`),
 };
+
+export const userApi = {
+  getUsers: (params?: any) => api.get('/users', { params }),
+  getUser: (id: string) => api.get(`/users/${id}`),
+  updateUser: (id: string, data: any) => api.put(`/users/${id}`, data),
+  deleteUser: (id: string) => api.delete(`/users/${id}`),
+};

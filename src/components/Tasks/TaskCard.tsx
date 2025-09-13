@@ -1,6 +1,6 @@
 import React from 'react';
 import { useState } from 'react';
-import { Clock, MapPin, User, Play, Square, AlertCircle } from 'lucide-react';
+import { Clock, MapPin, User, Play, Square, AlertCircle, Pause, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { taskApi } from '../../lib/api';
 import { useTaskStore } from '../../store/taskStore';
@@ -62,6 +62,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
         }
         await taskApi.startTimer(task._id);
         startTimer(task._id);
+        
+        // Automatically update task status to in_progress
+        if (task.status === 'not_started') {
+          await taskApi.updateTask(task._id, { status: 'in_progress' });
+          updateTask(task._id, { status: 'in_progress' });
+        }
+        
         toast.success('Timer started');
         onUpdate();
       }
@@ -74,6 +81,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
     try {
       await taskApi.pauseTimer(taskId);
       stopTimer();
+      
+      // Update task status to paused
+      await taskApi.updateTask(taskId, { status: 'paused' });
+      updateTask(taskId, { status: 'paused' });
+      
       toast.success('Timer paused');
       onUpdate();
     } catch (error: any) {
@@ -89,6 +101,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
       }
       await taskApi.resumeTimer(taskId);
       startTimer(taskId);
+      
+      // Update task status to in_progress
+      await taskApi.updateTask(taskId, { status: 'in_progress' });
+      updateTask(taskId, { status: 'in_progress' });
+      
       toast.success('Timer resumed');
       onUpdate();
     } catch (error: any) {
@@ -96,6 +113,24 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
     }
   };
 
+  const handleCompleteTask = async () => {
+    try {
+      // Stop timer if running
+      if (activeTimer?.taskId === task._id) {
+        await taskApi.stopTimer(task._id);
+        stopTimer();
+      }
+      
+      // Mark task as completed
+      await taskApi.updateTask(task._id, { status: 'completed' });
+      updateTask(task._id, { status: 'completed' });
+      
+      toast.success('Task completed!');
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to complete task');
+    }
+  };
   const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
 
   return (
@@ -164,38 +199,39 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
             </button>
           )}
           
+              
+              {/* Pause button when timer is active */}
+              {activeTimer?.taskId === task._id && (
+                <button
+                  onClick={() => handlePauseTimer(task._id)}
+                  disabled={isUpdating}
+                  className="p-2 rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-colors"
+                  title="Pause Timer"
+                >
+                  <Pause size={14} />
+                </button>
+              )}
+              
+              {/* Complete button for in-progress tasks */}
+              {(task.status === 'in_progress' || task.status === 'paused') && (
+                <button
+                  onClick={handleCompleteTask}
+                  disabled={isUpdating}
+                  className="p-2 rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
+                  title="Complete Task"
+                >
+                  <CheckCircle size={14} />
+                </button>
+              )}
           {task.status === 'paused' && (
             <button
               onClick={() => handleResumeTimer(task._id)}
               disabled={isUpdating}
               className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
+              title="Resume Timer"
             >
               <Play size={14} fill="currentColor" />
             </button>
-          )}
-          
-          {activeTimer?.taskId === task._id && (
-            <button
-              onClick={() => handlePauseTimer(task._id)}
-              disabled={isUpdating}
-              className="p-2 rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-colors"
-            >
-              <Clock size={14} />
-            </button>
-          )}
-          
-          {user?.role === 'employee' && task.assignedTo.some((assignee: any) => assignee._id === user._id) && (
-            <select
-              value={task.status}
-              onChange={(e) => handleStatusChange(e.target.value)}
-              disabled={isUpdating}
-              className="text-xs bg-transparent border-none focus:ring-0 cursor-pointer"
-            >
-              <option value="not_started">Not Started</option>
-              <option value="in_progress">In Progress</option>
-              <option value="paused">Paused</option>
-              <option value="completed">Completed</option>
-            </select>
           )}
         </div>
         

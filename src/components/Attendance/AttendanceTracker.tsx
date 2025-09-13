@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, MapPin, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { attendanceApi } from '../../lib/api';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, isFuture, isPast } from 'date-fns';
 import toast from 'react-hot-toast';
 
 interface AttendanceRecord {
@@ -94,6 +94,7 @@ export const AttendanceTracker: React.FC = () => {
       const response = await attendanceApi.clockIn(location);
       setTodayRecord(response.data.attendance);
       toast.success('Clocked in successfully');
+      loadAttendanceData(); // Refresh data
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to clock in');
     }
@@ -109,17 +110,35 @@ export const AttendanceTracker: React.FC = () => {
       const response = await attendanceApi.clockOut(location);
       setTodayRecord(response.data.attendance);
       toast.success('Clocked out successfully');
+      loadAttendanceData(); // Refresh data
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to clock out');
     }
   };
 
   const getAttendanceStatus = (record: AttendanceRecord | null, date: Date) => {
+    // Future dates should not show any status
+    if (isFuture(date) && !isToday(date)) {
+      return { status: '', color: '', icon: null };
+    }
+
+    // Weekend check
+    const dayOfWeek = date.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    
+    if (isWeekend) {
+      return { status: 'weekend', color: 'bg-gray-100 text-gray-600', icon: Calendar };
+    }
+
     if (!record) {
       if (isToday(date)) {
         return { status: 'pending', color: 'bg-yellow-100 text-yellow-800', icon: Clock };
       }
-      return { status: 'absent', color: 'bg-red-100 text-red-800', icon: XCircle };
+      // Only show absent for past working days
+      if (isPast(date)) {
+        return { status: 'absent', color: 'bg-red-100 text-red-800', icon: XCircle };
+      }
+      return { status: '', color: '', icon: null };
     }
 
     if (record.clockIn && record.clockOut) {
@@ -127,6 +146,9 @@ export const AttendanceTracker: React.FC = () => {
     }
 
     if (record.clockIn && !record.clockOut) {
+      if (isToday(date)) {
+        return { status: 'clocked in', color: 'bg-blue-100 text-blue-800', icon: Clock };
+      }
       return { status: 'incomplete', color: 'bg-yellow-100 text-yellow-800', icon: AlertCircle };
     }
 
@@ -149,7 +171,7 @@ export const AttendanceTracker: React.FC = () => {
 
   const totalWorkingDays = monthDays.filter(day => {
     const dayOfWeek = day.getDay();
-    return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude weekends
+    return dayOfWeek !== 0 && dayOfWeek !== 6 && !isFuture(day); // Exclude weekends and future days
   }).length;
 
   const presentDays = attendanceRecords.filter(record => 
@@ -292,12 +314,13 @@ export const AttendanceTracker: React.FC = () => {
                 const record = attendanceRecords.find(r => isSameDay(new Date(r.date), day));
                 const { status, color, icon: Icon } = getAttendanceStatus(record, day);
                 const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+                const isFutureDay = isFuture(day) && !isToday(day);
 
                 return (
                   <div
                     key={day.toISOString()}
                     className={`p-3 rounded-lg border text-center ${
-                      isWeekend 
+                      isWeekend || isFutureDay
                         ? 'bg-gray-50 border-gray-200' 
                         : 'bg-white border-gray-200 hover:border-gray-300'
                     } ${isToday(day) ? 'ring-2 ring-blue-500' : ''}`}
@@ -305,11 +328,14 @@ export const AttendanceTracker: React.FC = () => {
                     <div className="text-sm font-medium text-gray-900 mb-1">
                       {format(day, 'd')}
                     </div>
-                    {!isWeekend && (
+                    {!isWeekend && !isFutureDay && status && Icon && (
                       <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${color}`}>
                         <Icon size={12} className="mr-1" />
-                        {status}
+                        {status === 'clocked in' ? 'In' : status}
                       </div>
+                    )}
+                    {isWeekend && (
+                      <div className="text-xs text-gray-400">Weekend</div>
                     )}
                   </div>
                 );
@@ -353,20 +379,32 @@ export const AttendanceTracker: React.FC = () => {
             
             <div className="space-y-2">
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-green-100 rounded border"></div>
+                <div className="w-4 h-4 bg-green-100 rounded border flex items-center justify-center">
+                  <CheckCircle size={10} className="text-green-600" />
+                </div>
                 <span className="text-sm text-gray-600">Present</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-yellow-100 rounded border"></div>
+                <div className="w-4 h-4 bg-blue-100 rounded border flex items-center justify-center">
+                  <Clock size={10} className="text-blue-600" />
+                </div>
+                <span className="text-sm text-gray-600">Clocked In</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 bg-yellow-100 rounded border flex items-center justify-center">
+                  <AlertCircle size={10} className="text-yellow-600" />
+                </div>
                 <span className="text-sm text-gray-600">Incomplete</span>
               </div>
               <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 bg-red-100 rounded border"></div>
+                <div className="w-4 h-4 bg-red-100 rounded border flex items-center justify-center">
+                  <XCircle size={10} className="text-red-600" />
+                </div>
                 <span className="text-sm text-gray-600">Absent</span>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-4 h-4 bg-gray-50 rounded border"></div>
-                <span className="text-sm text-gray-600">Weekend</span>
+                <span className="text-sm text-gray-600">Weekend/Future</span>
               </div>
             </div>
           </div>

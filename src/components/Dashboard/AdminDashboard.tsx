@@ -6,14 +6,18 @@ import {
   AlertTriangle,
   TrendingUp,
   MapPin,
-  Calendar
+  Calendar,
+  Plus,
+  UserPlus
 } from 'lucide-react';
-import { taskApi, trackingApi } from '../../lib/api';
+import { taskApi, trackingApi, authApi } from '../../lib/api';
 import { TaskProgressDashboard } from './TaskProgressDashboard';
 import { OverdueUpcomingSummary } from './OverdueUpcomingSummary';
 import { WeeklyReport } from '../Reports/WeeklyReport';
 import { TimeTracker } from '../TimeTracking/TimeTracker';
 import { TimeAnalytics } from '../TimeTracking/TimeAnalytics';
+import { EmployeeRegistrationForm } from '../Admin/EmployeeRegistrationForm';
+import { TeamManagement } from '../Admin/TeamManagement';
 
 interface DashboardStats {
   totalTasks: number;
@@ -36,7 +40,8 @@ export const AdminDashboard: React.FC = () => {
   const [recentTasks, setRecentTasks] = useState([]);
   const [currentLocations, setCurrentLocations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'analytics' | 'timetracking'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'analytics' | 'timetracking' | 'team'>('overview');
+  const [showEmployeeForm, setShowEmployeeForm] = useState(false);
 
   useEffect(() => {
     loadDashboardData();
@@ -120,9 +125,18 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-        <p className="text-gray-600">Overview of your team's performance and activity</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+          <p className="text-gray-600">Overview of your team's performance and activity</p>
+        </div>
+        <button
+          onClick={() => setShowEmployeeForm(true)}
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <UserPlus size={16} className="mr-2" />
+          Add Employee
+        </button>
       </div>
 
       {/* Tab Navigation */}
@@ -132,7 +146,8 @@ export const AdminDashboard: React.FC = () => {
             { id: 'overview', label: 'Overview', icon: Users },
             { id: 'analytics', label: 'Analytics', icon: TrendingUp },
             { id: 'timetracking', label: 'Time Tracking', icon: Clock },
-            { id: 'reports', label: 'Weekly Reports', icon: Calendar }
+            { id: 'reports', label: 'Weekly Reports', icon: Calendar },
+            { id: 'team', label: 'Team Management', icon: Users }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -185,10 +200,10 @@ export const AdminDashboard: React.FC = () => {
 
           {/* Recent Tasks and Active Employees */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Tasks */}
+            {/* Recent Tasks with Time Tracking */}
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">Recent Tasks</h2>
+                <h2 className="text-lg font-semibold text-gray-900">Recent Tasks Progress</h2>
                 <button className="text-sm text-blue-600 hover:text-blue-800">
                   View All
                 </button>
@@ -207,18 +222,23 @@ export const AdminDashboard: React.FC = () => {
                         <h4 className="text-sm font-medium text-gray-900">
                           {task.title}
                         </h4>
-                        <p className="text-xs text-gray-600">
-                          Due: {new Date(task.dueDate).toLocaleDateString()}
-                        </p>
+                        <div className="flex items-center space-x-2 text-xs text-gray-600">
+                          <span>Assigned to: {task.assignedTo.map((u: any) => u.name).join(', ')}</span>
+                          {task.dueDate && (
+                            <span>• Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      task.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      task.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {task.status.replace('_', ' ')}
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        task.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        task.status === 'in_progress' ? 'bg-blue-100 text-blue-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {task.status.replace('_', ' ')}
+                      </span>
+                    </div>
                   </div>
                 ))}
                 
@@ -310,6 +330,23 @@ export const AdminDashboard: React.FC = () => {
         <div>
           <WeeklyReport />
         </div>
+      )}
+
+      {activeTab === 'team' && (
+        <div>
+          <TeamManagement />
+        </div>
+      )}
+
+      {/* Employee Registration Modal */}
+      {showEmployeeForm && (
+        <EmployeeRegistrationForm
+          onClose={() => setShowEmployeeForm(false)}
+          onSuccess={() => {
+            setShowEmployeeForm(false);
+            loadDashboardData();
+          }}
+        />
       )}
     </div>
   );
