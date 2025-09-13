@@ -13,7 +13,7 @@ import { AttendanceTracker } from './components/Attendance/AttendanceTracker';
 import { ReportGenerator } from './components/Reports/ReportGenerator';
 import { WeeklyReport } from './components/Reports/WeeklyReport';
 import { TaskProgressDashboard } from './components/Dashboard/TaskProgressDashboard';
-import { TeamManagement } from './components/Admin/TeamManagement';
+import TeamManagement from './components/Admin/TeamManagement';
 import { SettingsSection } from './components/Admin/SettingsSection';
 import { socketManager } from './lib/socket';
 
