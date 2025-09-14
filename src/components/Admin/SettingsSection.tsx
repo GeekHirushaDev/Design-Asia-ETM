@@ -1,441 +1,285 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, 
-  Shield, 
-  UserPlus, 
-  Edit, 
-  Trash2, 
-  Key,
-  Check,
-  X,
-  AlertTriangle,
-  Crown
+  Palette, 
+  Monitor, 
+  Sun, 
+  Moon,
+  Settings,
+  Save,
+  RotateCcw
 } from 'lucide-react';
 import { roleApi, userApi } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 
-interface Role {
-  _id: string;
-  name: string;
-  description: string;
-  permissions: string[];
-  isSystem: boolean;
-  isActive: boolean;
-}
-
-interface Permission {
-  _id: string;
-  name: string;
-  description: string;
-  module: string;
-  action: 'view' | 'insert' | 'update' | 'delete';
-  resource: string;
-}
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  role: string;
-  roleId?: string;
-  status: 'active' | 'inactive';
-  customPermissions?: string[];
-}
+type Theme = 'light' | 'dark' | 'system';
 
 export const SettingsSection: React.FC = () => {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'roles' | 'permissions'>('roles');
-  
-  // Roles state
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Modal states
-  const [showRoleModal, setShowRoleModal] = useState(false);
-  const [editingRole, setEditingRole] = useState<Role | null>(null);
-  
-  // Form states
-  const [roleForm, setRoleForm] = useState({
-    name: '',
-    description: '',
-    permissions: [] as string[]
+  const [currentTheme, setCurrentTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem('theme') as Theme;
+    return saved || 'system';
   });
-
-  const modules = [
-    { key: 'tasks', name: 'Tasks', icon: '📋' },
-    { key: 'users', name: 'Users', icon: '👥' },
-    { key: 'teams', name: 'Teams', icon: '🏢' },
-    { key: 'locations', name: 'Locations', icon: '📍' },
-    { key: 'attachments', name: 'Attachments', icon: '📎' },
-    { key: 'reports', name: 'Reports', icon: '📊' },
-    { key: 'attendance', name: 'Attendance', icon: '🕐' },
-    { key: 'tracking', name: 'Tracking', icon: '🎯' }
-  ];
-
-  const actions = ['view', 'insert', 'update', 'delete'];
+  const [systemPreference, setSystemPreference] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    loadData();
+    // Detect system theme preference
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setSystemPreference(mediaQuery.matches ? 'dark' : 'light');
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setSystemPreference(e.matches ? 'dark' : 'light');
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
 
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const [rolesRes, permissionsRes] = await Promise.all([
-        roleApi.getRoles(),
-        roleApi.getPermissions(),
-      ]);
-      
-      setRoles(rolesRes.data.roles || []);
-      setPermissions(permissionsRes.data.permissions || []);
-    } catch (error: any) {
-      toast.error('Failed to load settings data');
-      console.error('Load settings error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  useEffect(() => {
+    applyTheme();
+  }, [currentTheme, systemPreference]);
 
-  const handleCreateRole = async () => {
-    try {
-      if (!roleForm.name.trim() || !roleForm.description.trim()) {
-        toast.error('Please fill in all required fields');
-        return;
-      }
-
-      await roleApi.createRole(roleForm);
-      toast.success('Role created successfully');
-      setShowRoleModal(false);
-      setRoleForm({ name: '', description: '', permissions: [] });
-      loadData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to create role');
-    }
-  };
-
-  const handleUpdateRole = async () => {
-    try {
-      if (!editingRole || !roleForm.name.trim() || !roleForm.description.trim()) {
-        toast.error('Please fill in all required fields');
-        return;
-      }
-
-      await roleApi.updateRole(editingRole._id, roleForm);
-      toast.success('Role updated successfully');
-      setShowRoleModal(false);
-      setEditingRole(null);
-      setRoleForm({ name: '', description: '', permissions: [] });
-      loadData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update role');
-    }
-  };
-
-  const handleDeleteRole = async (roleId: string) => {
-    if (!window.confirm('Are you sure you want to delete this role? This action cannot be undone.')) {
-      return;
-    }
-
-    try {
-      await roleApi.deleteRole(roleId);
-      toast.success('Role deleted successfully');
-      loadData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to delete role');
-    }
-  };
-
-  const openRoleModal = (role?: Role) => {
-    if (role) {
-      setEditingRole(role);
-      setRoleForm({
-        name: role.name,
-        description: role.description,
-        permissions: role.permissions
-      });
+  const applyTheme = () => {
+    const root = document.documentElement;
+    
+    let themeToApply: 'light' | 'dark';
+    
+    if (currentTheme === 'system') {
+      themeToApply = systemPreference;
     } else {
-      setEditingRole(null);
-      setRoleForm({ name: '', description: '', permissions: [] });
+      themeToApply = currentTheme;
     }
-    setShowRoleModal(true);
+    
+    if (themeToApply === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    } else {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('theme', currentTheme);
   };
 
-  const handlePermissionToggle = (permissionId: string) => {
-    const newPermissions = roleForm.permissions.includes(permissionId)
-      ? roleForm.permissions.filter(p => p !== permissionId)
-      : [...roleForm.permissions, permissionId];
-    setRoleForm({ ...roleForm, permissions: newPermissions });
+  const handleThemeChange = (theme: Theme) => {
+    setCurrentTheme(theme);
+    toast.success(`Theme changed to ${theme === 'system' ? 'system preference' : theme} mode`);
   };
 
-  const getPermissionsByModule = () => {
-    const permissionsByModule: { [key: string]: Permission[] } = {};
-    permissions.forEach(permission => {
-      if (!permissionsByModule[permission.module]) {
-        permissionsByModule[permission.module] = [];
-      }
-      permissionsByModule[permission.module].push(permission);
-    });
-    return permissionsByModule;
+  const resetSettings = () => {
+    setCurrentTheme('system');
+    toast.success('Settings reset to defaults');
   };
 
-  // Check if current user is super admin
-  const isSuperAdmin = user?.role === 'admin' && user?.email === 'admin@company.com';
-
-  if (!isSuperAdmin) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="text-center">
-          <AlertTriangle className="mx-auto h-12 w-12 text-yellow-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">Access Restricted</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            Only Super Admin can access system settings.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="space-y-3">
-            <div className="h-4 bg-gray-200 rounded"></div>
-            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-            <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const getActiveTheme = (): 'light' | 'dark' => {
+    return currentTheme === 'system' ? systemPreference : currentTheme;
+  };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
       {/* Header */}
       <div className="px-6 py-4 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Crown className="h-5 w-5 text-yellow-500" />
-            <h2 className="text-lg font-medium text-gray-900">System Settings</h2>
+          <div className="flex items-center space-x-3">
+            <Settings className="h-6 w-6 text-blue-600" />
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">Application Settings</h2>
+              <p className="text-sm text-gray-600">Customize your application experience</p>
+            </div>
           </div>
-          <span className="text-xs text-gray-500 bg-yellow-100 px-2 py-1 rounded">Super Admin Only</span>
+          <button
+            onClick={resetSettings}
+            className="flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <RotateCcw size={16} className="mr-2" />
+            Reset to Defaults
+          </button>
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
-          <button
-            onClick={() => setActiveTab('roles')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'roles'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Shield className="h-4 w-4 inline mr-2" />
-            Roles
-          </button>
-          <button
-            onClick={() => setActiveTab('permissions')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'permissions'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Key className="h-4 w-4 inline mr-2" />
-            Permissions
-          </button>
-        </nav>
-      </div>
-
-      {/* Content */}
-      <div className="p-6">
-        {activeTab === 'roles' && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-medium text-gray-900">Role Management</h3>
-              <button
-                onClick={() => openRoleModal()}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2"
-              >
-                <UserPlus className="h-4 w-4" />
-                <span>Create Role</span>
-              </button>
-            </div>
-
-            <div className="grid gap-4">
-              {roles.map((role) => (
-                <div key={role._id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <h4 className="font-medium text-gray-900">{role.name}</h4>
-                        {role.isSystem && (
-                          <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded">System</span>
-                        )}
-                        {!role.isActive && (
-                          <span className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded">Inactive</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1">{role.description}</p>
-                      <p className="text-xs text-gray-500 mt-2">
-                        {role.permissions.length} permission(s) assigned
-                      </p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => openRoleModal(role)}
-                        disabled={role.isSystem}
-                        className="text-blue-600 hover:text-blue-800 disabled:text-gray-400"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteRole(role._id)}
-                        disabled={role.isSystem}
-                        className="text-red-600 hover:text-red-800 disabled:text-gray-400"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
+      {/* Settings Content */}
+      <div className="p-6 space-y-8">
+        {/* Theme Settings */}
+        <div>
+          <div className="flex items-center space-x-3 mb-6">
+            <Palette className="h-5 w-5 text-purple-600" />
+            <h3 className="text-lg font-medium text-gray-900">Theme Preferences</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Light Theme */}
+            <div
+              onClick={() => handleThemeChange('light')}
+              className={`relative p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${
+                currentTheme === 'light'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-yellow-100 rounded-lg">
+                  <Sun className="h-5 w-5 text-yellow-600" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">Light Mode</h4>
+                  <p className="text-sm text-gray-600">Clean and bright interface</p>
+                </div>
+              </div>
+              
+              {/* Theme Preview */}
+              <div className="bg-white border border-gray-200 rounded-lg p-3 space-y-2">
+                <div className="h-2 bg-gray-100 rounded"></div>
+                <div className="h-2 bg-blue-500 rounded w-3/4"></div>
+                <div className="h-2 bg-gray-100 rounded w-1/2"></div>
+              </div>
+              
+              {currentTheme === 'light' && (
+                <div className="absolute top-3 right-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <Save className="h-3 w-3 text-white" />
                   </div>
                 </div>
-              ))}
+              )}
             </div>
-          </div>
-        )}
 
-        {activeTab === 'permissions' && (
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-6">System Permissions</h3>
-            
-            <div className="space-y-6">
-              {modules.map((module) => (
-                <div key={module.key} className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-3 flex items-center space-x-2">
-                    <span>{module.icon}</span>
-                    <span>{module.name}</span>
-                  </h4>
-                  
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {actions.map((action) => {
-                      const permission = permissions.find(p => p.module === module.key && p.action === action);
-                      return (
-                        <div key={`${module.key}-${action}`} className="flex items-center space-x-2 text-sm">
-                          <div className={`w-3 h-3 rounded ${permission ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                          <span className="capitalize">{action}</span>
-                        </div>
-                      );
-                    })}
+            {/* Dark Theme */}
+            <div
+              onClick={() => handleThemeChange('dark')}
+              className={`relative p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${
+                currentTheme === 'dark'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-gray-800 rounded-lg">
+                  <Moon className="h-5 w-5 text-gray-100" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">Dark Mode</h4>
+                  <p className="text-sm text-gray-600">Easy on the eyes</p>
+                </div>
+              </div>
+              
+              {/* Theme Preview */}
+              <div className="bg-gray-800 border border-gray-700 rounded-lg p-3 space-y-2">
+                <div className="h-2 bg-gray-700 rounded"></div>
+                <div className="h-2 bg-blue-400 rounded w-3/4"></div>
+                <div className="h-2 bg-gray-700 rounded w-1/2"></div>
+              </div>
+              
+              {currentTheme === 'dark' && (
+                <div className="absolute top-3 right-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <Save className="h-3 w-3 text-white" />
                   </div>
                 </div>
-              ))}
+              )}
+            </div>
+
+            {/* System Theme */}
+            <div
+              onClick={() => handleThemeChange('system')}
+              className={`relative p-6 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md ${
+                currentTheme === 'system'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-2 bg-gradient-to-r from-yellow-100 to-gray-800 rounded-lg">
+                  <Monitor className="h-5 w-5 text-gray-700" />
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900">System</h4>
+                  <p className="text-sm text-gray-600">Follow system preference</p>
+                </div>
+              </div>
+              
+              {/* Theme Preview */}
+              <div className="bg-gradient-to-r from-white to-gray-800 border border-gray-300 rounded-lg p-3 space-y-2">
+                <div className="h-2 bg-gradient-to-r from-gray-100 to-gray-700 rounded"></div>
+                <div className="h-2 bg-blue-500 rounded w-3/4"></div>
+                <div className="h-2 bg-gradient-to-r from-gray-100 to-gray-700 rounded w-1/2"></div>
+              </div>
+              
+              {currentTheme === 'system' && (
+                <div className="absolute top-3 right-3">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <Save className="h-3 w-3 text-white" />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        )}
-
-      </div>
-
-      {/* Role Modal */}
-      {showRoleModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium">
-                {editingRole ? 'Edit Role' : 'Create Role'}
-              </h3>
-              <button
-                onClick={() => setShowRoleModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
+          
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role Name *
-                </label>
+                <h4 className="font-medium text-gray-900">Current Theme</h4>
+                <p className="text-sm text-gray-600">
+                  Active: {getActiveTheme() === 'light' ? 'Light Mode' : 'Dark Mode'}
+                  {currentTheme === 'system' && ` (System: ${systemPreference})`}
+                </p>
+              </div>
+              <div className={`w-4 h-4 rounded-full ${getActiveTheme() === 'light' ? 'bg-yellow-400' : 'bg-gray-700'}`}></div>
+            </div>
+          </div>
+        </div>
+
+        {/* Additional Settings Sections */}
+        <div>
+          <div className="flex items-center space-x-3 mb-6">
+            <Settings className="h-5 w-5 text-gray-600" />
+            <h3 className="text-lg font-medium text-gray-900">Application Preferences</h3>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <h4 className="font-medium text-gray-900">Auto-save Settings</h4>
+                <p className="text-sm text-gray-600">Automatically save your preferences</p>
+              </div>
+              <div className="flex items-center">
                 <input
-                  type="text"
-                  value={roleForm.name}
-                  onChange={(e) => setRoleForm({ ...roleForm, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter role name"
+                  type="checkbox"
+                  defaultChecked
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description *
-                </label>
-                <textarea
-                  value={roleForm.description}
-                  onChange={(e) => setRoleForm({ ...roleForm, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows={3}
-                  placeholder="Enter role description"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Permissions
-                </label>
-                
-                <div className="space-y-4">
-                  {Object.entries(getPermissionsByModule()).map(([moduleName, modulePermissions]) => {
-                    const module = modules.find(m => m.key === moduleName);
-                    return (
-                      <div key={moduleName} className="border border-gray-200 rounded-lg p-3">
-                        <h4 className="font-medium text-sm mb-2 flex items-center space-x-2">
-                          <span>{module?.icon}</span>
-                          <span>{module?.name}</span>
-                        </h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {modulePermissions.map((permission) => (
-                            <label key={permission._id} className="flex items-center space-x-2 text-sm">
-                              <input
-                                type="checkbox"
-                                checked={roleForm.permissions.includes(permission._id)}
-                                onChange={() => handlePermissionToggle(permission._id)}
-                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              />
-                              <span className="capitalize">{permission.action}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
             </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => setShowRoleModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={editingRole ? handleUpdateRole : handleCreateRole}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
-              >
-                {editingRole ? 'Update Role' : 'Create Role'}
-              </button>
+            
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <h4 className="font-medium text-gray-900">Real-time Updates</h4>
+                <p className="text-sm text-gray-600">Receive live updates for tasks and notifications</p>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+              <div>
+                <h4 className="font-medium text-gray-900">Location Tracking</h4>
+                <p className="text-sm text-gray-600">Enable location-based features</p>
+              </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  defaultChecked
+                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+              </div>
             </div>
           </div>
         </div>
-      )}
-
+      </div>
     </div>
   );
 };

@@ -16,8 +16,6 @@ import { TaskProgressDashboard } from './TaskProgressDashboard';
 import { OverdueUpcomingSummary } from './OverdueUpcomingSummary';
 import { EmployeeRegistrationForm } from '../Admin/EmployeeRegistrationForm';
 import { AdminTimeTrackingDashboard } from '../TimeTracking/AdminTimeTrackingDashboard';
-import { LocationManagement } from '../Admin/LocationManagement';
-import { SettingsSection } from '../Admin/SettingsSection';
 
 interface DashboardStats {
   totalTasks: number;

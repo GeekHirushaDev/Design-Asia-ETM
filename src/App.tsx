@@ -13,7 +13,7 @@ import { AttendanceTracker } from './components/Attendance/AttendanceTracker';
 import { ReportGenerator } from './components/Reports/ReportGenerator';
 import { WeeklyReport } from './components/Reports/WeeklyReport';
 import { TaskProgressDashboard } from './components/Dashboard/TaskProgressDashboard';
-import TeamManagement from './components/Admin/TeamManagement';
+import { UserManagement } from './components/Admin/UserManagement';
 import { LocationManagement } from './components/Admin/LocationManagement';
 import { SettingsSection } from './components/Admin/SettingsSection';
 import { socketManager } from './lib/socket';
@@ -68,7 +68,7 @@ function App() {
       case 'tasks':
         return <TaskBoard />;
       case 'users':
-        return <TeamManagement />;
+        return <UserManagement />;
       case 'locations':
         return <LocationManagement />;
       case 'attendance':
