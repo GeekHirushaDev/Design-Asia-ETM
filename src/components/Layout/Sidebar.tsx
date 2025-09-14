@@ -30,7 +30,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const adminMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-    { id: 'teams', label: 'Team Management', icon: Users },
+    { id: 'users', label: 'User Management', icon: Users },
+    { id: 'locations', label: 'Location Management', icon: MapPin },
     { id: 'attendance', label: 'Attendance', icon: Calendar },
     { id: 'tracking', label: 'Live Map', icon: MapPin },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },

@@ -45,33 +45,22 @@ interface User {
 
 export const SettingsSection: React.FC = () => {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'roles' | 'permissions' | 'users'>('roles');
+  const [activeTab, setActiveTab] = useState<'roles' | 'permissions'>('roles');
   
   // Roles state
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   
   // Modal states
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const [showUserModal, setShowUserModal] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
   
   // Form states
   const [roleForm, setRoleForm] = useState({
     name: '',
     description: '',
     permissions: [] as string[]
-  });
-  
-  const [userForm, setUserForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    roleId: '',
-    customPermissions: [] as string[]
   });
 
   const modules = [
@@ -94,15 +83,13 @@ export const SettingsSection: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [rolesRes, permissionsRes, usersRes] = await Promise.all([
+      const [rolesRes, permissionsRes] = await Promise.all([
         roleApi.getRoles(),
         roleApi.getPermissions(),
-        userApi.getUsers()
       ]);
       
       setRoles(rolesRes.data.roles || []);
       setPermissions(permissionsRes.data.permissions || []);
-      setUsers(usersRes.data.users || []);
     } catch (error: any) {
       toast.error('Failed to load settings data');
       console.error('Load settings error:', error);
@@ -160,57 +147,6 @@ export const SettingsSection: React.FC = () => {
     }
   };
 
-  const handleCreateUser = async () => {
-    try {
-      if (!userForm.name.trim() || !userForm.email.trim() || !userForm.password.trim() || !userForm.roleId) {
-        toast.error('Please fill in all required fields');
-        return;
-      }
-
-      await userApi.createUser(userForm);
-      toast.success('User created successfully');
-      setShowUserModal(false);
-      setUserForm({ name: '', email: '', password: '', roleId: '', customPermissions: [] });
-      loadData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to create user');
-    }
-  };
-
-  const handleUpdateUser = async () => {
-    try {
-      if (!editingUser || !userForm.name.trim() || !userForm.email.trim() || !userForm.roleId) {
-        toast.error('Please fill in all required fields');
-        return;
-      }
-
-      const updateData: any = { ...userForm };
-      if (!updateData.password) {
-        updateData.password = undefined; // Don't update password if not provided
-      }
-
-      await userApi.updateUser(editingUser._id, updateData);
-      toast.success('User updated successfully');
-      setShowUserModal(false);
-      setEditingUser(null);
-      setUserForm({ name: '', email: '', password: '', roleId: '', customPermissions: [] });
-      loadData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update user');
-    }
-  };
-
-  const handleToggleUserStatus = async (userId: string, currentStatus: string) => {
-    try {
-      const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-      await userApi.updateUser(userId, { status: newStatus });
-      toast.success(`User ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully`);
-      loadData();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update user status');
-    }
-  };
-
   const openRoleModal = (role?: Role) => {
     if (role) {
       setEditingRole(role);
@@ -226,35 +162,11 @@ export const SettingsSection: React.FC = () => {
     setShowRoleModal(true);
   };
 
-  const openUserModal = (user?: User) => {
-    if (user) {
-      setEditingUser(user);
-      setUserForm({
-        name: user.name,
-        email: user.email,
-        password: '', // Don't pre-fill password for security
-        roleId: user.roleId || '',
-        customPermissions: user.customPermissions || []
-      });
-    } else {
-      setEditingUser(null);
-      setUserForm({ name: '', email: '', password: '', roleId: '', customPermissions: [] });
-    }
-    setShowUserModal(true);
-  };
-
-  const handlePermissionToggle = (permissionId: string, formType: 'role' | 'user') => {
-    if (formType === 'role') {
-      const newPermissions = roleForm.permissions.includes(permissionId)
-        ? roleForm.permissions.filter(p => p !== permissionId)
-        : [...roleForm.permissions, permissionId];
-      setRoleForm({ ...roleForm, permissions: newPermissions });
-    } else {
-      const newPermissions = userForm.customPermissions.includes(permissionId)
-        ? userForm.customPermissions.filter(p => p !== permissionId)
-        : [...userForm.customPermissions, permissionId];
-      setUserForm({ ...userForm, customPermissions: newPermissions });
-    }
+  const handlePermissionToggle = (permissionId: string) => {
+    const newPermissions = roleForm.permissions.includes(permissionId)
+      ? roleForm.permissions.filter(p => p !== permissionId)
+      : [...roleForm.permissions, permissionId];
+    setRoleForm({ ...roleForm, permissions: newPermissions });
   };
 
   const getPermissionsByModule = () => {
@@ -266,11 +178,6 @@ export const SettingsSection: React.FC = () => {
       permissionsByModule[permission.module].push(permission);
     });
     return permissionsByModule;
-  };
-
-  const getRoleName = (roleId: string) => {
-    const role = roles.find(r => r._id === roleId);
-    return role?.name || 'Unknown Role';
   };
 
   // Check if current user is super admin
@@ -342,17 +249,6 @@ export const SettingsSection: React.FC = () => {
           >
             <Key className="h-4 w-4 inline mr-2" />
             Permissions
-          </button>
-          <button
-            onClick={() => setActiveTab('users')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'users'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Users className="h-4 w-4 inline mr-2" />
-            Users
           </button>
         </nav>
       </div>
@@ -443,81 +339,6 @@ export const SettingsSection: React.FC = () => {
           </div>
         )}
 
-        {activeTab === 'users' && (
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-medium text-gray-900">User Management</h3>
-              <button
-                onClick={() => openUserModal()}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center space-x-2"
-              >
-                <UserPlus className="h-4 w-4" />
-                <span>Create User</span>
-              </button>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      User
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Role
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {users.map((user) => (
-                    <tr key={user._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">{getRoleName(user.roleId || '')}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.status === 'active' 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => openUserModal(user)}
-                            className="text-blue-600 hover:text-blue-800"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => handleToggleUserStatus(user._id, user.status)}
-                            className={user.status === 'active' ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'}
-                          >
-                            {user.status === 'active' ? <X className="h-4 w-4" /> : <Check className="h-4 w-4" />}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Role Modal */}
@@ -583,7 +404,7 @@ export const SettingsSection: React.FC = () => {
                               <input
                                 type="checkbox"
                                 checked={roleForm.permissions.includes(permission._id)}
-                                onChange={() => handlePermissionToggle(permission._id, 'role')}
+                                onChange={() => handlePermissionToggle(permission._id)}
                                 className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                               />
                               <span className="capitalize">{permission.action}</span>
@@ -615,131 +436,6 @@ export const SettingsSection: React.FC = () => {
         </div>
       )}
 
-      {/* User Modal */}
-      {showUserModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-medium">
-                {editingUser ? 'Edit User' : 'Create User'}
-              </h3>
-              <button
-                onClick={() => setShowUserModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  value={userForm.name}
-                  onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter full name"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email *
-                </label>
-                <input
-                  type="email"
-                  value={userForm.email}
-                  onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter email address"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password {editingUser ? '' : '*'}
-                </label>
-                <input
-                  type="password"
-                  value={userForm.password}
-                  onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder={editingUser ? "Leave blank to keep current password" : "Enter password"}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role *
-                </label>
-                <select
-                  value={userForm.roleId}
-                  onChange={(e) => setUserForm({ ...userForm, roleId: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select a role</option>
-                  {roles.filter(role => role.isActive).map((role) => (
-                    <option key={role._id} value={role._id}>
-                      {role.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Additional Permissions (Optional)
-                </label>
-                
-                <div className="space-y-4 max-h-60 overflow-y-auto">
-                  {Object.entries(getPermissionsByModule()).map(([moduleName, modulePermissions]) => {
-                    const module = modules.find(m => m.key === moduleName);
-                    return (
-                      <div key={moduleName} className="border border-gray-200 rounded-lg p-3">
-                        <h4 className="font-medium text-sm mb-2 flex items-center space-x-2">
-                          <span>{module?.icon}</span>
-                          <span>{module?.name}</span>
-                        </h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {modulePermissions.map((permission) => (
-                            <label key={permission._id} className="flex items-center space-x-2 text-sm">
-                              <input
-                                type="checkbox"
-                                checked={userForm.customPermissions.includes(permission._id)}
-                                onChange={() => handlePermissionToggle(permission._id, 'user')}
-                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              />
-                              <span className="capitalize">{permission.action}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                onClick={() => setShowUserModal(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={editingUser ? handleUpdateUser : handleCreateUser}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
-              >
-                {editingUser ? 'Update User' : 'Create User'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

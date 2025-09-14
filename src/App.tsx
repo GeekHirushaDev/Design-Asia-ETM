@@ -14,6 +14,7 @@ import { ReportGenerator } from './components/Reports/ReportGenerator';
 import { WeeklyReport } from './components/Reports/WeeklyReport';
 import { TaskProgressDashboard } from './components/Dashboard/TaskProgressDashboard';
 import TeamManagement from './components/Admin/TeamManagement';
+import { LocationManagement } from './components/Admin/LocationManagement';
 import { SettingsSection } from './components/Admin/SettingsSection';
 import { socketManager } from './lib/socket';
 
@@ -66,8 +67,10 @@ function App() {
         return user?.role === 'admin' ? <AdminDashboard /> : <EmployeeDashboard />;
       case 'tasks':
         return <TaskBoard />;
-      case 'teams':
+      case 'users':
         return <TeamManagement />;
+      case 'locations':
+        return <LocationManagement />;
       case 'attendance':
         return <AttendanceTracker />;
       case 'tracking':

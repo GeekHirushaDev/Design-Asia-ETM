@@ -401,7 +401,7 @@ const UserModal: React.FC<{
   );
 };
 
-const TeamManagement: React.FC = () => {
+const UserManagement: React.FC = () => {
   const [teams, setTeams] = useState<Team[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -410,7 +410,7 @@ const TeamManagement: React.FC = () => {
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [editingUser, setEditingUser] = useState<Employee | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'teams' | 'users'>('teams');
+  const [activeTab, setActiveTab] = useState<'teams' | 'users'>('users');
 
   useEffect(() => {
     loadData();
@@ -495,7 +495,7 @@ const TeamManagement: React.FC = () => {
     <div className="bg-white rounded-lg shadow-sm border p-4 sm:p-6">
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Team Management</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900">User Management</h2>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <button
               onClick={() => {
@@ -523,16 +523,6 @@ const TeamManagement: React.FC = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
-              onClick={() => setActiveTab('teams')}
-              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === 'teams'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              Teams ({teams.length})
-            </button>
-            <button
               onClick={() => setActiveTab('users')}
               className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                 activeTab === 'users'
@@ -541,6 +531,16 @@ const TeamManagement: React.FC = () => {
               }`}
             >
               Users ({employees.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('teams')}
+              className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === 'teams'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Teams ({teams.length})
             </button>
           </div>
 
@@ -783,4 +783,4 @@ const TeamManagement: React.FC = () => {
   );
 };
 
-export default TeamManagement;
+export default UserManagement;
