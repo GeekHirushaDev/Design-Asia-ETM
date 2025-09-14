@@ -46,7 +46,7 @@ const startServerAndTest = async () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: 'admin@taskmanager.com',
+          email: 'admin@company.com',
           password: 'admin123'
         })
       });

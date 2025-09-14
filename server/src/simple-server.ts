@@ -22,10 +22,10 @@ app.get('/health', (req, res) => {
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   
-  if (email === 'admin@taskmanager.com' && password === 'admin123') {
+  if (email === 'admin@company.com' && password === 'admin123') {
     res.json({
       success: true,
-      user: { email: 'admin@taskmanager.com', role: 'admin', name: 'Admin User' },
+      user: { email: 'admin@company.com', role: 'admin', name: 'Admin User' },
       token: 'dummy-token-for-testing'
     });
   } else {

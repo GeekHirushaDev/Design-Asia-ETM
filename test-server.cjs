@@ -19,12 +19,12 @@ app.post('/api/auth/login', (req, res) => {
   
   console.log('📝 Login attempt:', { email, password });
   
-  if (email === 'admin@taskmanager.com' && password === 'admin123') {
+  if (email === 'admin@company.com' && password === 'admin123') {
     console.log('✅ Admin login successful!');
     res.json({
       success: true,
       user: { 
-        email: 'admin@taskmanager.com', 
+        email: 'admin@company.com', 
         role: 'admin', 
         name: 'Admin User',
         id: 'admin-123'
@@ -42,7 +42,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Test server running on port ${PORT}`);
   console.log('✅ Ready to test admin login!');
   console.log(`📋 Test with: POST http://localhost:${PORT}/api/auth/login`);
-  console.log('📋 Credentials: admin@taskmanager.com / admin123');
+  console.log('📋 Credentials: admin@company.com / admin123');
 });
 
 // Keep the process alive

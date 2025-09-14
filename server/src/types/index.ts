@@ -33,6 +33,8 @@ export interface ITask extends Document {
   dueDate?: Date;
   createdBy: string;
   assignedTo: string[];
+  assignedTeam?: string;
+  assignmentType: 'individual' | 'team';
   tags: string[];
   approvals: {
     required: boolean;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, MapPin, Plus } from 'lucide-react';
-import { taskApi, userApi } from '../../lib/api';
+import { taskApi, userApi, teamApi } from '../../lib/api';
 import { getSriLankanTime } from '../../lib/timezone';
 import toast from 'react-hot-toast';
 
@@ -15,7 +15,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
     title: task?.title || '',
     description: task?.description || '',
     priority: task?.priority || 'medium',
+    assignmentType: task?.assignmentType || 'individual',
     assignedTo: task?.assignedTo?.map((user: any) => user._id) || [],
+    assignedTeam: task?.assignedTeam?._id || '',
     estimateMinutes: task?.estimateMinutes || '',
     dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().slice(0, -1) : '',
     tags: task?.tags?.join(', ') || '',
@@ -23,15 +25,18 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
   });
 
   const [users, setUsers] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showLocationInput, setShowLocationInput] = useState(false);
+  const [locationOption, setLocationOption] = useState<'none' | 'current' | 'manual'>('none');
   const [locationInput, setLocationInput] = useState({
     latitude: '',
-    longitude: ''
+    longitude: '',
+    address: ''
   });
 
   useEffect(() => {
     loadUsers();
+    loadTeams();
   }, []);
 
   const loadUsers = async () => {
@@ -41,6 +46,16 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
     } catch (error) {
       console.error('Failed to load users');
       setUsers([]);
+    }
+  };
+
+  const loadTeams = async () => {
+    try {
+      const response = await teamApi.getTeams();
+      setTeams(response.data.teams || []);
+    } catch (error) {
+      console.error('Failed to load teams');
+      setTeams([]);
     }
   };
 
@@ -62,9 +77,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
       
       const payload = {
         ...formData,
-        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        tags: formData.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean),
         estimateMinutes: formData.estimateMinutes ? parseInt(formData.estimateMinutes) : undefined,
         dueDate: dueDateSriLanka,
+        assignedTo: formData.assignmentType === 'individual' ? formData.assignedTo : [],
+        assignedTeam: formData.assignmentType === 'team' ? formData.assignedTeam : undefined,
       };
 
       if (task) {
@@ -86,9 +103,15 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
   const handleLocationFromInput = () => {
     const lat = parseFloat(locationInput.latitude);
     const lng = parseFloat(locationInput.longitude);
+    const address = locationInput.address.trim();
     
     if (isNaN(lat) || isNaN(lng)) {
       toast.error('Please enter valid latitude and longitude values');
+      return;
+    }
+    
+    if (!address) {
+      toast.error('Please enter a location address');
       return;
     }
     
@@ -107,12 +130,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
       location: {
         lat,
         lng,
+        address,
         radiusMeters: 100,
       },
     });
     
-    setLocationInput({ latitude: '', longitude: '' });
-    setShowLocationInput(false);
+    setLocationInput({ latitude: '', longitude: '', address: '' });
+    setLocationOption('none');
     toast.success('Location added successfully');
   };
 
@@ -125,12 +149,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
             location: {
               lat: position.coords.latitude,
               lng: position.coords.longitude,
+              address: 'Current Location',
               radiusMeters: 100,
             },
           });
           toast.success('Current location added');
         },
-        (error) => {
+        () => {
           toast.error('Failed to get current location. Please check your browser settings.');
         }
       );
@@ -218,11 +243,72 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
             </div>
           </div>
 
-          {/* Assigned To */}
-          {users.length > 0 && (
+          {/* Assignment Type */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Assignment Type
+            </label>
+            <div className="flex space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="assignmentType"
+                  value="individual"
+                  checked={formData.assignmentType === 'individual'}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    assignmentType: e.target.value,
+                    assignedTeam: '' // Clear team when switching to individual
+                  })}
+                  className="mr-2"
+                />
+                Individual
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="assignmentType"
+                  value="team"
+                  checked={formData.assignmentType === 'team'}
+                  onChange={(e) => setFormData({ 
+                    ...formData, 
+                    assignmentType: e.target.value,
+                    assignedTo: [] // Clear individual assignments when switching to team
+                  })}
+                  className="mr-2"
+                />
+                Team
+              </label>
+            </div>
+          </div>
+
+          {/* Team Assignment */}
+          {formData.assignmentType === 'team' && teams.length > 0 && (
+            <div>
+              <label htmlFor="assignedTeam" className="block text-sm font-medium text-gray-700 mb-1">
+                Assign to Team
+              </label>
+              <select
+                id="assignedTeam"
+                value={formData.assignedTeam}
+                onChange={(e) => setFormData({ ...formData, assignedTeam: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="">Select a team...</option>
+                {teams.map((team: any) => (
+                  <option key={team._id} value={team._id}>
+                    {team.name} ({team.members?.length || 0} members)
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Individual Assignment */}
+          {formData.assignmentType === 'individual' && users.length > 0 && (
             <div>
               <label htmlFor="assignedTo" className="block text-sm font-medium text-gray-700 mb-1">
-                Assign To
+                Assign To Users
               </label>
               <div className="border border-gray-300 rounded-lg p-3 max-h-32 overflow-y-auto">
                 {users.map((user: any) => (
@@ -239,7 +325,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                         } else {
                           setFormData({
                             ...formData,
-                            assignedTo: formData.assignedTo.filter(id => id !== user._id)
+                            assignedTo: formData.assignedTo.filter((id: string) => id !== user._id)
                           });
                         }
                       }}
@@ -287,11 +373,14 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
               <label className="block text-sm font-medium text-gray-700">
                 Location (Optional)
               </label>
-              {!formData.location && (
+              {!formData.location && locationOption === 'none' && (
                 <div className="flex space-x-2">
                   <button
                     type="button"
-                    onClick={getCurrentLocation}
+                    onClick={() => {
+                      setLocationOption('current');
+                      getCurrentLocation();
+                    }}
                     className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
                   >
                     Use Current Location
@@ -299,7 +388,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                   <span className="text-gray-300">|</span>
                   <button
                     type="button"
-                    onClick={() => setShowLocationInput(true)}
+                    onClick={() => setLocationOption('manual')}
                     className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
                   >
                     Enter Coordinates
@@ -308,12 +397,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
               )}
             </div>
             
-            {showLocationInput && (
+            {locationOption === 'manual' && !formData.location && (
               <div className="border border-gray-300 rounded-lg p-4 space-y-3 mb-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Latitude
+                      Latitude *
                     </label>
                     <input
                       type="number"
@@ -322,11 +411,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                       value={locationInput.latitude}
                       onChange={(e) => setLocationInput({ ...locationInput, latitude: e.target.value })}
                       className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                      required
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Longitude
+                      Longitude *
                     </label>
                     <input
                       type="number"
@@ -335,8 +425,22 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                       value={locationInput.longitude}
                       onChange={(e) => setLocationInput({ ...locationInput, longitude: e.target.value })}
                       className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                      required
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Address *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Main Office, Colombo"
+                    value={locationInput.address}
+                    onChange={(e) => setLocationInput({ ...locationInput, address: e.target.value })}
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                    required
+                  />
                 </div>
                 <div className="flex space-x-2">
                   <button
@@ -349,8 +453,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                   <button
                     type="button"
                     onClick={() => {
-                      setShowLocationInput(false);
-                      setLocationInput({ latitude: '', longitude: '' });
+                      setLocationOption('none');
+                      setLocationInput({ latitude: '', longitude: '', address: '' });
                     }}
                     className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
                   >
@@ -361,18 +465,26 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
             )}
             
             {formData.location && (
-              <div className="flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <MapPin size={16} className="text-green-600" />
-                <span className="text-sm text-green-800">
-                  Location: {formData.location.lat.toFixed(6)}, {formData.location.lng.toFixed(6)}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setFormData({ ...formData, location: null })}
-                  className="text-red-600 hover:text-red-800 text-sm font-medium"
-                >
-                  Remove
-                </button>
+              <div className="space-y-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <MapPin size={16} className="text-green-600" />
+                  <span className="text-sm text-green-800 font-medium">
+                    {formData.location.address}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, location: null });
+                      setLocationOption('none');
+                    }}
+                    className="text-red-600 hover:text-red-800 text-sm font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
+                <div className="text-xs text-green-700">
+                  Coordinates: {formData.location.lat.toFixed(6)}, {formData.location.lng.toFixed(6)}
+                </div>
               </div>
             )}
           </div>

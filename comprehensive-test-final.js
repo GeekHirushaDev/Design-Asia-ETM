@@ -65,7 +65,7 @@ class TestRunner {
     const response = await this.apiRequest('/api/auth/login', {
       method: 'POST',
       body: JSON.stringify({
-        email: 'admin@taskmanager.com',
+        email: 'admin@company.com',
         password: 'admin123'
       })
     });
@@ -348,7 +348,7 @@ class TestRunner {
     console.log('\n🎯 TESTING COMPLETE');
     console.log('\n📱 Frontend testing:');
     console.log(`  Open: ${CLIENT_URL}`);
-    console.log('  Test admin login with: admin@taskmanager.com / admin123');
+    console.log('  Test admin login with: admin@company.com / admin123');
     console.log('  Test employee login with: test.employee@company.com / employee123');
     console.log('\n✨ Features to verify manually:');
     console.log('  - Admin Dashboard with team management');

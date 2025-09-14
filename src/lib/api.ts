@@ -68,10 +68,14 @@ export const taskApi = {
   createTask: (data: any) => api.post('/tasks', data),
   updateTask: (id: string, data: any) => api.patch(`/tasks/${id}`, data),
   deleteTask: (id: string) => api.delete(`/tasks/${id}`),
-  startTimer: (id: string) => api.post(`/tasks/${id}/time/start`),
-  stopTimer: (id: string) => api.post(`/tasks/${id}/time/stop`),
-  pauseTimer: (id: string) => api.post(`/tasks/${id}/time/pause`),
-  resumeTimer: (id: string) => api.post(`/tasks/${id}/time/resume`),
+  updateStatus: (id: string, status: string) => api.patch(`/tasks/${id}/status`, { status }),
+  startTask: (id: string, location?: { latitude: number; longitude: number; address?: string }) => 
+    api.post(`/tasks/${id}/start`, location || {}),
+  pauseTask: (id: string, location?: { latitude: number; longitude: number }) => 
+    api.post(`/tasks/${id}/pause`, location || {}),
+  completeTask: (id: string, location?: { latitude: number; longitude: number }) => 
+    api.post(`/tasks/${id}/complete`, location || {}),
+  getAnalytics: (id: string, userId: string) => api.get(`/tasks/${id}/analytics?userId=${userId}`),
   getProgressSummary: (params?: any) => api.get('/tasks/progress-summary', { params }),
   getCarryoverStats: (params?: any) => api.get('/tasks/carryover-stats', { params }),
   getUpcomingOverdue: () => api.get('/tasks/upcoming-overdue'),

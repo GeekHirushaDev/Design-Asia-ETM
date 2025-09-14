@@ -16,7 +16,7 @@ const seedData = async () => {
     // Create admin user (pass plain password; model will hash in pre-save hook)
     const admin = new User({
       name: 'Admin User',
-      email: 'admin@taskmanager.com',
+      email: 'admin@company.com',
       password: 'admin123',
       role: 'admin',
     });
@@ -109,7 +109,7 @@ const seedData = async () => {
 
     console.log('✅ Seed data created successfully');
     console.log('\n📧 Login Credentials:');
-    console.log('Admin: admin@taskmanager.com / admin123');
+    console.log('Admin: admin@company.com / admin123');
     console.log('Employee 1: employee1@taskmanager.com / employee123');
     console.log('Employee 2: employee2@taskmanager.com / employee123');
     console.log('Employee 3: employee3@taskmanager.com / employee123');

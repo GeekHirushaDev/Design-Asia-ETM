@@ -47,7 +47,6 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
-// Create team (admin only)
 router.post('/', authenticateToken, requireRole('admin'), async (req: AuthRequest, res): Promise<void> => {
   try {
     const { name, description, members, leader } = req.body;
@@ -68,7 +67,8 @@ router.post('/', authenticateToken, requireRole('admin'), async (req: AuthReques
     if (members && members.length > 0) {
       const validMembers = await User.find({ _id: { $in: members } });
       if (validMembers.length !== members.length) {
-        return res.status(400).json({ error: 'Some selected members do not exist' });
+        res.status(400).json({ error: 'Some selected members do not exist' });
+        return;
       }
     }
 
@@ -76,10 +76,12 @@ router.post('/', authenticateToken, requireRole('admin'), async (req: AuthReques
     if (leader) {
       const leaderUser = await User.findById(leader);
       if (!leaderUser) {
-        return res.status(400).json({ error: 'Selected leader does not exist' });
+        res.status(400).json({ error: 'Selected leader does not exist' });
+        return;
       }
       if (members && !members.includes(leader)) {
-        return res.status(400).json({ error: 'Team leader must be a member of the team' });
+        res.status(400).json({ error: 'Team leader must be a member of the team' });
+        return;
       }
     }
 
@@ -106,7 +108,7 @@ router.post('/', authenticateToken, requireRole('admin'), async (req: AuthReques
 });
 
 // Get team by ID
-router.get('/:teamId', authenticateToken, async (req: AuthRequest, res) => {
+router.get('/:teamId', authenticateToken, async (req: AuthRequest, res): Promise<void> => {
   try {
     const team = await Team.findById(req.params.teamId)
       .populate('createdBy', 'name email')
@@ -114,7 +116,8 @@ router.get('/:teamId', authenticateToken, async (req: AuthRequest, res) => {
       .populate('leader', 'name email');
 
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' });
+      res.status(404).json({ error: 'Team not found' });
+      return;
     }
 
     res.json(team);
@@ -125,7 +128,7 @@ router.get('/:teamId', authenticateToken, async (req: AuthRequest, res) => {
 });
 
 // Update team (admin only)
-router.put('/:teamId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
+router.put('/:teamId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res): Promise<void> => {
   try {
     const { name, description, members, leader, status } = req.body;
     const teamId = req.params.teamId;
@@ -134,7 +137,8 @@ router.put('/:teamId', authenticateToken, requireRole('admin'), async (req: Auth
     if (name) {
       const existingTeam = await Team.findOne({ name: name.trim(), _id: { $ne: teamId } });
       if (existingTeam) {
-        return res.status(400).json({ error: 'Team name already exists' });
+        res.status(400).json({ error: 'Team name already exists' });
+        return;
       }
     }
 
@@ -142,7 +146,8 @@ router.put('/:teamId', authenticateToken, requireRole('admin'), async (req: Auth
     if (members && members.length > 0) {
       const validMembers = await User.find({ _id: { $in: members } });
       if (validMembers.length !== members.length) {
-        return res.status(400).json({ error: 'Some selected members do not exist' });
+        res.status(400).json({ error: 'Some selected members do not exist' });
+        return;
       }
     }
 
@@ -150,10 +155,12 @@ router.put('/:teamId', authenticateToken, requireRole('admin'), async (req: Auth
     if (leader) {
       const leaderUser = await User.findById(leader);
       if (!leaderUser) {
-        return res.status(400).json({ error: 'Selected leader does not exist' });
+        res.status(400).json({ error: 'Selected leader does not exist' });
+        return;
       }
       if (members && !members.includes(leader)) {
-        return res.status(400).json({ error: 'Team leader must be a member of the team' });
+        res.status(400).json({ error: 'Team leader must be a member of the team' });
+        return;
       }
     }
 
@@ -174,7 +181,8 @@ router.put('/:teamId', authenticateToken, requireRole('admin'), async (req: Auth
       .populate('leader', 'name email');
 
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' });
+      res.status(404).json({ error: 'Team not found' });
+      return;
     }
 
     res.json(team);
@@ -185,11 +193,12 @@ router.put('/:teamId', authenticateToken, requireRole('admin'), async (req: Auth
 });
 
 // Delete team (admin only)
-router.delete('/:teamId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
+router.delete('/:teamId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res): Promise<void> => {
   try {
     const team = await Team.findByIdAndDelete(req.params.teamId);
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' });
+      res.status(404).json({ error: 'Team not found' });
+      return;
     }
 
     res.json({ message: 'Team deleted successfully' });
@@ -200,30 +209,34 @@ router.delete('/:teamId', authenticateToken, requireRole('admin'), async (req: A
 });
 
 // Add member to team (admin only)
-router.post('/:teamId/members', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
+router.post('/:teamId/members', authenticateToken, requireRole('admin'), async (req: AuthRequest, res): Promise<void> => {
   try {
     const { userId } = req.body;
     const teamId = req.params.teamId;
 
     if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
+      res.status(400).json({ error: 'User ID is required' });
+      return;
     }
 
     // Check if user exists
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
+      return;
     }
 
     // Check if team exists
     const team = await Team.findById(teamId);
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' });
+      res.status(404).json({ error: 'Team not found' });
+      return;
     }
 
     // Check if user is already a member
     if (team.members.includes(userId)) {
-      return res.status(400).json({ error: 'User is already a member of this team' });
+      res.status(400).json({ error: 'User is already a member of this team' });
+      return;
     }
 
     team.members.push(userId);
@@ -242,13 +255,14 @@ router.post('/:teamId/members', authenticateToken, requireRole('admin'), async (
 });
 
 // Remove member from team (admin only)
-router.delete('/:teamId/members/:userId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
+router.delete('/:teamId/members/:userId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res): Promise<void> => {
   try {
     const { teamId, userId } = req.params;
 
     const team = await Team.findById(teamId);
     if (!team) {
-      return res.status(404).json({ error: 'Team not found' });
+      res.status(404).json({ error: 'Team not found' });
+      return;
     }
 
     // Remove user from members

@@ -84,13 +84,13 @@ npm run dev
 Frontend runs on: http://localhost:5174
 
 ### 3. Default Admin Credentials
-- **Email**: admin@taskmanager.com
+- **Email**: admin@company.com
 - **Password**: admin123
 
 ## 🧪 Testing All Features
 
 ### Admin Dashboard Features
-1. **Login** as admin (admin@taskmanager.com / admin123)
+1. **Login** as admin (admin@company.com / admin123)
 2. **Team Management Tab**:
    - View all users and teams
    - Create new teams

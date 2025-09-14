@@ -42,6 +42,15 @@ const taskSchema = new Schema<ITask>(
     assignedTo: [{
       type: String,
     }],
+    assignedTeam: {
+      type: String,
+      ref: 'Team',
+    },
+    assignmentType: {
+      type: String,
+      enum: ['individual', 'team'],
+      default: 'individual',
+    },
     tags: [String],
     approvals: {
       required: { type: Boolean, default: false },

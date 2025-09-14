@@ -41,7 +41,7 @@ export const LoginForm: React.FC = () => {
 
   const handleDemoLogin = async (role: 'admin' | 'employee') => {
     const demoCredentials = {
-      admin: { email: 'admin@taskmanager.com', password: 'admin123' },
+      admin: { email: 'admin@company.com', password: 'admin123' },
       employee: { email: 'employee1@taskmanager.com', password: 'employee123' },
     };
 
@@ -150,7 +150,7 @@ export const LoginForm: React.FC = () => {
                 className="px-4 py-2 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 disabled:opacity-50 transition-colors font-medium"
               >
                 Admin Demo
-                <div className="text-xs opacity-75 mt-1">admin@taskmanager.com</div>
+                <div className="text-xs opacity-75 mt-1">admin@company.com</div>
               </button>
               <button
                 onClick={() => handleDemoLogin('employee')}

@@ -1,9 +1,7 @@
-import React from 'react';
-import { useState } from 'react';
-import { Clock, MapPin, User, Play, Square, AlertCircle, Pause, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, MapPin, User, Play, Pause, CheckCircle, Users, Crown, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { taskApi } from '../../lib/api';
-import { useTaskStore } from '../../store/taskStore';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 
@@ -13,7 +11,6 @@ interface TaskCardProps {
 }
 
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
-  const { activeTimer, startTimer, stopTimer, updateTask } = useTaskStore();
   const { user } = useAuthStore();
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -30,215 +27,306 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
     completed: 'text-green-600',
   };
 
-  const canStartTimer = user?.role === 'employee' && 
-                       task.assignedTo.some((assignee: any) => assignee._id === user._id) &&
-                       task.status !== 'completed';
+  // Check user permissions for this task
+  const isAdmin = user?.role === 'admin';
+  const isAssignedIndividually = task.assignmentType === 'individual' && 
+    task.assignedTo?.some((assignee: any) => assignee._id === user?._id);
+  const isTeamLeader = task.assignmentType === 'team' && 
+    task.assignedTeam?.leader?._id === user?._id;
+  const isTeamMember = task.assignmentType === 'team' && 
+    task.assignedTeam?.members?.some((member: any) => member._id === user?._id);
 
-  const handleStatusChange = async (newStatus: string) => {
+  // Determine what actions the user can take
+  const canControl = isAdmin || isAssignedIndividually || isTeamLeader;
+  const canView = canControl || isTeamMember;
+
+  // Get current location if needed
+  const getCurrentLocation = (): Promise<{latitude: number, longitude: number}> => {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject('Geolocation not supported');
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const location = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          };
+          resolve(location);
+        },
+        (error) => reject('Failed to get location: ' + error.message)
+      );
+    });
+  };
+
+  const handleStartTask = async () => {
     try {
       setIsUpdating(true);
-      await taskApi.updateTask(task._id, { status: newStatus });
-      updateTask(task._id, { status: newStatus as 'not_started' | 'in_progress' | 'paused' | 'completed' });
+      let location;
+
+      // Get location if task requires it
+      if (task.location && !isAdmin) {
+        try {
+          location = await getCurrentLocation();
+        } catch (error) {
+          toast.error('Location access required for this task');
+          return;
+        }
+      }
+
+      await taskApi.startTask(task._id, location);
+      toast.success('Task started successfully');
       onUpdate();
-      toast.success('Task status updated');
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update task');
+      toast.error(error.response?.data?.error || 'Failed to start task');
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const handleTimerToggle = async () => {
+  const handlePauseTask = async () => {
     try {
-      if (activeTimer?.taskId === task._id) {
-        await taskApi.stopTimer(task._id);
-        stopTimer();
-        toast.success('Timer stopped');
-        onUpdate();
-      } else {
-        if (activeTimer) {
-          toast.error('Please stop the current timer first');
+      setIsUpdating(true);
+      let location;
+
+      if (task.location && !isAdmin) {
+        try {
+          location = await getCurrentLocation();
+        } catch (error) {
+          toast.error('Location access required for this task');
           return;
         }
-        await taskApi.startTimer(task._id);
-        startTimer(task._id);
-        
-        // Automatically update task status to in_progress
-        if (task.status === 'not_started') {
-          await taskApi.updateTask(task._id, { status: 'in_progress' });
-          updateTask(task._id, { status: 'in_progress' });
-        }
-        
-        toast.success('Timer started');
-        onUpdate();
       }
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to toggle timer');
-    }
-  };
 
-  const handlePauseTimer = async (taskId: string) => {
-    try {
-      await taskApi.pauseTimer(taskId);
-      stopTimer();
-      
-      // Update task status to paused
-      await taskApi.updateTask(taskId, { status: 'paused' });
-      updateTask(taskId, { status: 'paused' });
-      
-      toast.success('Timer paused');
+      await taskApi.pauseTask(task._id, location);
+      toast.success('Task paused successfully');
       onUpdate();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to pause timer');
-    }
-  };
-
-  const handleResumeTimer = async (taskId: string) => {
-    try {
-      if (activeTimer) {
-        toast.error('Please stop the current timer first');
-        return;
-      }
-      await taskApi.resumeTimer(taskId);
-      startTimer(taskId);
-      
-      // Update task status to in_progress
-      await taskApi.updateTask(taskId, { status: 'in_progress' });
-      updateTask(taskId, { status: 'in_progress' });
-      
-      toast.success('Timer resumed');
-      onUpdate();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to resume timer');
+      toast.error(error.response?.data?.error || 'Failed to pause task');
+    } finally {
+      setIsUpdating(false);
     }
   };
 
   const handleCompleteTask = async () => {
     try {
-      // Stop timer if running
-      if (activeTimer?.taskId === task._id) {
-        await taskApi.stopTimer(task._id);
-        stopTimer();
+      setIsUpdating(true);
+      let location;
+
+      if (task.location && !isAdmin) {
+        try {
+          location = await getCurrentLocation();
+        } catch (error) {
+          toast.error('Location access required for this task');
+          return;
+        }
       }
-      
-      // Mark task as completed
-      await taskApi.updateTask(task._id, { status: 'completed' });
-      updateTask(task._id, { status: 'completed' });
-      
-      toast.success('Task completed!');
+
+      await taskApi.completeTask(task._id, location);
+      toast.success('Task completed successfully');
       onUpdate();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to complete task');
+    } finally {
+      setIsUpdating(false);
     }
   };
-  const isOverdue = task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'completed';
+
+  const handleDeleteTask = async () => {
+    if (!window.confirm('Are you sure you want to delete this task?')) return;
+
+    try {
+      setIsUpdating(true);
+      await taskApi.deleteTask(task._id);
+      toast.success('Task deleted successfully');
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to delete task');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      setIsUpdating(true);
+      await taskApi.updateStatus(task._id, newStatus);
+      toast.success('Task status updated');
+      onUpdate();
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || 'Failed to update task status');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  // Don't render anything if user can't view this task
+  if (!canView && !isAdmin) {
+    return null;
+  }
 
   return (
-    <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow">
+      {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <h4 className="font-medium text-gray-900 mb-1 line-clamp-2">{task.title}</h4>
+          <h3 className="font-medium text-gray-900 mb-1">{task.title}</h3>
           <p className="text-sm text-gray-600 line-clamp-2">{task.description}</p>
         </div>
         
-        <div className="flex flex-col items-end space-y-2">
-          <span className={`px-2 py-1 rounded-full text-xs font-medium border ${priorityColors[task.priority as keyof typeof priorityColors] || priorityColors.low}`}>
-            {task.priority}
-          </span>
-          
-          {isOverdue && (
-            <AlertCircle size={16} className="text-red-500" />
-          )}
-        </div>
+        {/* Priority Badge */}
+        <span className={`px-2 py-1 rounded-full text-xs font-medium border ${priorityColors[task.priority as keyof typeof priorityColors] || priorityColors.low}`}>
+          {task.priority}
+        </span>
       </div>
 
-      {/* Task Details */}
-      <div className="space-y-2 mb-4">
-        {task.dueDate && (
-          <div className="flex items-center text-xs text-gray-500">
-            <Clock size={12} className="mr-1" />
-            <span className={isOverdue ? 'text-red-600 font-medium' : ''}>
-              Due: {format(new Date(task.dueDate), 'MMM dd, yyyy')}
+      {/* Assignment Info */}
+      <div className="flex items-center mb-3 text-sm text-gray-600">
+        {task.assignmentType === 'team' ? (
+          <div className="flex items-center">
+            <Users size={14} className="mr-1" />
+            <span>Team: {task.assignedTeam?.name}</span>
+            {task.assignedTeam?.leader && (
+              <span className="ml-2 flex items-center">
+                <Crown size={12} className="mr-1 text-yellow-500" />
+                {task.assignedTeam.leader.name}
+              </span>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center">
+            <User size={14} className="mr-1" />
+            <span>
+              {task.assignedTo?.map((user: any) => user.name).join(', ') || 'Unassigned'}
             </span>
           </div>
         )}
-        
-        {task.location && (
-          <div className="flex items-center text-xs text-gray-500">
-            <MapPin size={12} className="mr-1" />
-            <span>{task.location.address || 'Location Required'}</span>
-          </div>
-        )}
-        
-        <div className="flex items-center text-xs text-gray-500">
-          <User size={12} className="mr-1" />
-          <span>
-            {task.assignedTo.map((user: any) => user.name).join(', ') || 'Unassigned'}
-          </span>
-        </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-        <div className="flex items-center space-x-2">
-          {canStartTimer && (
-            <button
-              onClick={handleTimerToggle}
-              disabled={isUpdating}
-              className={`p-2 rounded-lg transition-colors ${
-                activeTimer?.taskId === task._id
-                  ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                  : 'bg-green-100 text-green-600 hover:bg-green-200'
-              }`}
-            >
-              {activeTimer?.taskId === task._id ? (
-                <Square size={14} fill="currentColor" />
-              ) : (
-                <Play size={14} fill="currentColor" />
-              )}
-            </button>
-          )}
-          
-              
-              {/* Pause button when timer is active */}
-              {activeTimer?.taskId === task._id && (
+      {/* Location Info */}
+      {task.location && (
+        <div className="flex items-center mb-3 text-sm text-gray-600">
+          <MapPin size={14} className="mr-1" />
+          <span>Location required (within {task.location.radiusMeters || 100}m)</span>
+        </div>
+      )}
+
+      {/* Time and Efficiency (Admin only) */}
+      {isAdmin && task.timeStats && (
+        <div className="bg-gray-50 rounded p-2 mb-3 text-xs">
+          <div className="flex justify-between">
+            <span>Time Spent: {task.timeStats.timeSpent}</span>
+            <span className="font-medium" style={{color: task.timeStats.efficiencyColor}}>
+              Efficiency: {task.timeStats.efficiency ? `${task.timeStats.efficiency}%` : 'N/A'}
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Due Date */}
+      {task.dueDate && (
+        <div className="flex items-center mb-3 text-sm text-gray-600">
+          <Clock size={14} className="mr-1" />
+          <span>Due: {format(new Date(task.dueDate), 'PPp')}</span>
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      {canControl && (
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex space-x-2">
+            {task.status === 'not_started' && (
+              <button
+                onClick={handleStartTask}
+                disabled={isUpdating}
+                className="flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
+              >
+                <Play size={14} className="mr-1" />
+                Start
+              </button>
+            )}
+            
+            {task.status === 'in_progress' && (
+              <>
                 <button
-                  onClick={() => handlePauseTimer(task._id)}
+                  onClick={handlePauseTask}
                   disabled={isUpdating}
-                  className="p-2 rounded-lg bg-yellow-100 text-yellow-600 hover:bg-yellow-200 transition-colors"
-                  title="Pause Timer"
+                  className="flex items-center px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 disabled:opacity-50"
                 >
-                  <Pause size={14} />
+                  <Pause size={14} className="mr-1" />
+                  Pause
                 </button>
-              )}
-              
-              {/* Complete button for in-progress tasks */}
-              {(task.status === 'in_progress' || task.status === 'paused') && (
                 <button
                   onClick={handleCompleteTask}
                   disabled={isUpdating}
-                  className="p-2 rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
-                  title="Complete Task"
+                  className="flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
                 >
-                  <CheckCircle size={14} />
+                  <CheckCircle size={14} className="mr-1" />
+                  Complete
                 </button>
+              </>
+            )}
+            
+            {task.status === 'paused' && (
+              <>
+                <button
+                  onClick={handleStartTask}
+                  disabled={isUpdating}
+                  className="flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
+                >
+                  <Play size={14} className="mr-1" />
+                  Resume
+                </button>
+                <button
+                  onClick={handleCompleteTask}
+                  disabled={isUpdating}
+                  className="flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                  <CheckCircle size={14} className="mr-1" />
+                  Complete
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Admin Controls */}
+          {isAdmin && (
+            <div className="flex space-x-1">
+              {task.status !== 'completed' && (
+                <select
+                  value={task.status}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  className="text-xs border rounded px-2 py-1"
+                >
+                  <option value="not_started">Not Started</option>
+                  <option value="in_progress">In Progress</option>
+                  <option value="paused">Paused</option>
+                  <option value="completed">Completed</option>
+                </select>
               )}
-          {task.status === 'paused' && (
-            <button
-              onClick={() => handleResumeTimer(task._id)}
-              disabled={isUpdating}
-              className="p-2 rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-colors"
-              title="Resume Timer"
-            >
-              <Play size={14} fill="currentColor" />
-            </button>
+              <button
+                onClick={handleDeleteTask}
+                disabled={isUpdating}
+                className="p-1 text-red-600 hover:bg-red-50 rounded"
+                title="Delete task"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
           )}
         </div>
-        
-        <span className={`text-xs font-medium ${statusColors[task.status as keyof typeof statusColors] || statusColors.not_started}`}>
-          {task.status.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-        </span>
-      </div>
+      )}
+
+      {/* Status Display for non-controllers */}
+      {!canControl && canView && (
+        <div className="pt-3 border-t border-gray-100">
+          <span className={`text-xs font-medium ${statusColors[task.status as keyof typeof statusColors] || statusColors.not_started}`}>
+            Status: {task.status.replace('_', ' ').toUpperCase()}
+          </span>
+        </div>
+      )}
     </div>
   );
 };

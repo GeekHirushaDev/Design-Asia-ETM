@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import { TimezoneUtils } from '../utils/timezone.js';
 import { ITimeLog } from '../types/index.js';
 
 const timeLogSchema = new Schema<ITimeLog>(
@@ -14,6 +15,7 @@ const timeLogSchema = new Schema<ITimeLog>(
     startTime: {
       type: Date,
       required: true,
+      default: () => TimezoneUtils.now(),
     },
     endTime: {
       type: Date,
