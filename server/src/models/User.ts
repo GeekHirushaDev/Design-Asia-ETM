@@ -44,6 +44,14 @@ const userSchema = new Schema<IUser>(
     lastLoginAt: {
       type: Date,
     },
+    roleId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Role',
+    },
+    customPermissions: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Permission',
+    }],
   },
   {
     timestamps: true,

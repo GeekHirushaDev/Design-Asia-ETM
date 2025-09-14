@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Download, FileText, Calendar, MapPin, User, Users, Crown, Clock, Upload } from 'lucide-react';
+import { X, Download, FileText, Calendar, MapPin, User, Users, Crown, Clock, Upload, History, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import { taskApi, attachmentApi } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
@@ -14,11 +14,15 @@ interface TaskDetailsProps {
 export const TaskDetails: React.FC<TaskDetailsProps> = ({ taskId, onClose, onUpdate }) => {
   const { user } = useAuthStore();
   const [task, setTask] = useState<any>(null);
+  const [statusHistory, setStatusHistory] = useState<any[]>([]);
+  const [timeAnalytics, setTimeAnalytics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     loadTask();
+    loadStatusHistory();
+    loadTimeAnalytics();
   }, [taskId]);
 
   const loadTask = async () => {
@@ -30,6 +34,24 @@ export const TaskDetails: React.FC<TaskDetailsProps> = ({ taskId, onClose, onUpd
       toast.error('Failed to load task details');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadStatusHistory = async () => {
+    try {
+      const response = await taskApi.getStatusHistory(taskId);
+      setStatusHistory(response.data.history || []);
+    } catch (error) {
+      console.error('Failed to load status history:', error);
+    }
+  };
+
+  const loadTimeAnalytics = async () => {
+    try {
+      const response = await taskApi.getAnalytics(taskId, user?._id || '');
+      setTimeAnalytics(response.data);
+    } catch (error) {
+      console.error('Failed to load time analytics:', error);
     }
   };
 
@@ -282,6 +304,121 @@ export const TaskDetails: React.FC<TaskDetailsProps> = ({ taskId, onClose, onUpd
                   Saved location: {task.location.savedLocationName}
                 </p>
               )}
+              <div className="text-xs text-gray-500 mt-1">
+                Coordinates: {task.location.lat?.toFixed(6)}, {task.location.lng?.toFixed(6)}
+              </div>
+            </div>
+          )}
+
+          {/* Time Analytics */}
+          {timeAnalytics && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <Activity size={16} className="mr-2" />
+                Time Analytics
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-blue-600">{timeAnalytics.totalHours}h</div>
+                  <div className="text-xs text-gray-600">Total Time</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-green-600">{timeAnalytics.estimatedMinutes}m</div>
+                  <div className="text-xs text-gray-600">Estimated</div>
+                </div>
+                <div className="text-center">
+                  <div className={`text-lg font-bold ${timeAnalytics.efficiency >= 100 ? 'text-green-600' : 'text-red-600'}`}>
+                    {timeAnalytics.efficiency}%
+                  </div>
+                  <div className="text-xs text-gray-600">Efficiency</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-purple-600">{timeAnalytics.timeLogs}</div>
+                  <div className="text-xs text-gray-600">Sessions</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Status History */}
+          {statusHistory.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <History size={16} className="mr-2" />
+                Status History
+              </h4>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {statusHistory.map((log: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">{log.userId?.name}</span>
+                      <span className="text-gray-500">changed status from</span>
+                      <span className="px-2 py-1 bg-gray-200 rounded text-xs">{log.fromStatus.replace('_', ' ')}</span>
+                      <span className="text-gray-500">to</span>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">{log.toStatus.replace('_', ' ')}</span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {format(new Date(log.timestamp), 'MMM dd, HH:mm')}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Time Analytics */}
+          {timeAnalytics && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <Activity size={16} className="mr-2" />
+                Time Analytics
+              </h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-blue-600">{timeAnalytics.totalHours}h</div>
+                  <div className="text-xs text-gray-600">Total Time</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-green-600">{timeAnalytics.estimatedMinutes}m</div>
+                  <div className="text-xs text-gray-600">Estimated</div>
+                </div>
+                <div className="text-center">
+                  <div className={`text-lg font-bold ${timeAnalytics.efficiency >= 100 ? 'text-green-600' : 'text-red-600'}`}>
+                    {timeAnalytics.efficiency}%
+                  </div>
+                  <div className="text-xs text-gray-600">Efficiency</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-purple-600">{timeAnalytics.timeLogs}</div>
+                  <div className="text-xs text-gray-600">Sessions</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Status History */}
+          {statusHistory.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-2 flex items-center">
+                <History size={16} className="mr-2" />
+                Status History
+              </h4>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {statusHistory.map((log: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium">{log.userId?.name}</span>
+                      <span className="text-gray-500">changed status from</span>
+                      <span className="px-2 py-1 bg-gray-200 rounded text-xs">{log.fromStatus.replace('_', ' ')}</span>
+                      <span className="text-gray-500">to</span>
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">{log.toStatus.replace('_', ' ')}</span>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {format(new Date(log.timestamp), 'MMM dd, HH:mm')}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 

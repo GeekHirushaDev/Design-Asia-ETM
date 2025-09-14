@@ -130,45 +130,8 @@ router.get('/permissions', [
   requireRole('admin'),
 ], async (req: AuthRequest, res) => {
   try {
-    // Define available permissions
-    const permissions = [
-      // Task permissions
-      'tasks:create',
-      'tasks:read',
-      'tasks:update',
-      'tasks:delete',
-      'tasks:assign',
-      
-      // User permissions
-      'users:create',
-      'users:read',
-      'users:update',
-      'users:delete',
-      
-      // Report permissions
-      'reports:create',
-      'reports:read',
-      'reports:download',
-      
-      // Attendance permissions
-      'attendance:read',
-      'attendance:manage',
-      
-      // Tracking permissions
-      'tracking:read',
-      'tracking:manage',
-      
-      // Role permissions
-      'roles:create',
-      'roles:read',
-      'roles:update',
-      'roles:delete',
-      
-      // System permissions
-      'system:admin',
-      'system:settings',
-    ];
-    
+    const Permission = (await import('../models/Permission.js')).default;
+    const permissions = await Permission.find().sort({ module: 1, action: 1 });
     res.json({ permissions });
   } catch (error) {
     console.error('Get permissions error:', error);

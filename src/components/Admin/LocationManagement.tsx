@@ -25,6 +25,9 @@ export const LocationManagement: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [addressSearchResults, setAddressSearchResults] = useState<any[]>([]);
+  const [searchingAddress, setSearchingAddress] = useState(false);
+  const [showAddressResults, setShowAddressResults] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -141,6 +144,8 @@ export const LocationManagement: React.FC = () => {
     });
     setEditingLocation(null);
     setShowForm(false);
+    setAddressSearchResults([]);
+    setShowAddressResults(false);
   };
 
   const getCurrentLocation = () => {
@@ -163,9 +168,46 @@ export const LocationManagement: React.FC = () => {
     }
   };
 
+  // OpenStreetMap Nominatim integration for address search
+  const searchAddress = async (query: string) => {
+    if (query.length < 3) {
+      setAddressSearchResults([]);
+      setShowAddressResults(false);
+      return;
+    }
+
+    try {
+      setSearchingAddress(true);
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+      );
+      const results = await response.json();
+      setAddressSearchResults(results);
+      setShowAddressResults(true);
+    } catch (error) {
+      toast.error('Failed to search addresses');
+      setAddressSearchResults([]);
+      setShowAddressResults(false);
+    } finally {
+      setSearchingAddress(false);
+    }
+  };
+
+  const selectAddress = (result: any) => {
+    setFormData({
+      ...formData,
+      address: result.display_name,
+      latitude: parseFloat(result.lat).toFixed(6),
+      longitude: parseFloat(result.lon).toFixed(6),
+    });
+    setShowAddressResults(false);
+    setAddressSearchResults([]);
+    toast.success('Address selected and coordinates filled');
+  };
+
   // Mock OpenStreetMap integration - in real implementation, you'd integrate with a map library
   const openMapSelector = () => {
-    toast('Map selector would open here. For now, please use coordinates or current location.');
+    toast('Use the address search above to find locations automatically!');
   };
 
   return (
@@ -229,15 +271,45 @@ export const LocationManagement: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address *
+                    Address * (Search with OpenStreetMap)
                   </label>
-                  <input
-                    type="text"
-                    value={formData.address}
-                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.address}
+                      onChange={(e) => {
+                        setFormData({ ...formData, address: e.target.value });
+                        searchAddress(e.target.value);
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="Start typing to search addresses..."
+                      required
+                    />
+                    {searchingAddress && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                      </div>
+                    )}
+                    
+                    {/* Address Search Results */}
+                    {showAddressResults && addressSearchResults.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {addressSearchResults.map((result, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => selectAddress(result)}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                          >
+                            <div className="text-sm text-gray-900 truncate">{result.display_name}</div>
+                            <div className="text-xs text-gray-500">
+                              Lat: {parseFloat(result.lat).toFixed(6)}, Lng: {parseFloat(result.lon).toFixed(6)}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Location Selection Options */}

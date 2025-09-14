@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Clock, MapPin, User, Play, Pause, CheckCircle, Users, Crown, Trash2, Eye } from 'lucide-react';
+import { Clock, MapPin, User, Play, Pause, CheckCircle, Users, Crown, Trash2, Eye, Square, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
 import { taskApi } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
@@ -64,13 +64,13 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
     });
   };
 
-  const handleStartTask = async () => {
+  const handleStatusChange = async (newStatus: string) => {
     try {
       setIsUpdating(true);
       let location;
 
       // Get location if task requires it
-      if (task.location && !isAdmin) {
+      if (task.location && !isAdmin && ['in_progress', 'paused', 'completed'].includes(newStatus)) {
         try {
           location = await getCurrentLocation();
         } catch (error) {
@@ -79,59 +79,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
         }
       }
 
-      await taskApi.startTask(task._id, location);
-      toast.success('Task started successfully');
+      const response = await taskApi.updateStatus(task._id, newStatus, location);
+      toast.success(response.data.message || `Task ${newStatus.replace('_', ' ')}`);
       onUpdate();
     } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to start task');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handlePauseTask = async () => {
-    try {
-      setIsUpdating(true);
-      let location;
-
-      if (task.location && !isAdmin) {
-        try {
-          location = await getCurrentLocation();
-        } catch (error) {
-          toast.error('Location access required for this task');
-          return;
-        }
-      }
-
-      await taskApi.pauseTask(task._id, location);
-      toast.success('Task paused successfully');
-      onUpdate();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to pause task');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleCompleteTask = async () => {
-    try {
-      setIsUpdating(true);
-      let location;
-
-      if (task.location && !isAdmin) {
-        try {
-          location = await getCurrentLocation();
-        } catch (error) {
-          toast.error('Location access required for this task');
-          return;
-        }
-      }
-
-      await taskApi.completeTask(task._id, location);
-      toast.success('Task completed successfully');
-      onUpdate();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to complete task');
+      toast.error(error.response?.data?.error || `Failed to change task status`);
     } finally {
       setIsUpdating(false);
     }
@@ -147,19 +99,6 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
       onUpdate();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to delete task');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const handleStatusChange = async (newStatus: string) => {
-    try {
-      setIsUpdating(true);
-      await taskApi.updateStatus(task._id, newStatus);
-      toast.success('Task status updated');
-      onUpdate();
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || 'Failed to update task status');
     } finally {
       setIsUpdating(false);
     }
@@ -251,7 +190,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
             
             {task.status === 'not_started' && (
               <button
-                onClick={handleStartTask}
+                onClick={() => handleStatusChange('in_progress')}
                 disabled={isUpdating}
                 className="flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
               >
@@ -263,7 +202,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
             {task.status === 'in_progress' && (
               <>
                 <button
-                  onClick={handlePauseTask}
+                  onClick={() => handleStatusChange('paused')}
                   disabled={isUpdating}
                   className="flex items-center px-3 py-1 bg-yellow-600 text-white text-sm rounded hover:bg-yellow-700 disabled:opacity-50"
                 >
@@ -271,7 +210,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
                   Pause
                 </button>
                 <button
-                  onClick={handleCompleteTask}
+                  onClick={() => handleStatusChange('completed')}
                   disabled={isUpdating}
                   className="flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
                 >
@@ -284,15 +223,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
             {task.status === 'paused' && (
               <>
                 <button
-                  onClick={handleStartTask}
+                  onClick={() => handleStatusChange('in_progress')}
                   disabled={isUpdating}
                   className="flex items-center px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 disabled:opacity-50"
                 >
-                  <Play size={14} className="mr-1" />
+                  <RotateCcw size={14} className="mr-1" />
                   Resume
                 </button>
                 <button
-                  onClick={handleCompleteTask}
+                  onClick={() => handleStatusChange('completed')}
                   disabled={isUpdating}
                   className="flex items-center px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 disabled:opacity-50"
                 >

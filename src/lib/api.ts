@@ -68,13 +68,9 @@ export const taskApi = {
   createTask: (data: any) => api.post('/tasks', data),
   updateTask: (id: string, data: any) => api.patch(`/tasks/${id}`, data),
   deleteTask: (id: string) => api.delete(`/tasks/${id}`),
-  updateStatus: (id: string, status: string) => api.patch(`/tasks/${id}/status`, { status }),
-  startTask: (id: string, location?: { latitude: number; longitude: number; address?: string }) => 
-    api.post(`/tasks/${id}/start`, location || {}),
-  pauseTask: (id: string, location?: { latitude: number; longitude: number }) => 
-    api.post(`/tasks/${id}/pause`, location || {}),
-  completeTask: (id: string, location?: { latitude: number; longitude: number }) => 
-    api.post(`/tasks/${id}/complete`, location || {}),
+  updateStatus: (id: string, newStatus: string, location?: { latitude: number; longitude: number; address?: string }, notes?: string) => 
+    api.post(`/tasks/${id}/status`, { newStatus, location, notes }),
+  getStatusHistory: (id: string) => api.get(`/tasks/${id}/status-history`),
   getAnalytics: (id: string, userId: string) => api.get(`/tasks/${id}/analytics?userId=${userId}`),
   getProgressSummary: (params?: any) => api.get('/tasks/progress-summary', { params }),
   getCarryoverStats: (params?: any) => api.get('/tasks/carryover-stats', { params }),

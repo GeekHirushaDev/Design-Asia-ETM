@@ -34,7 +34,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
   const [locationInput, setLocationInput] = useState({
     latitude: '',
     longitude: '',
-    address: ''
+    address: '',
+    radiusMeters: '100'
   });
 
   useEffect(() => {
@@ -187,10 +188,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
   const handleLocationFromInput = () => {
     const lat = parseFloat(locationInput.latitude);
     const lng = parseFloat(locationInput.longitude);
+    const radius = parseInt(locationInput.radiusMeters);
     const address = locationInput.address.trim();
     
-    if (isNaN(lat) || isNaN(lng)) {
-      toast.error('Please enter valid latitude and longitude values');
+    if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
+      toast.error('Please enter valid latitude, longitude, and radius values');
       return;
     }
     
@@ -209,17 +211,22 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
       return;
     }
 
+    if (radius < 10 || radius > 10000) {
+      toast.error('Radius must be between 10 and 10000 meters');
+      return;
+    }
+
     setFormData({
       ...formData,
       location: {
         lat,
         lng,
         address,
-        radiusMeters: 100,
+        radiusMeters: radius,
       },
     });
     
-    setLocationInput({ latitude: '', longitude: '', address: '' });
+    setLocationInput({ latitude: '', longitude: '', address: '', radiusMeters: '100' });
     setLocationOption('none');
     toast.success('Location added successfully');
   };
@@ -608,6 +615,21 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                     required
                   />
                 </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-1">
+                      Radius (meters) *
+                    </label>
+                    <input
+                      type="number"
+                      min="10"
+                      max="10000"
+                      placeholder="100"
+                      value={locationInput.radiusMeters}
+                      onChange={(e) => setLocationInput({ ...locationInput, radiusMeters: e.target.value })}
+                      className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                      required
+                    />
+                  </div>
                 <div className="flex space-x-2">
                   <button
                     type="button"
@@ -620,7 +642,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                     type="button"
                     onClick={() => {
                       setLocationOption('none');
-                      setLocationInput({ latitude: '', longitude: '', address: '' });
+                      setLocationInput({ latitude: '', longitude: '', address: '', radiusMeters: '100' });
                     }}
                     className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
                   >
@@ -649,7 +671,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                   </button>
                 </div>
                 <div className="text-xs text-green-700">
-                  Coordinates: {formData.location.lat.toFixed(6)}, {formData.location.lng.toFixed(6)}
+                  Coordinates: {formData.location.lat.toFixed(6)}, {formData.location.lng.toFixed(6)} (radius: {formData.location.radiusMeters}m)
                 </div>
               </div>
             )}

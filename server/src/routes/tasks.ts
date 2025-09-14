@@ -1,13 +1,17 @@
 import express, { Response } from 'express';
 import Task from '../models/Task.js';
 import TimeLog from '../models/TimeLog.js';
+import TaskStatusLog from '../models/TaskStatusLog.js';
 import Team from '../models/Team.js';
 import User from '../models/User.js';
+import Location from '../models/Location.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { requirePermission, checkTaskPermission } from '../middleware/permissions.js';
 import { validate } from '../middleware/validation.js';
 import { createTaskSchema, updateTaskSchema } from '../validation/schemas.js';
 import { PushService } from '../services/pushService.js';
 import { TaskCarryoverService } from '../services/taskCarryoverService.js';
+import { TaskStatusService } from '../services/taskStatusService.js';
 import { TimezoneUtils } from '../utils/timezone.js';
 import { 
   startTaskTimer, 
@@ -19,49 +23,47 @@ import { AuthRequest } from '../types/index.js';
 
 const router = express.Router();
 
-// Helper function to calculate distance between two coordinates in meters
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371e3; // Earth's radius in meters
-  const φ1 = lat1 * Math.PI/180; // φ, λ in radians
-  const φ2 = lat2 * Math.PI/180;
-  const Δφ = (lat2-lat1) * Math.PI/180;
-  const Δλ = (lon2-lon1) * Math.PI/180;
+// Utility function to validate location access for tasks
+async function validateLocationAccess(
+  taskId: string, 
+  latitude: number, 
+  longitude: number, 
+  isAdmin: boolean
+): Promise<void> {
+  if (isAdmin) {
+    return; // Admin can override location restrictions
+  }
 
-  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-            Math.cos(φ1) * Math.cos(φ2) *
-            Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const task = await Task.findById(taskId).populate('location');
+  if (!task || !task.location) {
+    return; // No location requirement
+  }
+
+  const taskLocation = task.location as any;
+  
+  // Calculate distance using Haversine formula
+  const R = 6371; // Earth's radius in kilometers
+  const dLat = (latitude - taskLocation.latitude) * Math.PI / 180;
+  const dLon = (longitude - taskLocation.longitude) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(taskLocation.latitude * Math.PI / 180) * Math.cos(latitude * Math.PI / 180) * 
+    Math.sin(dLon/2) * Math.sin(dLon/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const distance = R * c * 1000; // Distance in meters
 
-  return R * c; // Distance in meters
-}
-
-// Helper function to validate location access
-async function validateLocationAccess(taskId: string, userLat?: number, userLng?: number, isAdmin: boolean = false) {
-  if (isAdmin) return true; // Admins can always access
-
-  const task = await Task.findById(taskId);
-  if (!task || !task.location) return true; // No location restriction
-
-  if (!userLat || !userLng) {
-    throw new Error('Location required to access this task');
+  const radiusMeters = taskLocation.radiusMeters || 100;
+  
+  if (distance > radiusMeters) {
+    throw new Error(`You must be within ${radiusMeters}m of the required location. Current distance: ${Math.round(distance)}m`);
   }
-
-  const distance = calculateDistance(
-    task.location.lat,
-    task.location.lng,
-    userLat,
-    userLng
-  );
-
-  if (distance > (task.location.radiusMeters || 100)) {
-    throw new Error(`You must be within ${task.location.radiusMeters || 100} meters of the task location`);
-  }
-
-  return true;
 }
 
 // Get all tasks
-router.get('/', authenticateToken, async (req: AuthRequest, res): Promise<void> => {
+router.get('/', [
+  authenticateToken,
+  requirePermission('tasks', 'view', 'all')
+], async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { status, priority, assignee, page = 1, limit = 20 } = req.query;
     const filter: any = {};
@@ -147,7 +149,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res): Promise<void> 
 // Create task
 router.post('/', [
   authenticateToken,
-  requireRole('admin'),
+  requirePermission('tasks', 'insert', 'all'),
   validate(createTaskSchema),
 ], async (req: AuthRequest, res: Response) => {
   try {
@@ -184,7 +186,10 @@ router.post('/', [
 });
 
 // Get single task
-router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/:id', [
+  authenticateToken,
+  checkTaskPermission
+], async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const task = await Task.findById(req.params.id)
       .populate('createdBy', 'name email')
@@ -196,251 +201,12 @@ router.get('/:id', authenticateToken, async (req: AuthRequest, res: Response): P
       return;
     }
 
-    // Check permissions
-    if (req.user?.role === 'employee') {
-      const isAssigned = task.assignedTo.some((assignee: any) => 
-        assignee._id.toString() === req.user?._id.toString()
-      );
-      
-      if (!isAssigned) {
-        res.status(403).json({ error: 'Access denied' });
-        return;
-      }
-    }
-
-    // Get time logs for this task
-    const timeLogs = await TimeLog.find({ taskId: task._id })
-      .populate('userId', 'name')
-      .sort({ startTime: -1 });
-
-    const totalTime = timeLogs.reduce((sum, log) => sum + log.durationSeconds, 0);
-
-    res.json({ 
-      task, 
-      timeLogs,
-      stats: {
-        totalTimeSeconds: totalTime,
-        estimateMinutes: task.estimateMinutes || 0,
-      }
-    });
+    res.json(task);
   } catch (error) {
     console.error('Get task error:', error);
-    res.status(500).json({ error: 'Failed to fetch task' });
+    res.status(500).json({ error: 'Failed to get task' });
   }
 });
-
-// Update task
-router.put('/:id', [
-  authenticateToken,
-  validate(updateTaskSchema),
-], async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const task = await Task.findById(req.params.id);
-    if (!task) {
-      res.status(404).json({ error: 'Task not found' });
-      return;
-    }
-
-    // Check permissions
-    if (req.user?.role === 'employee') {
-      const isAssigned = task.assignedTo.some((assignee: any) => 
-        assignee.toString() === req.user?._id.toString()
-      );
-      
-      if (!isAssigned) {
-        res.status(403).json({ error: 'Access denied' });
-        return;
-      }
-
-      // Employees can only update status
-      const allowedFields = ['status'];
-      const updateFields = Object.keys(req.body);
-      const hasRestrictedFields = updateFields.some(field => !allowedFields.includes(field));
-      
-      if (hasRestrictedFields) {
-        res.status(403).json({ error: 'Insufficient permissions for this update' });
-        return;
-      }
-    }
-
-    const updatedTask = await Task.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    ).populate([
-      { path: 'createdBy', select: 'name email' },
-      { path: 'assignedTo', select: 'name email' },
-    ]);
-
-    // Send notification if task is completed
-    if (req.body.status === 'completed' && task.status !== 'completed' && updatedTask) {
-      const creatorId = task.createdBy.toString();
-      
-      await PushService.sendNotification(creatorId, {
-        type: 'task_completed',
-        title: 'Task Completed',
-        body: `"${updatedTask.title}" has been completed by ${req.user?.name}`,
-        meta: { taskId: updatedTask._id },
-      });
-    }
-
-    res.json({ task: updatedTask });
-  } catch (error) {
-    console.error('Update task error:', error);
-    res.status(500).json({ error: 'Failed to update task' });
-  }
-});
-
-// Start time tracking
-router.post('/:id/time/start', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const task = await Task.findById(req.params.id);
-    if (!task) {
-      res.status(404).json({ error: 'Task not found' });
-      return;
-    }
-
-    // Check permissions
-    if (req.user?.role === 'employee') {
-      const isAssigned = task.assignedTo.some((assignee: any) => 
-        assignee.toString() === req.user?._id.toString()
-      );
-      
-      if (!isAssigned) {
-        res.status(403).json({ error: 'You are not assigned to this task' });
-        return;
-      }
-    }
-
-    // Check if task has any active time logs
-    const activeTimeLog = await TimeLog.findOne({
-      taskId: req.params.id,
-      endTime: { $exists: false }
-    });
-
-    if (activeTimeLog) {
-      res.status(400).json({ error: 'Time tracking already active for this task' });
-      return;
-    }
-
-    const timeLog = new TimeLog({
-      taskId: req.params.id,
-      userId: req.user?._id,
-      startTime: TimezoneUtils.now(),
-    });
-
-    await timeLog.save();
-
-    res.json({ timeLog });
-  } catch (error) {
-    console.error('Start time tracking error:', error);
-    res.status(500).json({ error: 'Failed to start time tracking' });
-  }
-});
-
-// Stop time tracking
-router.post('/:id/time/stop', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const timeLog = await TimeLog.findOne({
-      taskId: req.params.id,
-      userId: req.user?._id,
-      endTime: null,
-    });
-
-    if (!timeLog) {
-      res.status(400).json({ error: 'No active time tracking found' });
-      return;
-    }
-
-    const endTime = TimezoneUtils.now();
-    const durationSeconds = Math.floor((endTime.getTime() - timeLog.startTime.getTime()) / 1000);
-
-    timeLog.endTime = endTime;
-    timeLog.durationSeconds = durationSeconds;
-    await timeLog.save();
-
-    res.json({ timeLog });
-  } catch (error) {
-    console.error('Stop time tracking error:', error);
-    res.status(500).json({ error: 'Failed to stop time tracking' });
-  }
-});
-
-// Pause time tracking
-router.post('/:id/time/pause', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const timeLog = await TimeLog.findOne({
-      taskId: req.params.id,
-      userId: req.user?._id,
-      endTime: null,
-    });
-
-    if (!timeLog) {
-      res.status(400).json({ error: 'No active time tracking found' });
-      return;
-    }
-
-    // For pause functionality, we'll end the current log and create a new one when resumed
-    const pauseTime = TimezoneUtils.now();
-    const durationSeconds = Math.floor((pauseTime.getTime() - timeLog.startTime.getTime()) / 1000);
-
-    timeLog.endTime = pauseTime;
-    timeLog.durationSeconds = durationSeconds;
-    await timeLog.save();
-
-    res.json({ timeLog, message: 'Timer paused' });
-  } catch (error) {
-    console.error('Pause time tracking error:', error);
-    res.status(500).json({ error: 'Failed to pause time tracking' });
-  }
-});
-
-// Resume time tracking
-router.post('/:id/time/resume', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const task = await Task.findById(req.params.id);
-    if (!task) {
-      res.status(404).json({ error: 'Task not found' });
-      return;
-    }
-
-    // Check if user is assigned to this task
-    const isAssigned = task.assignedTo.some((assignee: any) => 
-      assignee.toString() === req.user?._id.toString()
-    );
-    
-    if (!isAssigned && req.user?.role !== 'admin') {
-      res.status(403).json({ error: 'You are not assigned to this task' });
-      return;
-    }
-
-    // Check for existing active time log
-    const existingLog = await TimeLog.findOne({
-      taskId: req.params.id,
-      userId: req.user?._id,
-      endTime: null,
-    });
-
-    if (existingLog) {
-      res.status(400).json({ error: 'Time tracking already active for this task' });
-      return;
-    }
-
-    const timeLog = new TimeLog({
-      taskId: req.params.id,
-      userId: req.user?._id,
-      startTime: TimezoneUtils.now(),
-    });
-
-    await timeLog.save();
-
-    res.json({ timeLog, message: 'Timer resumed' });
-  } catch (error) {
-    console.error('Resume time tracking error:', error);
-    res.status(500).json({ error: 'Failed to resume time tracking' });
-  }
-});
-
 // Get task progress summary
 router.get('/progress-summary', authenticateToken, async (req: AuthRequest, res): Promise<void> => {
   try {
@@ -572,7 +338,7 @@ export default router;
 // Admin task deletion
 router.delete('/:id', [
   authenticateToken,
-  requireRole('admin'),
+  requirePermission('tasks', 'delete', 'all'),
 ], async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const task = await Task.findById(req.params.id);
@@ -597,7 +363,7 @@ router.delete('/:id', [
 // Admin task status change
 router.patch('/:id/status', [
   authenticateToken,
-  requireRole('admin'),
+  requirePermission('tasks', 'update', 'all'),
 ], async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { status } = req.body;
@@ -758,18 +524,13 @@ router.post('/:id/complete', authenticateToken, async (req: AuthRequest, res: Re
 // Get task time and efficiency (admin only)
 router.get('/:id/analytics', [
   authenticateToken,
-  requireRole('admin'),
+  checkTaskPermission,
 ], async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const taskId = req.params.id;
-    const { userId } = req.query;
+    const userId = req.query.userId as string || req.user!._id;
 
-    if (!userId) {
-      res.status(400).json({ error: 'User ID required' });
-      return;
-    }
-
-    const analytics = await calculateTaskTimeAndEfficiency(taskId, userId as string);
+    const analytics = await TaskStatusService.calculateTaskTimeAndEfficiency(taskId, userId);
     res.json(analytics);
   } catch (error) {
     console.error('Get task analytics error:', error);
@@ -777,13 +538,31 @@ router.get('/:id/analytics', [
   }
 });
 
+// Get task status history
+router.get('/:id/status-history', [
+  authenticateToken,
+  checkTaskPermission
+], async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const history = await TaskStatusService.getTaskStatusHistory(req.params.id);
+    res.json({ history });
+  } catch (error) {
+    console.error('Get task status history error:', error);
+    res.status(500).json({ error: 'Failed to get task status history' });
+  }
+});
+
 // Get active time log for a task
-router.get('/:id/time/active', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+router.get('/:id/time/active', [
+  authenticateToken,
+  checkTaskPermission
+], async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const timeLog = await TimeLog.findOne({
       taskId: req.params.id,
       userId: req.user?._id,
-      endTime: null,
+      isActive: true,
+      endTime: { $exists: false },
     });
 
     if (!timeLog) {
@@ -795,35 +574,5 @@ router.get('/:id/time/active', authenticateToken, async (req: AuthRequest, res: 
   } catch (error) {
     console.error('Get active time log error:', error);
     res.status(500).json({ error: 'Failed to get active time log' });
-  }
-});
-
-// Get time statistics for a task
-router.get('/:id/time/stats', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    const task = await Task.findById(req.params.id);
-    if (!task) {
-      res.status(404).json({ error: 'Task not found' });
-      return;
-    }
-
-    // Check permissions
-    const isAdmin = req.user?.role === 'admin';
-    const isAssigned = task.assignedTo.some((assignee: any) => 
-      assignee.toString() === req.user?._id.toString()
-    );
-    
-    if (!isAdmin && !isAssigned) {
-      res.status(403).json({ error: 'Access denied' });
-      return;
-    }
-
-    const userId = isAdmin ? undefined : req.user?._id;
-    const stats = await calculateTaskTimeAndEfficiency(req.params.id, userId);
-    
-    res.json(stats);
-  } catch (error) {
-    console.error('Get task time stats error:', error);
-    res.status(500).json({ error: 'Failed to get task time stats' });
   }
 });

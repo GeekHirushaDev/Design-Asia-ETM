@@ -4,8 +4,9 @@ export interface IRole extends mongoose.Document {
   _id: string;
   name: string;
   description: string;
-  permissions: string[];
+  permissions: mongoose.Types.ObjectId[];
   isSystem: boolean;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,12 +24,16 @@ const roleSchema = new Schema<IRole>(
       required: true,
     },
     permissions: [{
-      type: String,
-      required: true,
+      type: Schema.Types.ObjectId,
+      ref: 'Permission',
     }],
     isSystem: {
       type: Boolean,
       default: false,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
