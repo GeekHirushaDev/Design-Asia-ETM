@@ -15,6 +15,7 @@ import { taskApi, trackingApi, authApi, api } from '../../lib/api';
 import { TaskProgressDashboard } from './TaskProgressDashboard';
 import { OverdueUpcomingSummary } from './OverdueUpcomingSummary';
 import { EmployeeRegistrationForm } from '../Admin/EmployeeRegistrationForm';
+import { AdminTimeTrackingDashboard } from '../TimeTracking/AdminTimeTrackingDashboard';
 
 interface DashboardStats {
   totalTasks: number;
@@ -282,11 +283,10 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-
-
-
-
-
+        {/* Time Tracking Dashboard */}
+        <div className="lg:col-span-2">
+          <AdminTimeTrackingDashboard />
+        </div>
       </div>
 
       {/* Employee Registration Modal */}

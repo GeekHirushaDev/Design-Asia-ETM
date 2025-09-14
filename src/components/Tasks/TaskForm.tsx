@@ -66,6 +66,23 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
       return;
     }
 
+    // Validate assignments
+    if (formData.assignmentType === 'individual' && formData.assignedTo.length === 0) {
+      toast.error('Please assign the task to at least one user');
+      return;
+    }
+
+    if (formData.assignmentType === 'team' && !formData.assignedTeam) {
+      toast.error('Please select a team for this task');
+      return;
+    }
+
+    // Validate location if provided
+    if (locationOption !== 'none' && !formData.location) {
+      toast.error('Please complete the location setup or select "No Location Required"');
+      return;
+    }
+
     try {
       setIsLoading(true);
       
@@ -76,12 +93,16 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
       }
       
       const payload = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        priority: formData.priority,
+        assignmentType: formData.assignmentType,
         tags: formData.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean),
         estimateMinutes: formData.estimateMinutes ? parseInt(formData.estimateMinutes) : undefined,
         dueDate: dueDateSriLanka,
         assignedTo: formData.assignmentType === 'individual' ? formData.assignedTo : [],
         assignedTeam: formData.assignmentType === 'team' ? formData.assignedTeam : undefined,
+        location: formData.location || undefined,
       };
 
       if (task) {
@@ -144,15 +165,23 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          // Prompt for address when using current location
+          const address = prompt('Please enter the address for this location:');
+          if (!address || !address.trim()) {
+            toast.error('Address is required when using current location');
+            return;
+          }
+          
           setFormData({
             ...formData,
             location: {
               lat: position.coords.latitude,
               lng: position.coords.longitude,
-              address: 'Current Location',
+              address: address.trim(),
               radiusMeters: 100,
             },
           });
+          setLocationOption('none');
           toast.success('Current location added');
         },
         () => {

@@ -3,6 +3,7 @@ import { Clock, MapPin, User, Play, Pause, CheckCircle, Users, Crown, Trash2 } f
 import { format } from 'date-fns';
 import { taskApi } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
+import { LiveTimeTracker } from '../TimeTracking/LiveTimeTracker';
 import toast from 'react-hot-toast';
 
 interface TaskCardProps {
@@ -326,6 +327,11 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
             Status: {task.status.replace('_', ' ').toUpperCase()}
           </span>
         </div>
+      )}
+
+      {/* Live Time Tracker */}
+      {canView && (
+        <LiveTimeTracker task={task} user={user} onUpdate={onUpdate} />
       )}
     </div>
   );

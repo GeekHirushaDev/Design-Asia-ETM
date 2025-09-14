@@ -36,14 +36,16 @@ const taskSchema = new Schema<ITask>(
       type: Date,
     },
     createdBy: {
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'User',
       required: true,
     },
     assignedTo: [{
-      type: String,
+      type: Schema.Types.ObjectId,
+      ref: 'User',
     }],
     assignedTeam: {
-      type: String,
+      type: Schema.Types.ObjectId,
       ref: 'Team',
     },
     assignmentType: {
@@ -59,7 +61,7 @@ const taskSchema = new Schema<ITask>(
         enum: ['pending', 'approved', 'rejected'],
         default: 'pending',
       },
-      by: { type: String },
+      by: { type: Schema.Types.ObjectId, ref: 'User' },
       at: { type: Date },
       comment: { type: String },
     },
@@ -85,7 +87,7 @@ const taskSchema = new Schema<ITask>(
     restrictions: {
       employeeCanEdit: { type: Boolean, default: true },
       restrictedFields: [{ type: String }],
-      editableBy: [{ type: String }]
+      editableBy: [{ type: Schema.Types.ObjectId, ref: 'User' }]
     }
   },
   {

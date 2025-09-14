@@ -79,6 +79,12 @@ export const taskApi = {
   getProgressSummary: (params?: any) => api.get('/tasks/progress-summary', { params }),
   getCarryoverStats: (params?: any) => api.get('/tasks/carryover-stats', { params }),
   getUpcomingOverdue: () => api.get('/tasks/upcoming-overdue'),
+  // Time tracking methods
+  startTimeTracking: (id: string) => api.post(`/tasks/${id}/time/start`),
+  pauseTimeTracking: (id: string) => api.post(`/tasks/${id}/time/pause`),
+  stopTimeTracking: (id: string) => api.post(`/tasks/${id}/time/stop`),
+  getActiveTimeLog: (id: string) => api.get(`/tasks/${id}/time/active`),
+  getTaskTimeStats: (id: string) => api.get(`/tasks/${id}/time/stats`),
 };
 
 export const attendanceApi = {

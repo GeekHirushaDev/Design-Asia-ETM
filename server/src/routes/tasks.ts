@@ -776,3 +776,54 @@ router.get('/:id/analytics', [
     res.status(500).json({ error: 'Failed to get task analytics' });
   }
 });
+
+// Get active time log for a task
+router.get('/:id/time/active', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const timeLog = await TimeLog.findOne({
+      taskId: req.params.id,
+      userId: req.user?._id,
+      endTime: null,
+    });
+
+    if (!timeLog) {
+      res.status(404).json({ message: 'No active time tracking found' });
+      return;
+    }
+
+    res.json({ timeLog });
+  } catch (error) {
+    console.error('Get active time log error:', error);
+    res.status(500).json({ error: 'Failed to get active time log' });
+  }
+});
+
+// Get time statistics for a task
+router.get('/:id/time/stats', authenticateToken, async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
+    }
+
+    // Check permissions
+    const isAdmin = req.user?.role === 'admin';
+    const isAssigned = task.assignedTo.some((assignee: any) => 
+      assignee.toString() === req.user?._id.toString()
+    );
+    
+    if (!isAdmin && !isAssigned) {
+      res.status(403).json({ error: 'Access denied' });
+      return;
+    }
+
+    const userId = isAdmin ? undefined : req.user?._id;
+    const stats = await calculateTaskTimeAndEfficiency(req.params.id, userId);
+    
+    res.json(stats);
+  } catch (error) {
+    console.error('Get task time stats error:', error);
+    res.status(500).json({ error: 'Failed to get task time stats' });
+  }
+});
