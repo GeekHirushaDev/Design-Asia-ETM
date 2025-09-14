@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Clock, MapPin, User, Play, Pause, CheckCircle, Users, Crown, Trash2 } from 'lucide-react';
+import { Clock, MapPin, User, Play, Pause, CheckCircle, Users, Crown, Trash2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import { taskApi } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import { LiveTimeTracker } from '../TimeTracking/LiveTimeTracker';
+import { TaskDetails } from './TaskDetails';
 import toast from 'react-hot-toast';
 
 interface TaskCardProps {
@@ -14,6 +15,7 @@ interface TaskCardProps {
 export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
   const { user } = useAuthStore();
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const priorityColors = {
     high: 'bg-red-100 text-red-800 border-red-200',
@@ -238,6 +240,15 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
       {canControl && (
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div className="flex space-x-2">
+            {/* View Details Button */}
+            <button
+              onClick={() => setShowDetails(true)}
+              className="flex items-center px-3 py-1 bg-gray-100 text-gray-700 text-sm rounded hover:bg-gray-200"
+            >
+              <Eye size={14} className="mr-1" />
+              Details
+            </button>
+            
             {task.status === 'not_started' && (
               <button
                 onClick={handleStartTask}
@@ -322,16 +333,32 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
 
       {/* Status Display for non-controllers */}
       {!canControl && canView && (
-        <div className="pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <span className={`text-xs font-medium ${statusColors[task.status as keyof typeof statusColors] || statusColors.not_started}`}>
             Status: {task.status.replace('_', ' ').toUpperCase()}
           </span>
+          <button
+            onClick={() => setShowDetails(true)}
+            className="flex items-center px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded hover:bg-gray-200"
+          >
+            <Eye size={12} className="mr-1" />
+            Details
+          </button>
         </div>
       )}
 
       {/* Live Time Tracker */}
       {canView && (
-        <LiveTimeTracker task={task} user={user} onUpdate={onUpdate} />
+        <LiveTimeTracker task={task} user={user} />
+      )}
+
+      {/* Task Details Modal */}
+      {showDetails && (
+        <TaskDetails 
+          taskId={task._id} 
+          onClose={() => setShowDetails(false)}
+          onUpdate={onUpdate}
+        />
       )}
     </div>
   );

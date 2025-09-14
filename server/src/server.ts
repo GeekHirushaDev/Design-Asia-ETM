@@ -27,6 +27,7 @@ import roleRoutes from './routes/roles.js';
 import uploadRoutes from './routes/uploads.js';
 import usersRoutes from './routes/users.js';
 import teamsRoutes from './routes/teams.js';
+import locationsRoutes from './routes/locations.js';
 
 const app = express();
 const server = createServer(app);
@@ -77,6 +78,7 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/teams', teamsRoutes);
+app.use('/api/locations', locationsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

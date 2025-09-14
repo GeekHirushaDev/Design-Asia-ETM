@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Plus } from 'lucide-react';
-import { taskApi, userApi, teamApi } from '../../lib/api';
+import { X, MapPin, Plus, Upload, FileText, Trash2 } from 'lucide-react';
+import { taskApi, userApi, teamApi, locationApi, attachmentApi } from '../../lib/api';
 import { getSriLankanTime } from '../../lib/timezone';
 import toast from 'react-hot-toast';
 
@@ -24,10 +24,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
     location: task?.location || null,
   });
 
-  const [users, setUsers] = useState([]);
-  const [teams, setTeams] = useState([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [teams, setTeams] = useState<any[]>([]);
+  const [locations, setLocations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [locationOption, setLocationOption] = useState<'none' | 'current' | 'manual'>('none');
+  const [locationOption, setLocationOption] = useState<'none' | 'current' | 'manual' | 'saved'>('none');
+  const [selectedLocationId, setSelectedLocationId] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<FileList | null>(null);
   const [locationInput, setLocationInput] = useState({
     latitude: '',
     longitude: '',
@@ -37,12 +40,38 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
   useEffect(() => {
     loadUsers();
     loadTeams();
+    loadLocations();
   }, []);
+
+  const loadLocations = async () => {
+    try {
+      const response = await locationApi.getLocations({ isActive: true });
+      const data = response.data;
+      if (Array.isArray(data)) {
+        setLocations(data);
+      } else if (data && data.locations) {
+        setLocations(data.locations);
+      } else {
+        setLocations([]);
+      }
+    } catch (error) {
+      console.error('Failed to load locations');
+      setLocations([]);
+    }
+  };
 
   const loadUsers = async () => {
     try {
       const response = await userApi.getUsers();
-      setUsers(response.data.users || []);
+      // API may return { users } or an array directly
+      const data = response.data;
+      if (Array.isArray(data)) {
+        setUsers(data);
+      } else if (data && data.users) {
+        setUsers(data.users);
+      } else {
+        setUsers([]);
+      }
     } catch (error) {
       console.error('Failed to load users');
       setUsers([]);
@@ -52,7 +81,17 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
   const loadTeams = async () => {
     try {
       const response = await teamApi.getTeams();
-      setTeams(response.data.teams || []);
+      const data = response.data;
+      if (Array.isArray(data)) {
+        setTeams(data);
+      } else if (data && data.teams) {
+        setTeams(data.teams);
+      } else if (data && data._id) {
+        // single team object
+        setTeams([data]);
+      } else {
+        setTeams([]);
+      }
     } catch (error) {
       console.error('Failed to load teams');
       setTeams([]);
@@ -83,6 +122,17 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
       return;
     }
 
+    // Validate file attachments
+    if (selectedFiles && selectedFiles.length > 20) {
+      toast.error('Maximum 20 files allowed');
+      return;
+    }
+
+    if (selectedFiles && Array.from(selectedFiles).some(file => file.size > 20 * 1024 * 1024)) {
+      toast.error('Each file must be under 20MB');
+      return;
+    }
+
     try {
       setIsLoading(true);
       
@@ -100,17 +150,30 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
         tags: formData.tags.split(',').map((tag: string) => tag.trim()).filter(Boolean),
         estimateMinutes: formData.estimateMinutes ? parseInt(formData.estimateMinutes) : undefined,
         dueDate: dueDateSriLanka,
-        assignedTo: formData.assignmentType === 'individual' ? formData.assignedTo : [],
-        assignedTeam: formData.assignmentType === 'team' ? formData.assignedTeam : undefined,
+        assignedTo: formData.assignmentType === 'individual' ? (formData.assignedTo || []).map(String) : [],
+        assignedTeam: formData.assignmentType === 'team' ? (formData.assignedTeam || '') : undefined,
         location: formData.location || undefined,
       };
 
+      let taskId;
       if (task) {
         await taskApi.updateTask(task._id, payload);
+        taskId = task._id;
         toast.success('Task updated successfully');
       } else {
-        await taskApi.createTask(payload);
+        const response = await taskApi.createTask(payload);
+        taskId = response.data._id || response.data.task?._id;
         toast.success('Task created successfully');
+      }
+
+      // Upload files if any are selected
+      if (selectedFiles && selectedFiles.length > 0 && taskId) {
+        try {
+          await attachmentApi.uploadTaskAttachments(taskId, selectedFiles);
+          toast.success(`${selectedFiles.length} file(s) uploaded successfully`);
+        } catch (uploadError: any) {
+          toast.error(uploadError.response?.data?.error || 'Failed to upload files');
+        }
       }
       
       onSubmit();
@@ -403,14 +466,26 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                 Location (Optional)
               </label>
               {!formData.location && locationOption === 'none' && (
-                <div className="flex space-x-2">
+                <div className="flex space-x-2 text-sm">
+                  {locations.length > 0 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setLocationOption('saved')}
+                        className="text-blue-600 hover:text-blue-800 transition-colors"
+                      >
+                        Select Saved Location
+                      </button>
+                      <span className="text-gray-300">|</span>
+                    </>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
                       setLocationOption('current');
                       getCurrentLocation();
                     }}
-                    className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                    className="text-blue-600 hover:text-blue-800 transition-colors"
                   >
                     Use Current Location
                   </button>
@@ -418,13 +493,75 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                   <button
                     type="button"
                     onClick={() => setLocationOption('manual')}
-                    className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+                    className="text-blue-600 hover:text-blue-800 transition-colors"
                   >
                     Enter Coordinates
                   </button>
                 </div>
               )}
             </div>
+
+            {/* Saved Location Selection */}
+            {locationOption === 'saved' && !formData.location && (
+              <div className="border border-gray-300 rounded-lg p-4 space-y-3 mb-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Select Saved Location *
+                  </label>
+                  <select
+                    value={selectedLocationId}
+                    onChange={(e) => setSelectedLocationId(e.target.value)}
+                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">Choose a location...</option>
+                    {locations.map((location: any) => (
+                      <option key={location._id} value={location._id}>
+                        {location.name} - {location.address} (radius: {location.radiusMeters}m)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const location = locations.find(loc => loc._id === selectedLocationId);
+                      if (location) {
+                        setFormData({
+                          ...formData,
+                          location: {
+                            lat: location.latitude,
+                            lng: location.longitude,
+                            address: location.address,
+                            radiusMeters: location.radiusMeters,
+                            savedLocationId: location._id,
+                            savedLocationName: location.name,
+                          },
+                        });
+                        setLocationOption('none');
+                        toast.success('Saved location applied');
+                      } else {
+                        toast.error('Please select a location');
+                      }
+                    }}
+                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                  >
+                    Use Selected Location
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLocationOption('none');
+                      setSelectedLocationId('');
+                    }}
+                    className="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
             
             {locationOption === 'manual' && !formData.location && (
               <div className="border border-gray-300 rounded-lg p-4 space-y-3 mb-3">
@@ -516,6 +653,83 @@ export const TaskForm: React.FC<TaskFormProps> = ({ onClose, onSubmit, task }) =
                 </div>
               </div>
             )}
+          </div>
+
+          {/* File Attachments */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              File Attachments (Optional)
+            </label>
+            <div className="border border-gray-300 rounded-lg p-4">
+              <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
+                <div className="text-center">
+                  <Upload className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                  <input
+                    type="file"
+                    multiple
+                    onChange={(e) => setSelectedFiles(e.target.files)}
+                    className="hidden"
+                    id="file-upload"
+                    accept="*"
+                  />
+                  <label
+                    htmlFor="file-upload"
+                    className="cursor-pointer text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  >
+                    Choose files
+                  </label>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Up to 20 files, max 20MB each. Any file type allowed.
+                  </p>
+                </div>
+              </div>
+              
+              {selectedFiles && selectedFiles.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  <p className="text-sm font-medium text-gray-700">
+                    Selected Files ({selectedFiles.length}/20):
+                  </p>
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {Array.from(selectedFiles).map((file, index) => (
+                      <div key={index} className="flex items-center justify-between text-sm p-2 bg-gray-50 rounded">
+                        <div className="flex items-center space-x-2">
+                          <FileText size={14} className="text-gray-500" />
+                          <span className="truncate max-w-xs">{file.name}</span>
+                          <span className="text-gray-500">
+                            ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const dt = new DataTransfer();
+                            const files = Array.from(selectedFiles);
+                            files.splice(index, 1);
+                            files.forEach(f => dt.items.add(f));
+                            setSelectedFiles(dt.files);
+                          }}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {selectedFiles.length > 20 && (
+                    <p className="text-red-600 text-sm">
+                      Too many files selected. Maximum 20 files allowed.
+                    </p>
+                  )}
+                  
+                  {Array.from(selectedFiles).some(file => file.size > 20 * 1024 * 1024) && (
+                    <p className="text-red-600 text-sm">
+                      Some files exceed 20MB limit.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Submit Buttons */}

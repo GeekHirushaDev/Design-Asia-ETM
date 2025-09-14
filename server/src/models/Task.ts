@@ -88,7 +88,17 @@ const taskSchema = new Schema<ITask>(
       employeeCanEdit: { type: Boolean, default: true },
       restrictedFields: [{ type: String }],
       editableBy: [{ type: Schema.Types.ObjectId, ref: 'User' }]
-    }
+    },
+    attachments: [{
+      filename: { type: String, required: true },
+      originalName: { type: String, required: true },
+      size: { type: Number, required: true },
+      mimeType: { type: String, required: true },
+      uploadedBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+      uploadedAt: { type: Date, default: () => TimezoneUtils.now() },
+      path: { type: String, required: true },
+      downloadCount: { type: Number, default: 0 }
+    }]
   },
   {
     timestamps: true,

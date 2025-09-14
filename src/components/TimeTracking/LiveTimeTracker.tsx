@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Play, Pause, Square } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { taskApi } from '../../lib/api';
 
 interface LiveTimeTrackerProps {
   task: any;
   user: any;
-  onUpdate: () => void;
 }
 
-export const LiveTimeTracker: React.FC<LiveTimeTrackerProps> = ({ task, user, onUpdate }) => {
+export const LiveTimeTracker: React.FC<LiveTimeTrackerProps> = ({ task, user }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [timeStats, setTimeStats] = useState<any>(null);
@@ -84,39 +83,8 @@ export const LiveTimeTracker: React.FC<LiveTimeTrackerProps> = ({ task, user, on
     }
   };
 
-  const handleStartTracking = async () => {
-    try {
-      await taskApi.startTimeTracking(task._id);
-      setIsActive(true);
-      setCurrentTime(0);
-      onUpdate();
-    } catch (error: any) {
-      console.error('Failed to start time tracking:', error);
-    }
-  };
-
-  const handlePauseTracking = async () => {
-    try {
-      await taskApi.pauseTimeTracking(task._id);
-      setIsActive(false);
-      loadTimeStats();
-      onUpdate();
-    } catch (error: any) {
-      console.error('Failed to pause time tracking:', error);
-    }
-  };
-
-  const handleStopTracking = async () => {
-    try {
-      await taskApi.stopTimeTracking(task._id);
-      setIsActive(false);
-      setCurrentTime(0);
-      loadTimeStats();
-      onUpdate();
-    } catch (error: any) {
-      console.error('Failed to stop time tracking:', error);
-    }
-  };
+  // This component is now read-only: TaskCard controls starting/pausing/completing tasks
+  // It will poll the backend for the active time log and display elapsed time and stats.
 
   // Check if user can control time tracking
   const isAdmin = user?.role === 'admin';
@@ -139,36 +107,7 @@ export const LiveTimeTracker: React.FC<LiveTimeTrackerProps> = ({ task, user, on
           <span className="text-sm font-medium text-gray-700">Time Tracking</span>
         </div>
         
-        {canControl && (
-          <div className="flex space-x-1">
-            {!isActive ? (
-              <button
-                onClick={handleStartTracking}
-                className="p-1 text-green-600 hover:bg-green-100 rounded transition-colors"
-                title="Start Timer"
-              >
-                <Play size={14} />
-              </button>
-            ) : (
-              <>
-                <button
-                  onClick={handlePauseTracking}
-                  className="p-1 text-yellow-600 hover:bg-yellow-100 rounded transition-colors"
-                  title="Pause Timer"
-                >
-                  <Pause size={14} />
-                </button>
-                <button
-                  onClick={handleStopTracking}
-                  className="p-1 text-red-600 hover:bg-red-100 rounded transition-colors"
-                  title="Stop Timer"
-                >
-                  <Square size={14} />
-                </button>
-              </>
-            )}
-          </div>
-        )}
+        {/* Controls removed: start/pause/stop are handled by TaskCard start/pause/complete actions */}
       </div>
       
       {/* Current Session */}

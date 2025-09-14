@@ -19,29 +19,11 @@ const s3 = new AWS.S3({
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
+    fileSize: 20 * 1024 * 1024, // 20MB limit as specified
   },
   fileFilter: (req, file, cb) => {
-    // Allow images, documents, and common file types
-    const allowedTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'text/plain',
-      'text/csv',
-    ];
-    
-    if (allowedTypes.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('File type not allowed'));
-    }
+    // Allow any file type as specified in requirements
+    cb(null, true);
   },
 });
 
@@ -164,6 +146,183 @@ router.delete('/:key(*)', authenticateToken, async (req: AuthRequest, res) => {
   } catch (error) {
     console.error('Delete file error:', error);
     res.status(500).json({ error: 'Failed to delete file' });
+  }
+});
+
+// Upload task attachments (up to 20 files)
+router.post('/task-attachments/:taskId', authenticateToken, upload.array('files', 20), async (req: AuthRequest, res) => {
+  try {
+    const { taskId } = req.params;
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ error: 'No files provided' });
+    }
+
+    // Import Task model here to avoid circular dependency
+    const { default: Task } = await import('../models/Task.js');
+    
+    // Check if task exists and user has permission
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    // Check permission - admin, creator, or assigned user can upload
+    const isAdmin = req.user?.role === 'admin';
+    const isCreator = task.createdBy.toString() === req.user?._id.toString();
+    const isAssigned = task.assignedTo.some((id: any) => id.toString() === req.user?._id.toString());
+    
+    if (!isAdmin && !isCreator && !isAssigned) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    // Check current attachment count
+    const currentAttachments = task.attachments?.length || 0;
+    if (currentAttachments + files.length > 20) {
+      return res.status(400).json({ 
+        error: `Cannot upload ${files.length} files. Maximum 20 attachments per task (current: ${currentAttachments})` 
+      });
+    }
+
+    const uploadedFiles = [];
+
+    for (const file of files) {
+      const key = `task-attachments/${taskId}/${crypto.randomBytes(16).toString('hex')}-${file.originalname}`;
+      
+      const params = {
+        Bucket: config.AWS_S3_BUCKET,
+        Key: key,
+        Body: file.buffer,
+        ContentType: file.mimetype,
+        ServerSideEncryption: 'AES256',
+      };
+      
+      await s3.upload(params).promise();
+      
+      const attachment = {
+        filename: key,
+        originalName: file.originalname,
+        size: file.size,
+        mimeType: file.mimetype,
+        uploadedBy: req.user!._id,
+        path: key,
+        downloadCount: 0
+      };
+
+      uploadedFiles.push(attachment);
+    }
+
+    // Add attachments to task
+    if (!task.attachments) {
+      task.attachments = [];
+    }
+    task.attachments.push(...uploadedFiles);
+    await task.save();
+
+    res.json({ 
+      message: `${files.length} file(s) uploaded successfully`,
+      attachments: uploadedFiles 
+    });
+  } catch (error) {
+    console.error('Upload task attachments error:', error);
+    res.status(500).json({ error: 'Failed to upload attachments' });
+  }
+});
+
+// Download task attachment
+router.get('/task-attachments/:taskId/:filename', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { taskId, filename } = req.params;
+
+    // Import Task model
+    const { default: Task } = await import('../models/Task.js');
+    
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const attachment = task.attachments?.find(att => att.filename === filename);
+    if (!attachment) {
+      return res.status(404).json({ error: 'Attachment not found' });
+    }
+
+    // Check permission - admin, creator, assigned user, or team member can download
+    const isAdmin = req.user?.role === 'admin';
+    const isCreator = task.createdBy.toString() === req.user?._id.toString();
+    const isAssigned = task.assignedTo.some((id: any) => id.toString() === req.user?._id.toString());
+    
+    if (!isAdmin && !isCreator && !isAssigned) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    const params = {
+      Bucket: config.AWS_S3_BUCKET,
+      Key: attachment.path,
+      ResponseContentDisposition: `attachment; filename="${attachment.originalName}"`,
+    };
+    
+    const url = s3.getSignedUrl('getObject', {
+      ...params,
+      Expires: 3600, // 1 hour
+    });
+
+    // Increment download count
+    attachment.downloadCount = (attachment.downloadCount || 0) + 1;
+    await task.save();
+
+    res.json({ downloadUrl: url });
+  } catch (error) {
+    console.error('Download attachment error:', error);
+    res.status(500).json({ error: 'Failed to generate download URL' });
+  }
+});
+
+// Delete task attachment
+router.delete('/task-attachments/:taskId/:filename', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { taskId, filename } = req.params;
+
+    // Import Task model
+    const { default: Task } = await import('../models/Task.js');
+    
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const attachmentIndex = task.attachments?.findIndex(att => att.filename === filename);
+    if (attachmentIndex === -1 || attachmentIndex === undefined) {
+      return res.status(404).json({ error: 'Attachment not found' });
+    }
+
+    // Check permission - admin, creator, or uploader can delete
+    const attachment = task.attachments![attachmentIndex];
+    const isAdmin = req.user?.role === 'admin';
+    const isCreator = task.createdBy.toString() === req.user?._id.toString();
+    const isUploader = attachment.uploadedBy.toString() === req.user?._id.toString();
+    
+    if (!isAdmin && !isCreator && !isUploader) {
+      return res.status(403).json({ error: 'Permission denied' });
+    }
+
+    // Delete from S3
+    const params = {
+      Bucket: config.AWS_S3_BUCKET,
+      Key: attachment.path,
+    };
+    
+    await s3.deleteObject(params).promise();
+
+    // Remove from task
+    task.attachments!.splice(attachmentIndex, 1);
+    await task.save();
+
+    res.json({ message: 'Attachment deleted successfully' });
+  } catch (error) {
+    console.error('Delete attachment error:', error);
+    res.status(500).json({ error: 'Failed to delete attachment' });
   }
 });
 

@@ -231,3 +231,29 @@ export const teamApi = {
   addMember: (teamId: string, userId: string) => api.post(`/teams/${teamId}/members`, { userId }),
   removeMember: (teamId: string, userId: string) => api.delete(`/teams/${teamId}/members/${userId}`),
 };
+
+export const locationApi = {
+  getLocations: (params?: any) => api.get('/locations', { params }),
+  getLocation: (id: string) => api.get(`/locations/${id}`),
+  createLocation: (data: any) => api.post('/locations', data),
+  updateLocation: (id: string, data: any) => api.put(`/locations/${id}`, data),
+  deleteLocation: (id: string) => api.delete(`/locations/${id}`),
+  validateLocation: (data: { locationId: string; userLatitude: number; userLongitude: number }) =>
+    api.post('/locations/validate', data),
+};
+
+export const attachmentApi = {
+  uploadTaskAttachments: (taskId: string, files: FileList) => {
+    const formData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      formData.append('files', files[i]);
+    }
+    return api.post(`/uploads/task-attachments/${taskId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  },
+  downloadTaskAttachment: (taskId: string, filename: string) =>
+    api.get(`/uploads/task-attachments/${taskId}/${filename}`),
+  deleteTaskAttachment: (taskId: string, filename: string) =>
+    api.delete(`/uploads/task-attachments/${taskId}/${filename}`),
+};
