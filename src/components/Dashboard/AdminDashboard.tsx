@@ -16,6 +16,8 @@ import { TaskProgressDashboard } from './TaskProgressDashboard';
 import { OverdueUpcomingSummary } from './OverdueUpcomingSummary';
 import { EmployeeRegistrationForm } from '../Admin/EmployeeRegistrationForm';
 import { AdminTimeTrackingDashboard } from '../TimeTracking/AdminTimeTrackingDashboard';
+import { LocationManagement } from '../Admin/LocationManagement';
+import { SettingsSection } from '../Admin/SettingsSection';
 
 interface DashboardStats {
   totalTasks: number;
@@ -283,9 +285,19 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
+        {/* Location Management */}
+        <div className="lg:col-span-2">
+          <LocationManagement />
+        </div>
+
         {/* Time Tracking Dashboard */}
         <div className="lg:col-span-2">
           <AdminTimeTrackingDashboard />
+        </div>
+
+        {/* System Settings */}
+        <div className="lg:col-span-2">
+          <SettingsSection />
         </div>
       </div>
 
