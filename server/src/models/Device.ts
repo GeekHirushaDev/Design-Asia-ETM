@@ -33,7 +33,6 @@ const deviceSchema = new Schema<IDevice>(
     deviceId: {
       type: String,
       required: true,
-      unique: true,
     },
     deviceType: {
       type: String,

@@ -211,7 +211,7 @@ export const ReportGenerator: React.FC = () => {
           </div>
 
           {/* Filters */}
-          {user?.role === 'admin' && (
+          {((user as any)?.isSuperAdmin || user?.role === 'admin') && (
             <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Filters</h2>
               

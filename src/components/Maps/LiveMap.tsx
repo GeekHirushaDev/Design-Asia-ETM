@@ -65,7 +65,7 @@ export const LiveMap: React.FC = () => {
   }, []);
   const loadCurrentLocations = async () => {
     try {
-      if (user?.role === 'admin') {
+      if ((user as any)?.isSuperAdmin || user?.role === 'admin') {
         const response = await trackingApi.getCurrentLocations();
         setLocations(response.data.locations || []);
       }
@@ -175,7 +175,7 @@ export const LiveMap: React.FC = () => {
     <div className="h-full">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold text-gray-900">
-          {user?.role === 'admin' ? 'Live Employee Tracking' : 'My Location'}
+          {(user as any)?.isSuperAdmin || user?.role === 'admin' ? 'Live Employee Tracking' : 'My Location'}
         </h2>
         {user?.role === 'employee' && userLocation && (
           <div className="flex items-center space-x-2 text-sm text-green-600">
@@ -197,7 +197,7 @@ export const LiveMap: React.FC = () => {
           />
           
           {/* Admin view - show all employee locations */}
-          {user?.role === 'admin' && locations.map((location) => (
+          {((user as any)?.isSuperAdmin || user?.role === 'admin') && locations.map((location) => (
             <Marker
               key={location.userId}
               position={[location.location.lat, location.location.lng]}

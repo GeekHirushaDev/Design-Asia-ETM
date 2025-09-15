@@ -1,14 +1,16 @@
 import express from 'express';
 import User from '../models/User.js';
-import { authenticateToken, requireRole } from '../middleware/auth.js';
+import Role from '../models/Role.js';
+import { authenticateToken, requireRole, requireSuperAdmin } from '../middleware/auth.js';
+import { config } from '../config/config.js';
 import { validate } from '../middleware/validation.js';
 import { AuthRequest } from '../types/index.js';
 import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
-// Get all users (admin only)
-router.get('/', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
+// Get all users (super admin only)
+router.get('/', authenticateToken, requireSuperAdmin(), async (req: AuthRequest, res) => {
   try {
     const { page = 1, limit = 20, role, status, search } = req.query;
     const filter: any = {};
@@ -47,10 +49,10 @@ router.get('/', authenticateToken, requireRole('admin'), async (req: AuthRequest
   }
 });
 
-// Create new user (admin only)
-router.post('/', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
+// Create new user (super admin only)
+router.post('/', authenticateToken, requireSuperAdmin(), async (req: AuthRequest, res) => {
   try {
-    const { prefix, firstName, lastName, username, email, mobile, password, role = 'employee' } = req.body;
+    const { prefix, firstName, lastName, username, email, mobile, password, role = 'employee', roleId } = req.body;
 
     // Validation
     if (!prefix || !firstName || !lastName || !username || !email || !mobile || !password) {
@@ -80,6 +82,18 @@ router.post('/', authenticateToken, requireRole('admin'), async (req: AuthReques
     // Combine first and last name for the name field
     const fullName = `${firstName} ${lastName}`;
 
+    // If roleId provided, derive role name from Role document
+    let resolvedRole = role;
+    let resolvedRoleId = undefined as any;
+    if (roleId) {
+      const roleDoc = await Role.findById(roleId);
+      if (!roleDoc) {
+        return res.status(400).json({ error: 'Invalid roleId' });
+      }
+      resolvedRole = roleDoc.name;
+      resolvedRoleId = roleDoc._id;
+    }
+
     // Create user
     const newUser = new User({
       prefix,
@@ -90,7 +104,8 @@ router.post('/', authenticateToken, requireRole('admin'), async (req: AuthReques
       email,
       mobile,
       password: hashedPassword,
-      role,
+      role: resolvedRole,
+      roleId: resolvedRoleId,
       status: 'active'
     });
 
@@ -107,8 +122,8 @@ router.post('/', authenticateToken, requireRole('admin'), async (req: AuthReques
   }
 });
 
-// Get user by ID (admin only)
-router.get('/:userId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
+// Get user by ID (super admin only)
+router.get('/:userId', authenticateToken, requireSuperAdmin(), async (req: AuthRequest, res) => {
   try {
     const user = await User.findById(req.params.userId).select('-password');
     if (!user) {
@@ -121,10 +136,10 @@ router.get('/:userId', authenticateToken, requireRole('admin'), async (req: Auth
   }
 });
 
-// Update user (admin only)
-router.put('/:userId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
+// Update user (super admin only)
+router.put('/:userId', authenticateToken, requireSuperAdmin(), async (req: AuthRequest, res) => {
   try {
-    const { prefix, firstName, lastName, username, email, mobile, role, status } = req.body;
+    const { prefix, firstName, lastName, username, email, mobile, role, status, roleId } = req.body;
     const userId = req.params.userId;
 
     // Check if username is already taken by another user
@@ -152,6 +167,7 @@ router.put('/:userId', authenticateToken, requireRole('admin'), async (req: Auth
     if (email) updateData.email = email;
     if (mobile) updateData.mobile = mobile;
     if (role) updateData.role = role;
+    if (roleId) updateData.roleId = roleId;
     if (status) updateData.status = status;
 
     const user = await User.findByIdAndUpdate(
@@ -171,14 +187,19 @@ router.put('/:userId', authenticateToken, requireRole('admin'), async (req: Auth
   }
 });
 
-// Delete user (admin only)
-router.delete('/:userId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
+// Delete user (super admin only)
+router.delete('/:userId', authenticateToken, requireSuperAdmin(), async (req: AuthRequest, res) => {
   try {
     const userId = req.params.userId;
 
     // Prevent admin from deleting themselves
     if (userId === req.user?._id.toString()) {
       return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+
+    const targetUser = await User.findById(userId);
+    if (targetUser && (targetUser.username === config.SUPER_ADMIN_USERNAME || (targetUser as any).isSuperAdmin)) {
+      return res.status(400).json({ error: 'Cannot delete the super admin account' });
     }
 
     const user = await User.findByIdAndDelete(userId);
@@ -193,11 +214,16 @@ router.delete('/:userId', authenticateToken, requireRole('admin'), async (req: A
   }
 });
 
-// Reset user password (admin only)
-router.post('/:userId/reset-password', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
+// Reset user password (super admin only)
+router.post('/:userId/reset-password', authenticateToken, requireSuperAdmin(), async (req: AuthRequest, res) => {
   try {
     const { newPassword } = req.body;
     const userId = req.params.userId;
+
+    const targetUser = await User.findById(userId);
+    if (targetUser && (targetUser.username === config.SUPER_ADMIN_USERNAME || (targetUser as any).isSuperAdmin)) {
+      return res.status(400).json({ error: 'Cannot reset password for super admin via API' });
+    }
 
     if (!newPassword || newPassword.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
@@ -208,7 +234,7 @@ router.post('/:userId/reset-password', authenticateToken, requireRole('admin'), 
 
     const user = await User.findByIdAndUpdate(
       userId,
-      { password: hashedPassword },
+      { password: hashedPassword, mustChangePassword: true },
       { new: true }
     ).select('-password');
 
@@ -216,7 +242,14 @@ router.post('/:userId/reset-password', authenticateToken, requireRole('admin'), 
       return res.status(404).json({ error: 'User not found' });
     }
 
-    res.json({ message: 'Password reset successfully' });
+    // Revoke all active sessions so the user must log in again
+    const Session = (await import('../models/Session.js')).default;
+    await Session.updateMany(
+      { userId: user._id, isActive: true },
+      { isActive: false, revokedAt: new Date(), revokedBy: 'admin_password_reset' }
+    );
+
+    res.json({ message: 'Password reset successfully. User will be required to change it on next login.' });
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(500).json({ error: 'Failed to reset password' });

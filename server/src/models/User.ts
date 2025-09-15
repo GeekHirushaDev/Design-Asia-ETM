@@ -50,8 +50,14 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ['admin', 'employee'],
-      default: 'employee',
+      default: 'custom',
+      trim: true,
+      lowercase: true,
+    },
+    isSuperAdmin: {
+      type: Boolean,
+      default: false,
+      index: true,
     },
     avatarUrl: {
       type: String,
@@ -65,6 +71,11 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false,
     },
+    mustChangePassword: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     lastLoginAt: {
       type: Date,
     },
@@ -72,6 +83,10 @@ const userSchema = new Schema<IUser>(
       type: Schema.Types.ObjectId,
       ref: 'Role',
     },
+    customPermissions: [{
+      type: Schema.Types.ObjectId,
+      ref: 'Permission',
+    }],
   },
   {
     timestamps: true,

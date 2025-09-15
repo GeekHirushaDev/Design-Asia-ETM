@@ -165,6 +165,15 @@ AWS_S3_BUCKET=your-bucket-name
 VAPID_PUBLIC_KEY=your-vapid-public-key
 VAPID_PRIVATE_KEY=your-vapid-private-key
 VAPID_EMAIL=your-email@gmail.com
+# Super Admin
+SUPER_ADMIN_USERNAME=superadmin
+# Password Policy
+# Enable strict rules (min 8, upper, lower, digit, symbol)
+PASSWORD_STRICT_POLICY=false
+
+# Frontend (Vite) env
+# In .env (root) or via build env var
+VITE_PASSWORD_STRICT_POLICY=false
 ```
 
 ## API Documentation

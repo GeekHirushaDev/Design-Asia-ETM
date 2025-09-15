@@ -11,10 +11,12 @@ export interface IUser extends Document {
   email: string;
   mobile: string;
   password: string;
-  role: 'admin' | 'employee';
+  role: string; // custom role name
+  isSuperAdmin: boolean;
   avatarUrl?: string;
   status: 'active' | 'inactive';
   emailVerified: boolean;
+  mustChangePassword: boolean;
   lastLoginAt?: Date;
   createdAt: Date;
   updatedAt: Date;

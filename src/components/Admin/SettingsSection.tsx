@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   Crown
 } from 'lucide-react';
+import { Modal } from '../Common/Modal';
 import { roleApi, userApi } from '../../lib/api';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
@@ -49,13 +50,25 @@ interface User {
 
 export const SettingsSection: React.FC = () => {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'roles' | 'permissions' | 'users'>('roles');
+  const [activeTab, setActiveTab] = useState<'roles' | 'permissions' | 'users' | 'account'>('roles');
   
   // Roles state
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [roleQuery, setRoleQuery] = useState('');
+  const [userQuery, setUserQuery] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [pages, setPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [rolePage, setRolePage] = useState(1);
+  const [rolePages, setRolePages] = useState(1);
+  const [roleLimit, setRoleLimit] = useState(10);
+  const [showResetModal, setShowResetModal] = useState<{ open: boolean; userId?: string }>(() => ({ open: false }));
+  const [resetPwd, setResetPwd] = useState('');
+  const [resetPwd2, setResetPwd2] = useState('');
   
   // Modal states
   const [showRoleModal, setShowRoleModal] = useState(false);
@@ -97,7 +110,7 @@ export const SettingsSection: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [page, limit, userRoleFilter, rolePage, roleLimit, roleQuery]);
 
   const loadData = async () => {
     try {
@@ -105,12 +118,15 @@ export const SettingsSection: React.FC = () => {
       const [rolesRes, permissionsRes, usersRes] = await Promise.all([
         roleApi.getRoles(),
         roleApi.getPermissions(),
-        userApi.getUsers()
+        userApi.getUsers({ page, limit, role: userRoleFilter || undefined, search: userQuery || undefined })
       ]);
       
       setRoles(rolesRes.data.roles || []);
       setPermissions(permissionsRes.data.permissions || []);
       setUsers(usersRes.data.users || []);
+      if (usersRes.data.pagination) {
+        setPages(usersRes.data.pagination.pages || 1);
+      }
     } catch (error: any) {
       toast.error('Failed to load settings data');
       console.error('Load settings error:', error);
@@ -286,7 +302,7 @@ export const SettingsSection: React.FC = () => {
   };
 
   // Check if current user is super admin
-  const isSuperAdmin = user?.role === 'admin' && user?.email === 'admin@company.com';
+  const isSuperAdmin = (user as any)?.isSuperAdmin || user?.role === 'admin';
 
   if (!isSuperAdmin) {
     return (
@@ -324,7 +340,7 @@ export const SettingsSection: React.FC = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <Crown className="h-5 w-5 text-yellow-500" />
-            <h2 className="text-lg font-medium text-gray-900">System Settings</h2>
+            <h2 className="text-lg font-medium text-gray-900">User Management</h2>
           </div>
           <span className="text-xs text-gray-500 bg-yellow-100 px-2 py-1 rounded">Super Admin Only</span>
         </div>
@@ -366,6 +382,17 @@ export const SettingsSection: React.FC = () => {
             <Users className="h-4 w-4 inline mr-2" />
             Users
           </button>
+          <button
+            onClick={() => setActiveTab('account')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'account'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <Key className="h-4 w-4 inline mr-2" />
+            Account
+          </button>
         </nav>
       </div>
 
@@ -384,6 +411,13 @@ export const SettingsSection: React.FC = () => {
               </button>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+              <input value={roleQuery} onChange={(e) => { setRoleQuery(e.target.value); setRolePage(1); }} className="w-full border px-3 py-2 rounded" placeholder="Search roles..." />
+              <div></div>
+              <select value={roleLimit} onChange={(e) => { setRoleLimit(Number(e.target.value)); setRolePage(1); }} className="w-full border px-3 py-2 rounded">
+                {[10,20,50].map(n => <option key={n} value={n}>{n} per page</option>)}
+              </select>
+            </div>
             <div className="grid gap-4">
               {roles.map((role) => (
                 <div key={role._id} className="border border-gray-200 rounded-lg p-4">
@@ -423,6 +457,36 @@ export const SettingsSection: React.FC = () => {
                 </div>
               ))}
             </div>
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <button disabled={rolePage<=1} onClick={() => setRolePage(rolePage-1)} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+              <span className="text-sm">Page {rolePage} of {rolePages}</span>
+              <button disabled={rolePage>=rolePages} onClick={() => setRolePage(rolePage+1)} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'account' && (
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-6">Account</h3>
+            <div className="space-y-6">
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h4 className="font-medium mb-2">Theme</h4>
+                <div className="flex items-center space-x-2">
+                  <button onClick={() => document.documentElement.classList.remove('dark')} className="px-3 py-1 bg-gray-100 rounded">Light</button>
+                  <button onClick={() => document.documentElement.classList.add('dark')} className="px-3 py-1 bg-gray-800 text-white rounded">Dark</button>
+                </div>
+              </div>
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h4 className="font-medium mb-2">Change Password</h4>
+                <button
+                  onClick={() => window.dispatchEvent(new CustomEvent('navigate-to-login'))}
+                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                >
+                  Go to Change Password
+                </button>
+                <p className="text-xs text-gray-500 mt-2">Use "Forgot password" on the login screen or ask super admin to reset.</p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -438,16 +502,27 @@ export const SettingsSection: React.FC = () => {
                     <span>{module.name}</span>
                   </h4>
                   
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {actions.map((action) => {
-                      const permission = permissions.find(p => p.module === module.key && p.action === action);
-                      return (
-                        <div key={`${module.key}-${action}`} className="flex items-center space-x-2 text-sm">
-                          <div className={`w-3 h-3 rounded ${permission ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                          <span className="capitalize">{action}</span>
-                        </div>
-                      );
-                    })}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {permissions.filter(p => p.module === module.key).map((permission) => (
+                      <div key={permission._id} className="flex items-center justify-between text-sm px-3 py-2 bg-gray-50 rounded">
+                        <span className="capitalize">{permission.action} • <span className="text-gray-500">{permission.resource}</span></span>
+                        <button
+                          onClick={async () => {
+                            if (!window.confirm('Delete this permission?')) return;
+                            try {
+                              await roleApi.deletePermission(permission._id);
+                              toast.success('Permission deleted');
+                              loadData();
+                            } catch (error: any) {
+                              toast.error(error.response?.data?.error || 'Failed to delete permission');
+                            }
+                          }}
+                          className="text-red-600 hover:text-red-800"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
@@ -468,6 +543,18 @@ export const SettingsSection: React.FC = () => {
               </button>
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+              <input value={userQuery} onChange={(e) => { setUserQuery(e.target.value); setPage(1); }} className="w-full border px-3 py-2 rounded" placeholder="Search users by name or email..." />
+              <select value={userRoleFilter} onChange={(e) => { setUserRoleFilter(e.target.value); setPage(1); }} className="w-full border px-3 py-2 rounded">
+                <option value="">All roles</option>
+                {roles.map(r => (
+                  <option key={r._id} value={r.name}>{r.name}</option>
+                ))}
+              </select>
+              <select value={limit} onChange={(e) => { setLimit(Number(e.target.value)); setPage(1); }} className="w-full border px-3 py-2 rounded">
+                {[10,20,50].map(n => <option key={n} value={n}>{n} per page</option>)}
+              </select>
+            </div>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -515,6 +602,9 @@ export const SettingsSection: React.FC = () => {
                           >
                             <Edit className="h-4 w-4" />
                           </button>
+                          <button onClick={() => setShowResetModal({ open: true, userId: user._id })} className="text-amber-600 hover:text-amber-800">
+                            <Key className="h-4 w-4" />
+                          </button>
                           <button
                             onClick={() => handleToggleUserStatus(user._id, user.status)}
                             className={user.status === 'active' ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'}
@@ -527,6 +617,12 @@ export const SettingsSection: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div className="flex items-center justify-center gap-2 mt-4">
+              <button disabled={page<=1} onClick={() => setPage(page-1)} className="px-3 py-1 border rounded disabled:opacity-50">Prev</button>
+              <span className="text-sm">Page {page} of {pages}</span>
+              <button disabled={page>=pages} onClick={() => setPage(page+1)} className="px-3 py-1 border rounded disabled:opacity-50">Next</button>
             </div>
           </div>
         )}
@@ -626,6 +722,48 @@ export const SettingsSection: React.FC = () => {
           </div>
         </div>
       )}
+
+    {/* Reset Password Modal */}
+    <Modal
+      open={showResetModal.open}
+      title="Reset Password"
+      onClose={() => { setShowResetModal({ open: false }); setResetPwd(''); setResetPwd2(''); }}
+      size="md"
+      footer={(
+        <>
+          <button onClick={() => { setShowResetModal({ open: false }); setResetPwd(''); setResetPwd2(''); }} className="px-3 py-2 border rounded">Cancel</button>
+          <button
+            onClick={async () => {
+              if (!showResetModal.userId) return;
+              if (!resetPwd || resetPwd.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+              if (resetPwd !== resetPwd2) { toast.error('Passwords do not match'); return; }
+              try {
+                await userApi.resetPassword(showResetModal.userId, { newPassword: resetPwd });
+                toast.success('Password reset. User will be forced to change on next login.');
+                setShowResetModal({ open: false }); setResetPwd(''); setResetPwd2('');
+              } catch (error: any) {
+                toast.error(error.response?.data?.error || 'Failed to reset password');
+              }
+            }}
+            className="px-3 py-2 bg-blue-600 text-white rounded"
+          >
+            Reset
+          </button>
+        </>
+      )}
+    >
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium mb-1">Temporary password</label>
+          <input type="password" value={resetPwd} onChange={(e) => setResetPwd(e.target.value)} className="w-full border px-3 py-2 rounded" placeholder="Enter temporary password" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-1">Confirm password</label>
+          <input type="password" value={resetPwd2} onChange={(e) => setResetPwd2(e.target.value)} className="w-full border px-3 py-2 rounded" placeholder="Re-enter temporary password" />
+        </div>
+        <p className="text-xs text-gray-500">Minimum 6 characters. The user will be required to change it at next login.</p>
+      </div>
+    </Modal>
 
       {/* User Modal */}
       {showUserModal && (

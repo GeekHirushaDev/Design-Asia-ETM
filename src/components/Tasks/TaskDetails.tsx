@@ -123,7 +123,7 @@ export const TaskDetails: React.FC<TaskDetailsProps> = ({ taskId, onClose, onUpd
   };
 
   // Check permissions
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = (user as any)?.isSuperAdmin || user?.role === 'admin';
   const isCreator = task?.createdBy?._id === user?._id;
   const isAssigned = task?.assignedTo?.some((assignee: any) => assignee._id === user?._id);
   const isTeamMember = task?.assignmentType === 'team' && 

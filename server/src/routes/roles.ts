@@ -1,21 +1,47 @@
 import express from 'express';
 import Role from '../models/Role.js';
 import User from '../models/User.js';
-import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { authenticateToken, requireRole, requireSuperAdmin } from '../middleware/auth.js';
 import { validate } from '../middleware/validation.js';
 import { createRoleSchema } from '../validation/schemas.js';
 import { AuthRequest } from '../types/index.js';
+import Permission from '../models/Permission.js';
 
 const router = express.Router();
 
 // Get all roles
 router.get('/', [
   authenticateToken,
-  requireRole('admin'),
+  requireSuperAdmin(),
 ], async (req: AuthRequest, res) => {
   try {
-    const roles = await Role.find().sort({ name: 1 });
-    res.json({ roles });
+    const { page = 1, limit = 20, search } = req.query as any;
+    const filter: any = {};
+    if (search) {
+      filter.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const skip = (Number(page) - 1) * Number(limit);
+    const [roles, total] = await Promise.all([
+      Role.find(filter)
+        .sort({ name: 1 })
+        .skip(skip)
+        .limit(Number(limit)),
+      Role.countDocuments(filter),
+    ]);
+
+    res.json({
+      roles,
+      pagination: {
+        total,
+        page: Number(page),
+        pages: Math.ceil(total / Number(limit)),
+        limit: Number(limit),
+      },
+    });
   } catch (error) {
     console.error('Get roles error:', error);
     res.status(500).json({ error: 'Failed to get roles' });
@@ -25,7 +51,7 @@ router.get('/', [
 // Create role
 router.post('/', [
   authenticateToken,
-  requireRole('admin'),
+  requireSuperAdmin(),
   validate(createRoleSchema),
 ], async (req: AuthRequest, res) => {
   try {
@@ -54,7 +80,7 @@ router.post('/', [
 // Update role
 router.put('/:roleId', [
   authenticateToken,
-  requireRole('admin'),
+  requireSuperAdmin(),
 ], async (req: AuthRequest, res) => {
   try {
     const { roleId } = req.params;
@@ -93,7 +119,7 @@ router.put('/:roleId', [
 // Delete role
 router.delete('/:roleId', [
   authenticateToken,
-  requireRole('admin'),
+  requireSuperAdmin(),
 ], async (req: AuthRequest, res) => {
   try {
     const { roleId } = req.params;
@@ -127,7 +153,7 @@ router.delete('/:roleId', [
 // Get available permissions
 router.get('/permissions', [
   authenticateToken,
-  requireRole('admin'),
+  requireSuperAdmin(),
 ], async (req: AuthRequest, res) => {
   try {
     const Permission = (await import('../models/Permission.js')).default;
@@ -136,6 +162,25 @@ router.get('/permissions', [
   } catch (error) {
     console.error('Get permissions error:', error);
     res.status(500).json({ error: 'Failed to get permissions' });
+  }
+});
+
+// Delete a permission (super admin only)
+router.delete('/permissions/:permissionId', [
+  authenticateToken,
+  requireSuperAdmin(),
+], async (req: AuthRequest, res) => {
+  try {
+    const { permissionId } = req.params;
+    const perm = await Permission.findByIdAndDelete(permissionId);
+    if (!perm) {
+      res.status(404).json({ error: 'Permission not found' });
+      return;
+    }
+    res.json({ message: 'Permission deleted successfully' });
+  } catch (error) {
+    console.error('Delete permission error:', error);
+    res.status(500).json({ error: 'Failed to delete permission' });
   }
 });
 

@@ -31,7 +31,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({ task, onUpdate }) => {
   };
 
   // Check user permissions for this task
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = (user as any)?.isSuperAdmin || user?.role === 'admin';
   const isAssignedIndividually = task.assignmentType === 'individual' && 
     task.assignedTo?.some((assignee: any) => assignee._id === user?._id);
   const isTeamLeader = task.assignmentType === 'team' && 

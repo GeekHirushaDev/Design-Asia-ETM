@@ -25,25 +25,38 @@ export const LoginForm: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await authApi.login(formData);
-      const { user, accessToken, refreshToken } = response.data;
+      const { user, accessToken, refreshToken, requirePasswordChange } = response.data;
       
       setAuth(user, accessToken, refreshToken);
       socketManager.connect(accessToken);
       
       toast.success('Login successful!');
+      if (requirePasswordChange) {
+        const event = new CustomEvent('show-temp-password-choice');
+        window.dispatchEvent(event);
+      }
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Login failed';
-      toast.error(message);
+      const status = error.response?.status;
+      const code = error.response?.data?.code;
+      if (status === 423 && code === 'PASSWORD_CHANGE_REQUIRED') {
+        // Redirect to initial password change screen, carry login identifier
+        const event = new CustomEvent('require-password-change', { detail: { login: formData.login } });
+        window.dispatchEvent(event);
+        toast('Password change required. Please set a new password.', { icon: '🔒' });
+      } else {
+        const message = error.response?.data?.error || 'Login failed';
+        toast.error(message);
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDemoLogin = async (role: 'admin' | 'employee') => {
+  const handleDemoLogin = async (role: 'superadmin' | 'employee') => {
     const demoCredentials = {
-      admin: { login: 'admin@company.com', password: 'admin123' },
-      employee: { login: 'employee1@taskmanager.com', password: 'employee123' },
-    };
+      superadmin: { login: 'owner', password: 'WDtharushi1#' },
+      employee: { login: 'employee.demo@company.com', password: 'Employee@123' },
+    } as const;
 
     setFormData(demoCredentials[role]);
     
@@ -145,12 +158,12 @@ export const LoginForm: React.FC = () => {
             <p className="text-sm text-gray-600 text-center mb-4">Try the demo:</p>
             <div className="grid grid-cols-2 gap-3">
               <button
-                onClick={() => handleDemoLogin('admin')}
+                onClick={() => handleDemoLogin('superadmin')}
                 disabled={isLoading}
                 className="px-4 py-2 text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 disabled:opacity-50 transition-colors font-medium"
               >
-                Admin Demo
-                <div className="text-xs opacity-75 mt-1">admin@company.com</div>
+                Super Admin Demo
+                <div className="text-xs opacity-75 mt-1">owner</div>
               </button>
               <button
                 onClick={() => handleDemoLogin('employee')}
@@ -158,7 +171,7 @@ export const LoginForm: React.FC = () => {
                 className="px-4 py-2 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 disabled:opacity-50 transition-colors font-medium"
               >
                 Employee Demo
-                <div className="text-xs opacity-75 mt-1">employee1@taskmanager.com</div>
+                <div className="text-xs opacity-75 mt-1">employee.demo@company.com</div>
               </button>
             </div>
           </div>
@@ -166,7 +179,7 @@ export const LoginForm: React.FC = () => {
 
         {/* Footer */}
         <div className="text-center mt-6 text-sm text-gray-500">
-          <p>© 2024 TaskFlow. Built with modern web technologies.</p>
+          <p>© 2025 TaskFlow. Powered by <a href="https://midiz.io" className="underline" target="_blank" rel="noreferrer">Midiz</a>.</p>
         </div>
       </div>
     </div>

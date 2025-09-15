@@ -87,7 +87,7 @@ export const LiveTimeTracker: React.FC<LiveTimeTrackerProps> = ({ task, user }) 
   // It will poll the backend for the active time log and display elapsed time and stats.
 
   // Check if user can control time tracking
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = (user as any)?.isSuperAdmin || user?.role === 'admin';
   const isAssignedIndividually = task.assignmentType === 'individual' && 
     task.assignedTo?.some((assignee: any) => assignee._id === user?._id);
   const isTeamLeader = task.assignmentType === 'team' && 

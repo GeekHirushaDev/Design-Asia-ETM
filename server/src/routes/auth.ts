@@ -72,6 +72,12 @@ router.post('/register', validate(registerSchema), async (req, res): Promise<voi
     });
     await user.save();
 
+    // Enforce password change on first login
+    if ((user as any).mustChangePassword) {
+      res.status(423).json({ error: 'Password change required', code: 'PASSWORD_CHANGE_REQUIRED' });
+      return;
+    }
+
     const deviceInfo = getDeviceInfo(req);
     const tokens = generateTokens(user._id, deviceInfo.deviceId);
     
@@ -112,6 +118,47 @@ router.post('/register', validate(registerSchema), async (req, res): Promise<voi
   }
 });
 
+// Initial password change (pre-auth). User supplies login and old temporary password and a new password.
+router.post('/change-password-initial', async (req, res): Promise<void> => {
+  try {
+    const { login, oldPassword, newPassword } = req.body as { login: string; oldPassword: string; newPassword: string };
+
+    if (!login || !oldPassword || !newPassword) {
+      res.status(400).json({ error: 'Invalid request' });
+      return;
+    }
+
+    const user = await User.findOne({ $or: [{ email: login }, { username: login }] });
+    if (!user) {
+      res.status(400).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    const ok = await (user as any).comparePassword(oldPassword);
+    if (!ok) {
+      res.status(400).json({ error: 'Invalid credentials' });
+      return;
+    }
+
+    // Validate new password using same policy as reset schema
+    const { passwordSchema } = await import('../validation/schemas.js');
+    const parsed = passwordSchema.safeParse(newPassword);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0]?.message || 'Invalid password' });
+      return;
+    }
+
+    user.password = newPassword;
+    (user as any).mustChangePassword = false;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully. Please log in.' });
+  } catch (error) {
+    console.error('Initial password change error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
+  }
+});
+
 // Login
 router.post('/login', validate(loginSchema), async (req, res): Promise<void> => {
   try {
@@ -125,7 +172,7 @@ router.post('/login', validate(loginSchema), async (req, res): Promise<void> => 
       ]
     });
     
-    if (!user || !(await user.comparePassword(password))) {
+    if (!user || !(await (user as any).comparePassword(password))) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;
     }
@@ -142,7 +189,7 @@ router.post('/login', validate(loginSchema), async (req, res): Promise<void> => 
     await Device.findOneAndUpdate(
       { userId: user._id, deviceId: deviceInfo.deviceId },
       { ...deviceInfo, lastSeen: new Date(), isOnline: true },
-      { upsert: true }
+      { upsert: true, setDefaultsOnInsert: true }
     );
     
     // Create new session
@@ -160,6 +207,7 @@ router.post('/login', validate(loginSchema), async (req, res): Promise<void> => 
     res.json({
       message: 'Login successful',
       user,
+      requirePasswordChange: (user as any).mustChangePassword === true,
       ...tokens,
     });
   } catch (error) {
@@ -203,6 +251,7 @@ router.post('/reset-password', validate(resetPasswordSchema), async (req, res): 
     }
     
     user.password = password;
+    (user as any).mustChangePassword = false;
     await user.save();
     
     // Revoke all sessions for security
@@ -219,6 +268,49 @@ router.post('/reset-password', validate(resetPasswordSchema), async (req, res): 
     }
     console.error('Reset password error:', error);
     res.status(500).json({ error: 'Failed to reset password' });
+  }
+});
+
+// Authenticated change password (user-initiated)
+router.post('/change-password', authenticateToken, async (req: AuthRequest, res): Promise<void> => {
+  try {
+    const { currentPassword, newPassword } = req.body as { currentPassword: string; newPassword: string };
+    if (!req.user) {
+      res.status(401).json({ error: 'Authentication required' });
+      return;
+    }
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ error: 'Both current and new passwords are required' });
+      return;
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+
+    const ok = await (user as any).comparePassword(currentPassword);
+    if (!ok) {
+      res.status(400).json({ error: 'Current password is incorrect' });
+      return;
+    }
+
+    const { passwordSchema } = await import('../validation/schemas.js');
+    const parsed = passwordSchema.safeParse(newPassword);
+    if (!parsed.success) {
+      res.status(400).json({ error: parsed.error.issues[0]?.message || 'Invalid password' });
+      return;
+    }
+
+    user.password = newPassword;
+    (user as any).mustChangePassword = false;
+    await user.save();
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Failed to change password' });
   }
 });
 

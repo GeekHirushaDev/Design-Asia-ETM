@@ -55,6 +55,10 @@ api.interceptors.response.use(
 export const authApi = {
   login: (credentials: { login: string; password: string }) =>
     api.post('/auth/login', credentials),
+  changePasswordInitial: (data: { login: string; oldPassword: string; newPassword: string }) =>
+    api.post('/auth/change-password-initial', data),
+  changePassword: (data: { currentPassword: string; newPassword: string }) =>
+    api.post('/auth/change-password', data),
   register: (userData: { prefix: string; firstName: string; lastName: string; username: string; email: string; mobile: string; password: string; role?: string }) =>
     api.post('/auth/register', userData),
   getProfile: () => api.get('/auth/me'),
@@ -141,11 +145,12 @@ export const geofenceApi = {
 };
 
 export const roleApi = {
-  getRoles: () => api.get('/roles'),
+  getRoles: (params?: any) => api.get('/roles', { params }),
   createRole: (data: any) => api.post('/roles', data),
   updateRole: (id: string, data: any) => api.put(`/roles/${id}`, data),
   deleteRole: (id: string) => api.delete(`/roles/${id}`),
   getPermissions: () => api.get('/roles/permissions'),
+  deletePermission: (id: string) => api.delete(`/roles/permissions/${id}`),
 };
 
 export const uploadApi = {

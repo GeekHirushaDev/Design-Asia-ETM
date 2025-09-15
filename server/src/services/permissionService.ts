@@ -12,7 +12,7 @@ export class PermissionService {
       if (!user) return false;
 
       // Super admin has all permissions
-      if (user.role === 'admin' && user.email === 'admin@company.com') {
+      if ((user as any).isSuperAdmin) {
         return true;
       }
 

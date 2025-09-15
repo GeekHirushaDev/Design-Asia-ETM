@@ -2,11 +2,11 @@
 
 ## 🎯 All Requested Features Successfully Implemented
 
-### ✅ 1. Team Management Section
-- **Backend**: Complete CRUD API for teams (`/api/teams`)
-- **Frontend**: Comprehensive TeamManagement component
-- **Features**: Create, read, update, delete teams with member management
-- **Location**: `src/components/Admin/TeamManagement.tsx`
+### ✅ 1. User Management Section
+- Centralized under Settings with roles, permissions, and users management
+- **Frontend**: Integrated into SettingsSection
+- **Features**: View all users, create, update, delete, reset passwords
+- **Admin Access**: Only admin role can access user management
 
 ### ✅ 2. Themes and Settings Section  
 - **Frontend**: Complete SettingsSection with theme switching
@@ -14,19 +14,13 @@
 - **Integration**: Added to Admin Dashboard as dedicated tab
 - **Location**: `src/components/Admin/SettingsSection.tsx`
 
-### ✅ 3. User Management for Admin
-- **Backend**: Complete user management API (`/api/users`)
-- **Frontend**: Integrated into TeamManagement component
-- **Features**: View all users, create, update, delete, reset passwords
-- **Admin Access**: Only admin role can access user management
-
-### ✅ 4. Task Creation Fixed with Geolocation
+### ✅ 3. Task Creation Fixed with Geolocation
 - **Backend**: Task model supports optional location field (lat/lng)
 - **Frontend**: TaskForm with optional manual location input
 - **Features**: Optional latitude/longitude input for task location
 - **Location**: Updated `src/components/Tasks/TaskForm.tsx`
 
-### ✅ 5. Sri Lankan Timezone Implementation
+### ✅ 4. Sri Lankan Timezone Implementation
 - **Backend**: TimezoneUtils class for Asia/Colombo timezone
 - **All Models**: Updated to use Sri Lankan time for timestamps
 - **Frontend**: Timezone utility for consistent time display
@@ -50,7 +44,7 @@
 
 ### Frontend Enhancements
 1. **New Components**:
-   - `TeamManagement.tsx` - Complete team/user management
+   - User management under Settings
    - `SettingsSection.tsx` - Theme and settings management
 
 2. **Updated Components**:
@@ -215,3 +209,17 @@ The system is now feature-complete with:
 - Responsive design
 
 **The Design-Asia-ETM system is ready for deployment and production use!**
+
+## Database Reset and Seeding (New)
+
+- Added `server/src/scripts/resetDatabase.ts` to clear all collections safely.
+- Added `server/src/scripts/seedOrgHierarchy.ts` to create roles (`super_admin`, `admin`, `manager`, `employee`) and seed users based on the org chart. Generates secure passwords and writes credentials to `server/seed-output/credentials_<timestamp>.json`.
+- Introduced `SUPER_ADMIN_USERNAME` in `server/src/config/config.ts` and `.env`.
+- Protected super admin account from modification/deletion in `server/src/routes/users.ts`.
+
+### Commands
+```bash
+npx tsx server/src/scripts/resetDatabase.ts
+npx tsx server/src/scripts/initializePermissions.ts
+npx tsx server/src/scripts/seedOrgHierarchy.ts
+```

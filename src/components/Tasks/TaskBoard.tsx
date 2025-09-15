@@ -24,7 +24,7 @@ export const TaskBoard: React.FC = () => {
 
   useEffect(() => {
     loadTasks();
-    if (user?.role === 'admin') {
+    if ((user as any)?.isSuperAdmin || user?.role === 'admin') {
       loadTaskTimeLogs();
     }
   }, []);
@@ -110,10 +110,10 @@ export const TaskBoard: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 space-y-4 sm:space-y-0">
         <h1 className="text-2xl font-bold text-gray-900">
-          {user?.role === 'admin' ? 'Task Management' : 'My Tasks'}
+          {(user as any)?.isSuperAdmin || user?.role === 'admin' ? 'Task Management' : 'My Tasks'}
         </h1>
         
-        {user?.role === 'admin' && (
+        {((user as any)?.isSuperAdmin || user?.role === 'admin') && (
           <button
             onClick={() => setShowTaskForm(true)}
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"

@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/authStore';
 import { LoginForm } from './components/Auth/LoginForm';
+import { ChangePasswordInitial } from './components/Auth/ChangePasswordInitial';
 import { Navbar } from './components/Layout/Navbar';
+import { Modal } from './components/Common/Modal';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AdminDashboard } from './components/Dashboard/AdminDashboard';
 import { EmployeeDashboard } from './components/Dashboard/EmployeeDashboard';
@@ -13,7 +15,6 @@ import { AttendanceTracker } from './components/Attendance/AttendanceTracker';
 import { ReportGenerator } from './components/Reports/ReportGenerator';
 import { WeeklyReport } from './components/Reports/WeeklyReport';
 import { TaskProgressDashboard } from './components/Dashboard/TaskProgressDashboard';
-import TeamManagement from './components/Admin/TeamManagement';
 import { SettingsSection } from './components/Admin/SettingsSection';
 import { socketManager } from './lib/socket';
 
@@ -41,11 +42,33 @@ function App() {
     };
   }, [isAuthenticated, accessToken, user]);
 
-  // Show login form if not authenticated
+  // Simple in-app router for login vs forced password change
+  const [forcePasswordChange, setForcePasswordChange] = useState<{ show: boolean; } | null>(null);
+  const [tempPasswordChoice, setTempPasswordChoice] = useState(false);
+  const [showInlineChangePwd, setShowInlineChangePwd] = useState(false);
+  const [currentPwd, setCurrentPwd] = useState('');
+  const [newPwd, setNewPwd] = useState('');
+  const [newPwd2, setNewPwd2] = useState('');
+
+  useEffect(() => {
+    const toChange = () => setForcePasswordChange({ show: true });
+    const toLogin = () => setForcePasswordChange(null);
+    const showTempChoice = () => setTempPasswordChoice(true);
+    window.addEventListener('require-password-change', toChange);
+    window.addEventListener('navigate-to-login', toLogin);
+    window.addEventListener('show-temp-password-choice', showTempChoice);
+    return () => {
+      window.removeEventListener('require-password-change', toChange);
+      window.removeEventListener('navigate-to-login', toLogin);
+      window.removeEventListener('show-temp-password-choice', showTempChoice);
+    };
+  }, []);
+
+  // Show login or change password if not authenticated
   if (!isAuthenticated) {
     return (
       <>
-        <LoginForm />
+        {forcePasswordChange?.show ? <ChangePasswordInitial onBackToLogin={() => setForcePasswordChange(null)} /> : <LoginForm />}
         <Toaster
           position="top-right"
           toastOptions={{
@@ -63,11 +86,11 @@ function App() {
   const renderContent = () => {
     switch (activeView) {
       case 'dashboard':
-        return user?.role === 'admin' ? <AdminDashboard /> : <EmployeeDashboard />;
+        return user?.isSuperAdmin ? <AdminDashboard /> : <EmployeeDashboard />;
       case 'tasks':
         return <TaskBoard />;
       case 'teams':
-        return <TeamManagement />;
+        return <SettingsSection />;
       case 'attendance':
         return <AttendanceTracker />;
       case 'tracking':
@@ -92,7 +115,7 @@ function App() {
           </div>
         );
       default:
-        return user?.role === 'admin' ? <AdminDashboard /> : <EmployeeDashboard />;
+        return user?.isSuperAdmin ? <AdminDashboard /> : <EmployeeDashboard />;
     }
   };
 
@@ -112,6 +135,62 @@ function App() {
           {renderContent()}
         </main>
       </div>
+
+      <Modal
+        open={tempPasswordChoice}
+        title="Temporary password detected"
+        onClose={() => setTempPasswordChoice(false)}
+        size="sm"
+        footer={(
+          <>
+            <button onClick={() => setTempPasswordChoice(false)} className="px-3 py-2 border rounded">Continue Using This Password</button>
+            <button onClick={() => { setTempPasswordChoice(false); setShowInlineChangePwd(true); }} className="px-3 py-2 bg-blue-600 text-white rounded">Change Password Now</button>
+          </>
+        )}
+      >
+        <p className="text-sm text-gray-700">You are using a temporary password set by an administrator. You can change it now or continue using it.</p>
+      </Modal>
+
+      <Modal
+        open={showInlineChangePwd}
+        title="Change Password"
+        onClose={() => { setShowInlineChangePwd(false); setCurrentPwd(''); setNewPwd(''); setNewPwd2(''); }}
+        size="sm"
+        footer={(
+          <>
+            <button onClick={() => { setShowInlineChangePwd(false); setCurrentPwd(''); setNewPwd(''); setNewPwd2(''); }} className="px-3 py-2 border rounded">Cancel</button>
+            <button onClick={async () => {
+              if (!currentPwd || !newPwd) { window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Please fill all fields' } })); return; }
+              if (newPwd !== newPwd2) { window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: 'Passwords do not match' } })); return; }
+              try {
+                const { authApi } = await import('./lib/api');
+                await authApi.changePassword({ currentPassword: currentPwd, newPassword: newPwd });
+                setShowInlineChangePwd(false); setCurrentPwd(''); setNewPwd(''); setNewPwd2('');
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'success', message: 'Password changed successfully' } }));
+              } catch (e: any) {
+                const msg = e?.response?.data?.error || 'Failed to change password';
+                window.dispatchEvent(new CustomEvent('toast', { detail: { type: 'error', message: msg } }));
+              }
+            }} className="px-3 py-2 bg-blue-600 text-white rounded">Save</button>
+          </>
+        )}
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Current (temporary) password</label>
+            <input type="password" value={currentPwd} onChange={(e) => setCurrentPwd(e.target.value)} className="w-full border px-3 py-2 rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">New password</label>
+            <input type="password" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} className="w-full border px-3 py-2 rounded" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Confirm new password</label>
+            <input type="password" value={newPwd2} onChange={(e) => setNewPwd2(e.target.value)} className="w-full border px-3 py-2 rounded" />
+          </div>
+          <p className="text-xs text-gray-500">Minimum 6 characters. Use a strong, unique password.</p>
+        </div>
+      </Modal>
 
       <Toaster
         position="top-right"

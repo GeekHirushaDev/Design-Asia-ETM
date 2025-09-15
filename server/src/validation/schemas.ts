@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { config } from '../config/config.js';
 
 // Auth schemas
 export const registerSchema = z.object({
@@ -21,9 +22,20 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
+const basePassword = z.string().min(6, 'Password must be at least 6 characters');
+
+const strictPassword = z.string()
+  .min(8, 'At least 8 characters')
+  .regex(/[A-Z]/, 'At least one uppercase letter')
+  .regex(/[a-z]/, 'At least one lowercase letter')
+  .regex(/[0-9]/, 'At least one digit')
+  .regex(/[^A-Za-z0-9]/, 'At least one symbol');
+
+export const passwordSchema = config.PASSWORD_STRICT_POLICY ? strictPassword : basePassword;
+
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Token is required'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: passwordSchema,
 });
 
 // Task schemas

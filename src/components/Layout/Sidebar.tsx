@@ -30,12 +30,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const adminMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-    { id: 'teams', label: 'Team Management', icon: Users },
     { id: 'attendance', label: 'Attendance', icon: Calendar },
     { id: 'tracking', label: 'Live Map', icon: MapPin },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'reports', label: 'Weekly Reports', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'settings', label: 'User Management', icon: Settings },
   ];
 
   const employeeMenuItems = [
@@ -46,7 +45,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'chat', label: 'Messages', icon: MessageCircle },
   ];
 
-  const menuItems = user?.role === 'admin' ? adminMenuItems : employeeMenuItems;
+  const isSuper = user?.isSuperAdmin || user?.role === 'admin';
+  const menuItems = isSuper ? adminMenuItems : employeeMenuItems;
 
   const handleItemClick = (itemId: string) => {
     onViewChange(itemId);

@@ -5,7 +5,8 @@ interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'admin' | 'employee';
+  role: string;
+  isSuperAdmin?: boolean;
   avatarUrl?: string;
   phone?: string;
   status: 'active' | 'inactive';
@@ -19,6 +20,7 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  requirePasswordChange?: boolean;
   setAuth: (user: User, accessToken: string, refreshToken: string) => void;
   updateUser: (user: User) => void;
   clearAuth: () => void;

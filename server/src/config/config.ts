@@ -20,4 +20,6 @@ export const config = {
   VAPID_PUBLIC_KEY: process.env.VAPID_PUBLIC_KEY || '',
   VAPID_PRIVATE_KEY: process.env.VAPID_PRIVATE_KEY || '',
   VAPID_EMAIL: process.env.VAPID_EMAIL || 'geekhirusha@gmail.com',
+  SUPER_ADMIN_USERNAME: process.env.SUPER_ADMIN_USERNAME || 'owner',
+  PASSWORD_STRICT_POLICY: (process.env.PASSWORD_STRICT_POLICY || 'false').toLowerCase() === 'true',
 } as const;
