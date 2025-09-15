@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MapPin, Plus, Edit, Trash2, Save, X, Search } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MapPin, Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { locationApi } from '../../lib/api';
 import toast from 'react-hot-toast';
 
@@ -25,9 +25,9 @@ export const LocationManagement: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [addressSearchResults, setAddressSearchResults] = useState<any[]>([]);
-  const [searchingAddress, setSearchingAddress] = useState(false);
-  const [showAddressResults, setShowAddressResults] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const leafletMapRef = useRef<any>(null);
+  const leafletMarkerRef = useRef<any>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -110,7 +110,6 @@ export const LocationManagement: React.FC = () => {
     setEditingLocation(location);
     setFormData({
       name: location.name,
-      address: location.address,
       latitude: location.latitude.toString(),
       longitude: location.longitude.toString(),
       radiusMeters: location.radiusMeters.toString(),
@@ -136,7 +135,6 @@ export const LocationManagement: React.FC = () => {
   const resetForm = () => {
     setFormData({
       name: '',
-      address: '',
       latitude: '',
       longitude: '',
       radiusMeters: '100',
@@ -144,20 +142,33 @@ export const LocationManagement: React.FC = () => {
     });
     setEditingLocation(null);
     setShowForm(false);
-    setAddressSearchResults([]);
-    setShowAddressResults(false);
   };
 
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
           setFormData({
             ...formData,
-            latitude: position.coords.latitude.toFixed(6),
-            longitude: position.coords.longitude.toFixed(6),
+            latitude: lat.toFixed(6),
+            longitude: lng.toFixed(6),
           });
-          toast.success('Current location coordinates filled');
+          try {
+            // Center map and place marker
+            const L = (window as any).L;
+            if (leafletMapRef.current && L) {
+              leafletMapRef.current.setView([lat, lng], 14);
+              if (leafletMarkerRef.current) {
+                leafletMarkerRef.current.setLatLng([lat, lng]);
+              } else {
+                leafletMarkerRef.current = L.marker([lat, lng]).addTo(leafletMapRef.current);
+              }
+            }
+          } catch {}
+          reverseGeocode(lat, lng);
+          toast.success('Current location selected');
         },
         () => {
           toast.error('Failed to get current location');
@@ -168,47 +179,91 @@ export const LocationManagement: React.FC = () => {
     }
   };
 
-  // OpenStreetMap Nominatim integration for address search
-  const searchAddress = async (query: string) => {
-    if (query.length < 3) {
-      setAddressSearchResults([]);
-      setShowAddressResults(false);
-      return;
-    }
-
+  const reverseGeocode = async (lat: number, lng: number) => {
     try {
-      setSearchingAddress(true);
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
-      );
-      const results = await response.json();
-      setAddressSearchResults(results);
-      setShowAddressResults(true);
-    } catch (error) {
-      toast.error('Failed to search addresses');
-      setAddressSearchResults([]);
-      setShowAddressResults(false);
-    } finally {
-      setSearchingAddress(false);
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+      const data = await res.json();
+      if (data && data.display_name) {
+        setFormData(prev => ({ ...prev, address: data.display_name }));
+      }
+    } catch (e) {
+      // non-fatal if reverse geocode fails
     }
   };
 
-  const selectAddress = (result: any) => {
-    setFormData({
-      ...formData,
-      address: result.display_name,
-      latitude: parseFloat(result.lat).toFixed(6),
-      longitude: parseFloat(result.lon).toFixed(6),
-    });
-    setShowAddressResults(false);
-    setAddressSearchResults([]);
-    toast.success('Address selected and coordinates filled');
-  };
+  // Initialize Leaflet map for coordinate picking, centered on Western Province
+  useEffect(() => {
+    if (!showForm) return;
+    const ensureLeaflet = async () => {
+      if ((window as any).L) return (window as any).L;
+      await new Promise<void>((resolve) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        link.onload = () => resolve();
+        link.onerror = () => resolve();
+        document.head.appendChild(link);
+      });
+      await new Promise<void>((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load Leaflet'));
+        document.body.appendChild(script);
+      });
+      return (window as any).L;
+    };
 
-  // Mock OpenStreetMap integration - in real implementation, you'd integrate with a map library
-  const openMapSelector = () => {
-    toast('Use the address search above to find locations automatically!');
-  };
+    const initMap = async () => {
+      const L = await ensureLeaflet();
+      if (!mapContainerRef.current) return;
+      
+      // Clean up existing map if it exists
+      if (leafletMapRef.current) {
+        leafletMapRef.current.remove();
+        leafletMapRef.current = null;
+        leafletMarkerRef.current = null;
+      }
+      
+      const centerLat = 6.9271; // Colombo
+      const centerLng = 79.8612;
+      const map = L.map(mapContainerRef.current).setView([centerLat, centerLng], 10);
+      leafletMapRef.current = map;
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(map);
+      
+      map.on('click', (e: any) => {
+        const { lat, lng } = e.latlng;
+        setFormData(prev => ({ ...prev, latitude: lat.toFixed(6), longitude: lng.toFixed(6) }));
+        if (leafletMarkerRef.current) {
+          leafletMarkerRef.current.setLatLng([lat, lng]);
+        } else {
+          leafletMarkerRef.current = L.marker([lat, lng]).addTo(map);
+        }
+        map.setView([lat, lng], 14);
+        reverseGeocode(lat, lng);
+      });
+      
+      // If editing with existing coordinates, show marker and center on them
+      if (formData.latitude && formData.longitude) {
+        const lat = parseFloat(formData.latitude);
+        const lng = parseFloat(formData.longitude);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          leafletMarkerRef.current = L.marker([lat, lng]).addTo(map);
+          map.setView([lat, lng], 14);
+        }
+      }
+      
+      setTimeout(() => map.invalidateSize(), 100);
+    };
+
+    initMap().catch(() => {
+      toast.error('Failed to initialize the map');
+    });
+  }, [showForm, formData.latitude, formData.longitude]);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
@@ -229,14 +284,13 @@ export const LocationManagement: React.FC = () => {
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
           <input
             type="text"
-            placeholder="Search locations..."
+            placeholder="Search locations by name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && loadLocations()}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
       </div>
@@ -271,60 +325,22 @@ export const LocationManagement: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Address * (Search with OpenStreetMap)
+                    Pick Location on Map
                   </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      value={formData.address}
-                      onChange={(e) => {
-                        setFormData({ ...formData, address: e.target.value });
-                        searchAddress(e.target.value);
-                      }}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="Start typing to search addresses..."
-                      required
-                    />
-                    {searchingAddress && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                      </div>
-                    )}
-                    
-                    {/* Address Search Results */}
-                    {showAddressResults && addressSearchResults.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                        {addressSearchResults.map((result, index) => (
-                          <button
-                            key={index}
-                            type="button"
-                            onClick={() => selectAddress(result)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
-                          >
-                            <div className="text-sm text-gray-900 truncate">{result.display_name}</div>
-                            <div className="text-xs text-gray-500">
-                              Lat: {parseFloat(result.lat).toFixed(6)}, Lng: {parseFloat(result.lon).toFixed(6)}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <div
+                    ref={mapContainerRef}
+                    style={{ height: '300px', borderRadius: '0.5rem' }}
+                    className="border border-gray-300"
+                  />
+                  <p className="text-xs text-gray-500 mt-2">Click on the map to set latitude and longitude. Map is centered on Western Province.</p>
                 </div>
 
                 {/* Location Selection Options */}
                 <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">
-                    Set Coordinates
+                    Coordinates
                   </label>
                   <div className="flex space-x-2">
-                    <button
-                      type="button"
-                      onClick={openMapSelector}
-                      className="flex-1 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      Select from Map
-                    </button>
                     <button
                       type="button"
                       onClick={getCurrentLocation}
@@ -362,6 +378,7 @@ export const LocationManagement: React.FC = () => {
                       required
                     />
                   </div>
+                  <input type="hidden" name="address" value={formData.address} />
                 </div>
 
                 <div>
