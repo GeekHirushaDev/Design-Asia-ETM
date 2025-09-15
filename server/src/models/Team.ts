@@ -44,7 +44,8 @@ const teamSchema = new Schema<ITeam>({
   timestamps: true
 });
 
-teamSchema.index({ name: 1 });
+// name already unique at schema level; remove redundant index to avoid duplicates
+// teamSchema.index({ name: 1 });
 teamSchema.index({ createdBy: 1 });
 teamSchema.index({ members: 1 });
 

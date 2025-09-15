@@ -49,7 +49,6 @@ const sessionSchema = new Schema<ISession>(
   }
 );
 
-sessionSchema.index({ refreshToken: 1 });
 sessionSchema.index({ userId: 1, isActive: 1 });
 sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 

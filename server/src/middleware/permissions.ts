@@ -54,9 +54,8 @@ export const checkTaskPermission = async (req: AuthRequest, res: Response, next:
 
     // Import Task model here to avoid circular dependency
     const { default: Task } = await import('../models/Task.js');
-    const { default: Team } = await import('../models/Team.js');
     
-    const task = await Task.findById(taskId).populate('assignedTeam');
+    const task = await Task.findById(taskId);
     if (!task) {
       res.status(404).json({ error: 'Task not found' });
       return;
@@ -70,14 +69,6 @@ export const checkTaskPermission = async (req: AuthRequest, res: Response, next:
       hasAccess = task.assignedTo.some((assigneeId: any) => 
         assigneeId.toString() === req.user!._id.toString()
       );
-    } else if (task.assignmentType === 'team') {
-      // Team task - check if user is team member or leader
-      const team = await Team.findById(task.assignedTeam);
-      if (team) {
-        hasAccess = team.members.some((memberId: any) => 
-          memberId.toString() === req.user!._id.toString()
-        );
-      }
     }
 
     // Check if user is the creator

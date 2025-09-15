@@ -1,6 +1,6 @@
 import express from 'express';
 import multer from 'multer';
-import AWS from 'aws-sdk';
+import path from 'path';
 import crypto from 'crypto';
 import { authenticateToken } from '../middleware/auth.js';
 import { config } from '../config/config.js';
@@ -8,16 +8,18 @@ import { AuthRequest } from '../types/index.js';
 
 const router = express.Router();
 
-// Configure AWS S3
-const s3 = new AWS.S3({
-  accessKeyId: config.AWS_ACCESS_KEY_ID,
-  secretAccessKey: config.AWS_SECRET_ACCESS_KEY,
-  region: config.AWS_REGION,
-});
+// No S3 client
 
-// Configure multer for memory storage
+// Configure multer for disk storage
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, path.resolve('uploads'));
+    },
+    filename: (req, file, cb) => {
+      cb(null, `${req.user?._id}-${Date.now()}-${file.originalname}`);
+    },
+  }),
   limits: {
     fileSize: 20 * 1024 * 1024, // 20MB limit as specified
   },
@@ -42,20 +44,17 @@ router.post('/presign', authenticateToken, async (req: AuthRequest, res) => {
     
     const key = `uploads/${req.user?._id}/${Date.now()}-${crypto.randomUUID()}-${filename}`;
     
-    const params = {
-      Bucket: config.AWS_S3_BUCKET,
-      Key: key,
-      ContentType: contentType,
-      Expires: 300, // 5 minutes
-      Conditions: [
-        ['content-length-range', 0, 10 * 1024 * 1024],
-      ],
-    };
-    
-    const presignedPost = s3.createPresignedPost(params);
-    
+    const presigner = new S3RequestPresigner({ ...s3.config });
+    const request = new HttpRequest({
+      protocol: 'https',
+      hostname: `${config.AWS_S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com`,
+      method: 'PUT',
+      path: `/${key}`,
+      headers: { 'content-type': contentType }
+    });
+    const signed = await presigner.presign(request, { expiresIn: 300 });
     res.json({
-      presignedPost,
+      uploadUrl: formatUrl(signed),
       key,
       url: `https://${config.AWS_S3_BUCKET}.s3.${config.AWS_REGION}.amazonaws.com/${key}`,
     });
@@ -75,21 +74,10 @@ router.post('/direct', [
       return res.status(400).json({ error: 'No file provided' });
     }
     
-    const key = `uploads/${req.user?._id}/${Date.now()}-${crypto.randomUUID()}-${req.file.originalname}`;
-    
-    const uploadParams = {
-      Bucket: config.AWS_S3_BUCKET,
-      Key: key,
-      Body: req.file.buffer,
-      ContentType: req.file.mimetype,
-      ACL: 'private',
-    };
-    
-    const result = await s3.upload(uploadParams).promise();
-    
+    const fileUrl = `/uploads/${path.basename(req.file.path)}`;
     res.json({
-      key,
-      url: result.Location,
+      path: req.file.path,
+      url: fileUrl,
       filename: req.file.originalname,
       size: req.file.size,
       mimeType: req.file.mimetype,
@@ -110,15 +98,7 @@ router.get('/download/:key(*)', authenticateToken, async (req: AuthRequest, res)
       return res.status(403).json({ error: 'Access denied' });
     }
     
-    const params = {
-      Bucket: config.AWS_S3_BUCKET,
-      Key: key,
-      Expires: 3600, // 1 hour
-    };
-    
-    const url = s3.getSignedUrl('getObject', params);
-    
-    res.json({ url });
+    res.json({ url: `/uploads/${key.split('/').pop()}` });
   } catch (error) {
     console.error('Download URL error:', error);
     res.status(500).json({ error: 'Failed to generate download URL' });
@@ -135,12 +115,8 @@ router.delete('/:key(*)', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
     
-    const params = {
-      Bucket: config.AWS_S3_BUCKET,
-      Key: key,
-    };
-    
-    await s3.deleteObject(params).promise();
+    const fs = await import('fs/promises');
+    try { await fs.unlink(path.resolve('uploads', key.split('/').pop() as string)); } catch {}
     
     res.json({ message: 'File deleted successfully' });
   } catch (error) {
@@ -189,24 +165,13 @@ router.post('/task-attachments/:taskId', authenticateToken, upload.array('files'
 
     for (const file of files) {
       const key = `task-attachments/${taskId}/${crypto.randomBytes(16).toString('hex')}-${file.originalname}`;
-      
-      const params = {
-        Bucket: config.AWS_S3_BUCKET,
-        Key: key,
-        Body: file.buffer,
-        ContentType: file.mimetype,
-        ServerSideEncryption: 'AES256',
-      };
-      
-      await s3.upload(params).promise();
-      
       const attachment = {
-        filename: key,
+        filename: path.basename(file.path),
         originalName: file.originalname,
         size: file.size,
         mimeType: file.mimetype,
         uploadedBy: req.user!._id,
-        path: key,
+        path: file.path,
         downloadCount: 0
       };
 

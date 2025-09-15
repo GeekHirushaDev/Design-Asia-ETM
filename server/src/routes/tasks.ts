@@ -2,7 +2,6 @@ import express, { Response } from 'express';
 import Task from '../models/Task.js';
 import TimeLog from '../models/TimeLog.js';
 import TaskStatusLog from '../models/TaskStatusLog.js';
-import Team from '../models/Team.js';
 import User from '../models/User.js';
 import Location from '../models/Location.js';
 import { authenticateToken, requireRole } from '../middleware/auth.js';
@@ -68,16 +67,9 @@ router.get('/', [
     const { status, priority, assignee, page = 1, limit = 20 } = req.query;
     const filter: any = {};
 
-    // Role-based filtering
+    // Role-based filtering (teams removed) – employees see only individually assigned tasks
     if (req.user?.role === 'employee') {
-      // Show tasks assigned to user individually or to their teams
-      const userTeams = await Team.find({ members: req.user._id }).select('_id');
-      const teamIds = userTeams.map((team: any) => team._id.toString());
-      
-      filter.$or = [
-        { assignedTo: req.user._id },
-        { assignedTeam: { $in: teamIds } }
-      ];
+      filter.assignedTo = req.user._id;
     }
 
     if (status) filter.status = status;
@@ -89,7 +81,7 @@ router.get('/', [
     const tasks = await Task.find(filter)
       .populate('createdBy', 'name email')
       .populate('assignedTo', 'name email')
-      .populate('assignedTeam', 'name description')
+      // Teams removed
       .populate('approvals.by', 'name email')
       .sort({ createdAt: -1 })
       .skip(skip)

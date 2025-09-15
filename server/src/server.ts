@@ -26,7 +26,7 @@ import geofenceRoutes from './routes/geofences.js';
 import roleRoutes from './routes/roles.js';
 import uploadRoutes from './routes/uploads.js';
 import usersRoutes from './routes/users.js';
-import teamsRoutes from './routes/teams.js';
+// Teams removed
 import locationsRoutes from './routes/locations.js';
 
 const app = express();
@@ -77,13 +77,16 @@ app.use('/api/geofences', geofenceRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/uploads', uploadRoutes);
 app.use('/api/users', usersRoutes);
-app.use('/api/teams', teamsRoutes);
+// Teams removed
 app.use('/api/locations', locationsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: TimezoneUtils.now().toISOString() });
 });
+
+// Serve uploaded files statically
+app.use('/uploads', express.static('uploads'));
 
 // Error handling middleware
 app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {

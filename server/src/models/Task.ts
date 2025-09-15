@@ -44,13 +44,10 @@ const taskSchema = new Schema<ITask>(
       type: Schema.Types.ObjectId,
       ref: 'User',
     }],
-    assignedTeam: {
-      type: Schema.Types.ObjectId,
-      ref: 'Team',
-    },
+    // Teams removed: tasks are individual only
     assignmentType: {
       type: String,
-      enum: ['individual', 'team'],
+      enum: ['individual'],
       default: 'individual',
     },
     tags: [String],

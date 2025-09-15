@@ -1,7 +1,6 @@
 import Task from '../models/Task.js';
 import TaskStatusLog from '../models/TaskStatusLog.js';
 import TimeLog from '../models/TimeLog.js';
-import Team from '../models/Team.js';
 import { TimezoneUtils } from '../utils/timezone.js';
 import { LocationService } from './locationService.js';
 
@@ -25,7 +24,7 @@ export class TaskStatusService {
    */
   static async canControlTaskStatus(taskId: string, userId: string): Promise<{ canControl: boolean; reason?: string }> {
     try {
-      const task = await Task.findById(taskId).populate('assignedTeam');
+      const task = await Task.findById(taskId);
       if (!task) {
         return { canControl: false, reason: 'Task not found' };
       }
@@ -44,18 +43,6 @@ export class TaskStatusService {
         return { 
           canControl: isAssigned, 
           reason: isAssigned ? undefined : 'Not assigned to this task' 
-        };
-      } else if (task.assignmentType === 'team') {
-        // Team task - only team leader can control
-        const team = await Team.findById(task.assignedTeam);
-        if (!team) {
-          return { canControl: false, reason: 'Team not found' };
-        }
-
-        const isLeader = team.leader?.toString() === userId;
-        return { 
-          canControl: isLeader, 
-          reason: isLeader ? undefined : 'Only team leader can control team tasks' 
         };
       }
 

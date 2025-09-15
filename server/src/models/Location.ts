@@ -67,7 +67,8 @@ const locationSchema = new Schema<ILocation>(
 
 // Index for efficient geospatial queries
 locationSchema.index({ latitude: 1, longitude: 1 });
-locationSchema.index({ name: 1 });
+// name already has a unique index via schema; remove redundant secondary index to avoid duplicate index warning
+// locationSchema.index({ name: 1 });
 locationSchema.index({ isActive: 1 });
 
 export default mongoose.model<ILocation>('Location', locationSchema);

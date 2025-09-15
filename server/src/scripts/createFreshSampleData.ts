@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
-import Team from '../models/Team.js';
 import Role from '../models/Role.js';
 import Task from '../models/Task.js';
 import Location from '../models/Location.js';

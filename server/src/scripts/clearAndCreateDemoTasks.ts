@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import Task from '../models/Task.js';
 import User from '../models/User.js';
-import Team from '../models/Team.js';
 import Location from '../models/Location.js';
 import { config } from '../config/config.js';
 

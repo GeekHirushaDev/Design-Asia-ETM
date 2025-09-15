@@ -46,23 +46,7 @@ const initializeSystem = async () => {
       { upsert: true, new: true }
     );
 
-    // Team Leader Role
-    const teamLeaderPermissions = permissions.filter(p => 
-      (p.module === 'tasks' && ['view', 'update'].includes(p.action)) ||
-      (p.module === 'teams' && p.action === 'view') ||
-      (p.module === 'attachments' && ['view', 'insert'].includes(p.action))
-    ).map(p => p._id);
-    await Role.findOneAndUpdate(
-      { name: 'team_leader' },
-      {
-        name: 'team_leader',
-        description: 'Team Leader with task management permissions',
-        permissions: teamLeaderPermissions,
-        isSystem: true,
-        isActive: true,
-      },
-      { upsert: true, new: true }
-    );
+    // Team roles removed
 
     // Employee Role
     const employeePermissions = permissions.filter(p => 
