@@ -15,8 +15,13 @@ const seedData = async () => {
 
     // Create admin user (pass plain password; model will hash in pre-save hook)
     const admin = new User({
+      prefix: 'Mr',
+      firstName: 'Admin',
+      lastName: 'User',
       name: 'Admin User',
+      username: 'admin',
       email: 'admin@company.com',
+      mobile: '+94771234567',
       password: 'admin123',
       role: 'admin',
     });
@@ -28,8 +33,13 @@ const seedData = async () => {
     
     for (let i = 1; i <= 3; i++) {
       const employee = new User({
+        prefix: 'Mr',
+        firstName: `Employee`,
+        lastName: `${i}`,
         name: `Employee ${i}`,
+        username: `employee${i}`,
         email: `employee${i}@taskmanager.com`,
+        mobile: `+9477123456${i}`,
         password: employeePassword,
         role: 'employee',
       });

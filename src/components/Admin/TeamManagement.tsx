@@ -34,11 +34,14 @@ interface TeamFormData {
 }
 
 interface UserFormData {
-  name: string;
+  prefix: string;
+  firstName: string;
+  lastName: string;
+  username: string;
   email: string;
+  mobile: string;
   password: string;
   role: 'admin' | 'employee';
-  phone: string;
 }
 
 const TeamModal: React.FC<{
@@ -240,18 +243,21 @@ const UserModal: React.FC<{
   onSuccess: () => void;
 }> = ({ user, onClose, onSuccess }) => {
   const [formData, setFormData] = useState<UserFormData>({
-    name: user?.name || '',
+    prefix: user?.prefix || 'Mr',
+    firstName: user?.firstName || '',
+    lastName: user?.lastName || '',
+    username: user?.username || '',
     email: user?.email || '',
+    mobile: user?.mobile || '',
     password: '',
     role: user?.role || 'employee',
-    phone: user?.phone || ''
   });
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.email.trim()) {
-      toast.error('Name and email are required');
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.username.trim() || !formData.email.trim() || !formData.mobile.trim()) {
+      toast.error('All fields are required');
       return;
     }
 
@@ -265,8 +271,12 @@ const UserModal: React.FC<{
       
       if (user) {
         const updateData = {
-          name: formData.name,
+          prefix: formData.prefix,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          username: formData.username,
           email: formData.email,
+          mobile: formData.mobile,
           role: formData.role,
           phone: formData.phone
         };
@@ -301,16 +311,66 @@ const UserModal: React.FC<{
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Full Name *
+                Prefix *
+              </label>
+              <select
+                value={formData.prefix}
+                onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              >
+                <option value="Mr">Mr</option>
+                <option value="Mrs">Mrs</option>
+                <option value="Miss">Miss</option>
+                <option value="Dr">Dr</option>
+                <option value="Prof">Prof</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter first name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Enter last name"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Username *
               </label>
               <input
                 type="text"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase() })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter full name"
+                placeholder="Enter username"
                 required
               />
+              <p className="text-xs text-gray-500 mt-1">
+                Only letters, numbers, and underscores allowed
+              </p>
             </div>
 
             <div>
@@ -323,6 +383,20 @@ const UserModal: React.FC<{
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter email address"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Mobile Number *
+              </label>
+              <input
+                type="tel"
+                value={formData.mobile}
+                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter mobile number"
                 required
               />
             </div>
@@ -343,19 +417,6 @@ const UserModal: React.FC<{
                 />
               </div>
             )}
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter phone number"
-              />
-            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -722,10 +783,10 @@ const TeamManagement: React.FC = () => {
                       <Mail size={14} className="mr-2 flex-shrink-0" />
                       <span className="truncate">{employee.email}</span>
                     </div>
-                    {employee.phone && (
+                    {employee.mobile && (
                       <div className="flex items-center text-sm text-gray-600">
                         <Phone size={14} className="mr-2 flex-shrink-0" />
-                        <span className="truncate">{employee.phone}</span>
+                        <span className="truncate">{employee.mobile}</span>
                       </div>
                     )}
                     <div className="flex items-center text-sm text-gray-600">

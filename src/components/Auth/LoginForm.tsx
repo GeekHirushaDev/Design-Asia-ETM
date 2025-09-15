@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 export const LoginForm: React.FC = () => {
   const [formData, setFormData] = useState({
-    email: '',
+    login: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
@@ -17,7 +17,7 @@ export const LoginForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.password) {
+    if (!formData.login || !formData.password) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -41,8 +41,8 @@ export const LoginForm: React.FC = () => {
 
   const handleDemoLogin = async (role: 'admin' | 'employee') => {
     const demoCredentials = {
-      admin: { email: 'admin@company.com', password: 'admin123' },
-      employee: { email: 'employee1@taskmanager.com', password: 'employee123' },
+      admin: { login: 'admin@company.com', password: 'admin123' },
+      employee: { login: 'employee1@taskmanager.com', password: 'employee123' },
     };
 
     setFormData(demoCredentials[role]);
@@ -80,18 +80,18 @@ export const LoginForm: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
+              <label htmlFor="login" className="block text-sm font-medium text-gray-700 mb-2">
+                Email or Username
               </label>
               <div className="relative">
                 <Mail size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
-                  type="email"
-                  id="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  type="text"
+                  id="login"
+                  value={formData.login}
+                  onChange={(e) => setFormData({ ...formData, login: e.target.value })}
                   className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter your email"
+                  placeholder="Enter your email or username"
                   required
                 />
               </div>

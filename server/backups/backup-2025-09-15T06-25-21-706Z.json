@@ -1,0 +1,2115 @@
+{
+  "roles": [
+    {
+      "_id": "68c6f81b4915e4ae3cb9566c",
+      "name": "super_admin",
+      "__v": 0,
+      "createdAt": "2025-09-14T17:15:08.592Z",
+      "description": "Super Administrator with all permissions",
+      "isActive": true,
+      "isSystem": true,
+      "permissions": [
+        "68c6f8184915e4ae3cb95655",
+        "68c6f8184915e4ae3cb95656",
+        "68c6f8194915e4ae3cb95657",
+        "68c6f8194915e4ae3cb95658",
+        "68c6f8194915e4ae3cb95659",
+        "68c6f8194915e4ae3cb9565a",
+        "68c6f8194915e4ae3cb9565b",
+        "68c6f8194915e4ae3cb9565c",
+        "68c6f8194915e4ae3cb9565d",
+        "68c6f81a4915e4ae3cb9565e",
+        "68c6f81a4915e4ae3cb9565f",
+        "68c6f81a4915e4ae3cb95660",
+        "68c6f81a4915e4ae3cb95661",
+        "68c6f81a4915e4ae3cb95662",
+        "68c6f81a4915e4ae3cb95663",
+        "68c6f81a4915e4ae3cb95664",
+        "68c6f81a4915e4ae3cb95665",
+        "68c6f81a4915e4ae3cb95666",
+        "68c6f81b4915e4ae3cb95667",
+        "68c6f81b4915e4ae3cb95668",
+        "68c6f81b4915e4ae3cb95669",
+        "68c6f81b4915e4ae3cb9566a",
+        "68c6f81b4915e4ae3cb9566b"
+      ],
+      "updatedAt": "2025-09-14T17:15:08.592Z"
+    },
+    {
+      "_id": "68c6f81b4915e4ae3cb9566d",
+      "name": "admin",
+      "__v": 0,
+      "createdAt": "2025-09-14T17:15:08.709Z",
+      "description": "Administrator with most permissions",
+      "isActive": true,
+      "isSystem": true,
+      "permissions": [
+        "68c6f8184915e4ae3cb95655",
+        "68c6f8184915e4ae3cb95656",
+        "68c6f8194915e4ae3cb95657",
+        "68c6f8194915e4ae3cb95658",
+        "68c6f8194915e4ae3cb95659",
+        "68c6f8194915e4ae3cb9565a",
+        "68c6f8194915e4ae3cb9565b",
+        "68c6f8194915e4ae3cb9565c",
+        "68c6f8194915e4ae3cb9565d",
+        "68c6f81a4915e4ae3cb9565f",
+        "68c6f81a4915e4ae3cb95660",
+        "68c6f81a4915e4ae3cb95661",
+        "68c6f81a4915e4ae3cb95662",
+        "68c6f81a4915e4ae3cb95663",
+        "68c6f81a4915e4ae3cb95664",
+        "68c6f81a4915e4ae3cb95665",
+        "68c6f81a4915e4ae3cb95666",
+        "68c6f81b4915e4ae3cb95667",
+        "68c6f81b4915e4ae3cb95668",
+        "68c6f81b4915e4ae3cb95669",
+        "68c6f81b4915e4ae3cb9566a",
+        "68c6f81b4915e4ae3cb9566b"
+      ],
+      "updatedAt": "2025-09-14T17:15:08.709Z"
+    },
+    {
+      "_id": "68c6f81b4915e4ae3cb9566e",
+      "name": "team_leader",
+      "__v": 0,
+      "createdAt": "2025-09-14T17:15:08.815Z",
+      "description": "Team Leader with task management permissions",
+      "isActive": true,
+      "isSystem": true,
+      "permissions": [
+        "68c6f8184915e4ae3cb95655",
+        "68c6f8184915e4ae3cb95656",
+        "68c6f8194915e4ae3cb95658",
+        "68c6f8194915e4ae3cb95659",
+        "68c6f81a4915e4ae3cb9565f",
+        "68c6f81b4915e4ae3cb95667",
+        "68c6f81b4915e4ae3cb95668"
+      ],
+      "updatedAt": "2025-09-14T17:15:08.815Z"
+    },
+    {
+      "_id": "68c6f81b4915e4ae3cb9566f",
+      "name": "employee",
+      "__v": 0,
+      "createdAt": "2025-09-14T17:15:08.924Z",
+      "description": "Employee with basic permissions",
+      "isActive": true,
+      "isSystem": true,
+      "permissions": [
+        "68c6f8184915e4ae3cb95656",
+        "68c6f8194915e4ae3cb95659",
+        "68c6f81b4915e4ae3cb95667"
+      ],
+      "updatedAt": "2025-09-14T17:15:08.924Z"
+    }
+  ],
+  "notifications": [],
+  "sessions": [
+    {
+      "_id": "68c595e69574f1f0cd8f92d8",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "5ad58f32-18dc-4e61-b134-2e5c721bb9cd",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6IjVhZDU4ZjMyLTE4ZGMtNGU2MS1iMTM0LTJlNWM3MjFiYjljZCIsImlhdCI6MTc1Nzc3OTQyNiwiZXhwIjoxNzU4Mzg0MjI2fQ.c0S2KTlqWBVXekPjgpLKyG4nZfA2OkU3Sfc5l01llVE",
+      "isActive": true,
+      "expiresAt": "2025-09-20T16:03:50.567Z",
+      "createdAt": "2025-09-13T16:03:50.583Z",
+      "updatedAt": "2025-09-13T16:03:50.583Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c598af9574f1f0cd8f92de",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "8c79fd67-d29b-4f1e-904c-926b9a599d88",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6IjhjNzlmZDY3LWQyOWItNGYxZS05MDRjLTkyNmI5YTU5OWQ4OCIsImlhdCI6MTc1Nzc4MDE0MywiZXhwIjoxNzU4Mzg0OTQzfQ.tkbJt3AFxsQkK6U8vkTkzRGMA2Bq3P_d0CIngQ6Cao0",
+      "isActive": true,
+      "expiresAt": "2025-09-20T16:15:43.896Z",
+      "createdAt": "2025-09-13T16:15:43.898Z",
+      "updatedAt": "2025-09-13T16:15:43.898Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5a69c8eb7de28207da680",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "ad102003-8dd6-45be-9f84-0cca9d4e204a",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6ImFkMTAyMDAzLThkZDYtNDViZS05Zjg0LTBjY2E5ZDRlMjA0YSIsImlhdCI6MTc1Nzc4MzcwOCwiZXhwIjoxNzU4Mzg4NTA4fQ.HzNHr10XOmaa0wn9ZY7Af2zKuuoi4g7bQLRmhWWKpkc",
+      "isActive": true,
+      "expiresAt": "2025-09-20T17:15:08.231Z",
+      "createdAt": "2025-09-13T17:15:08.257Z",
+      "updatedAt": "2025-09-13T17:15:08.257Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5a7578eb7de28207da70e",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "deviceId": "5dcc84d6-17c7-4346-aa71-743f64196623",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1YTcwZDhlYjdkZTI4MjA3ZGE2Y2UiLCJkZXZpY2VJZCI6IjVkY2M4NGQ2LTE3YzctNDM0Ni1hYTcxLTc0M2Y2NDE5NjYyMyIsImlhdCI6MTc1Nzc4Mzg5NSwiZXhwIjoxNzU4Mzg4Njk1fQ.ZDaz16p2BVlrShBeurm9zYHBCVN3-e6AqvJ6drPqEx0",
+      "isActive": true,
+      "expiresAt": "2025-09-20T17:18:15.506Z",
+      "createdAt": "2025-09-13T17:18:15.507Z",
+      "updatedAt": "2025-09-13T17:18:15.507Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5a7658eb7de28207da726",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "deviceId": "9e5f8221-97f9-460f-a419-393c1484c9d8",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1YTcwZDhlYjdkZTI4MjA3ZGE2Y2UiLCJkZXZpY2VJZCI6IjllNWY4MjIxLTk3ZjktNDYwZi1hNDE5LTM5M2MxNDg0YzlkOCIsImlhdCI6MTc1Nzc4MzkwOSwiZXhwIjoxNzU4Mzg4NzA5fQ.FzznIf17ENj3ZI8_pfmw3S4QdHMka6tnw9S3nMGjMiM",
+      "isActive": true,
+      "expiresAt": "2025-09-20T17:18:29.440Z",
+      "createdAt": "2025-09-13T17:18:29.441Z",
+      "updatedAt": "2025-09-13T17:18:29.441Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5af23895f6d4de1b688d3",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "7e432a29-73a4-4e98-a167-1d8bd2965478",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6IjdlNDMyYTI5LTczYTQtNGU5OC1hMTY3LTFkOGJkMjk2NTQ3OCIsImlhdCI6MTc1Nzc4NTg5MSwiZXhwIjoxNzU4MzkwNjkxfQ.4YDHfGTqANwR76ZhZNaQZjy17vITYJD2Z7DQAyFI8H4",
+      "isActive": true,
+      "expiresAt": "2025-09-20T17:51:31.424Z",
+      "createdAt": "2025-09-13T17:51:31.443Z",
+      "updatedAt": "2025-09-13T17:51:31.443Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5bf3e0fd59448555ee1fe",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "deviceId": "1d00f1e4-cfc2-46fa-877f-86e238b488c0",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1YTcwZDhlYjdkZTI4MjA3ZGE2Y2UiLCJkZXZpY2VJZCI6IjFkMDBmMWU0LWNmYzItNDZmYS04NzdmLTg2ZTIzOGI0ODhjMCIsImlhdCI6MTc1Nzc5MDAxNCwiZXhwIjoxNzU4Mzk0ODE0fQ.nbu6iZYa6fOGeOS_-u1_PCaDAaGw1eqj9a05t3bA5OA",
+      "isActive": true,
+      "expiresAt": "2025-09-20T19:00:14.487Z",
+      "createdAt": "2025-09-13T19:00:14.560Z",
+      "updatedAt": "2025-09-13T19:00:14.560Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5bf5a0fd59448555ee224",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "d0e0dfdb-2537-40dc-8397-f9f6738ee814",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6ImQwZTBkZmRiLTI1MzctNDBkYy04Mzk3LWY5ZjY3MzhlZTgxNCIsImlhdCI6MTc1Nzc5MDA0MiwiZXhwIjoxNzU4Mzk0ODQyfQ.uKZRjLMEUZII075lWAGx0xcnuNiCrocNmbdY0ex1CXE",
+      "isActive": true,
+      "expiresAt": "2025-09-20T19:00:42.628Z",
+      "createdAt": "2025-09-13T19:00:42.632Z",
+      "updatedAt": "2025-09-13T19:00:42.632Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5ed530fd59448555ee271",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "901a5e67-c09e-4b27-a80c-6646018676ec",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6IjkwMWE1ZTY3LWMwOWUtNGIyNy1hODBjLTY2NDYwMTg2NzZlYyIsImlhdCI6MTc1NzgwMTgxMSwiZXhwIjoxNzU4NDA2NjExfQ.cIMqzlHWbaIZQzIUscOYam0QOByCm4IiL2uynO5_iE4",
+      "isActive": true,
+      "expiresAt": "2025-09-20T22:16:51.274Z",
+      "createdAt": "2025-09-13T22:16:51.282Z",
+      "updatedAt": "2025-09-13T22:16:51.282Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5edb50fd59448555ee2b2",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "458c7acc-a0af-4b64-92b2-9e821d24ac8e",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6IjQ1OGM3YWNjLWEwYWYtNGI2NC05MmIyLTllODIxZDI0YWM4ZSIsImlhdCI6MTc1NzgwMTkwOSwiZXhwIjoxNzU4NDA2NzA5fQ.JEmft2rxvYCisICuJ7nlm6-HXgxHrvZCy3uMv7D1ICw",
+      "isActive": true,
+      "expiresAt": "2025-09-20T22:18:29.582Z",
+      "createdAt": "2025-09-13T22:18:29.585Z",
+      "updatedAt": "2025-09-13T22:18:29.585Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c668d37f4d98aa8fd5c9ab",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "cebfeb46-4058-47e4-ad4b-f7b88ef202fd",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6ImNlYmZlYjQ2LTQwNTgtNDdlNC1hZDRiLWY3Yjg4ZWYyMDJmZCIsImlhdCI6MTc1NzgzMzQyNiwiZXhwIjoxNzU4NDM4MjI2fQ.Q1b49YdS7Lu8UdyJaKV6cOFVKY8ELwMCmyXuhLzSp00",
+      "isActive": true,
+      "expiresAt": "2025-09-21T07:03:47.131Z",
+      "createdAt": "2025-09-14T07:03:47.159Z",
+      "updatedAt": "2025-09-14T07:03:47.159Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c669cb18d93ca0172c3e89",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "40682ee8-2558-4fc0-8ac6-e68c4a761090",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6IjQwNjgyZWU4LTI1NTgtNGZjMC04YWM2LWU2OGM0YTc2MTA5MCIsImlhdCI6MTc1NzgzMzY3NSwiZXhwIjoxNzU4NDM4NDc1fQ.a3JZzsV5ySIDRBbJFzFPw18seV8LHo18Uobtde08Kc4",
+      "isActive": true,
+      "expiresAt": "2025-09-21T07:07:55.939Z",
+      "createdAt": "2025-09-14T07:07:55.960Z",
+      "updatedAt": "2025-09-14T07:07:55.960Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c66a718dab26a3ff1de54b",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "d1b8f286-32e0-4317-8208-56fc0f319669",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6ImQxYjhmMjg2LTMyZTAtNDMxNy04MjA4LTU2ZmMwZjMxOTY2OSIsImlhdCI6MTc1NzgzMzg0MCwiZXhwIjoxNzU4NDM4NjQwfQ.mhhsDolsdv-7aLkx5lt3OK2deN8nGZuM5xVdd8Y6Lyk",
+      "isActive": true,
+      "expiresAt": "2025-09-21T07:10:41.124Z",
+      "createdAt": "2025-09-14T07:10:41.157Z",
+      "updatedAt": "2025-09-14T07:10:41.157Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c66d9e8dab26a3ff1de5b3",
+      "userId": "68c5868fe572f08beb7cb7c9",
+      "deviceId": "a5d1a170-1d86-47f9-978c-48bebccc6911",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZmU1NzJmMDhiZWI3Y2I3YzkiLCJkZXZpY2VJZCI6ImE1ZDFhMTcwLTFkODYtNDdmOS05NzhjLTQ4YmViY2NjNjkxMSIsImlhdCI6MTc1NzgzNDY1NCwiZXhwIjoxNzU4NDM5NDU0fQ.ncffyiRfzBahgvf-XGarEcW2P2cXL2uPAitOfFG9TBY",
+      "isActive": true,
+      "expiresAt": "2025-09-21T07:24:14.774Z",
+      "createdAt": "2025-09-14T07:24:14.775Z",
+      "updatedAt": "2025-09-14T07:24:14.775Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c66ddb8dab26a3ff1de5ed",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "049dcd55-bc92-4a89-9e0f-973bcd487d17",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6IjA0OWRjZDU1LWJjOTItNGE4OS05ZTBmLTk3M2JjZDQ4N2QxNyIsImlhdCI6MTc1NzgzNDcxNSwiZXhwIjoxNzU4NDM5NTE1fQ.vYLVKAGVaqPhl8P0fmglHf1eX03FrRQ48VwrHfebN0s",
+      "isActive": true,
+      "expiresAt": "2025-09-21T07:25:15.618Z",
+      "createdAt": "2025-09-14T07:25:15.618Z",
+      "updatedAt": "2025-09-14T07:25:15.618Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c66e0f8dab26a3ff1de635",
+      "userId": "68c58691e572f08beb7cb7d5",
+      "deviceId": "bcacaaf3-010e-4508-9840-dc8cbbecbca0",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY5MWU1NzJmMDhiZWI3Y2I3ZDUiLCJkZXZpY2VJZCI6ImJjYWNhYWYzLTAxMGUtNDUwOC05ODQwLWRjOGNiYmVjYmNhMCIsImlhdCI6MTc1NzgzNDc2NywiZXhwIjoxNzU4NDM5NTY3fQ.SdcaJlYJ5hP2LY3HUJBmccCvGwhgi9VCG36MviSPFP4",
+      "isActive": true,
+      "expiresAt": "2025-09-21T07:26:07.151Z",
+      "createdAt": "2025-09-14T07:26:07.152Z",
+      "updatedAt": "2025-09-14T07:26:07.152Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c66e498dab26a3ff1de67f",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "105f6edf-4fe7-43b5-b895-09b3a71c4973",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6IjEwNWY2ZWRmLTRmZTctNDNiNS1iODk1LTA5YjNhNzFjNDk3MyIsImlhdCI6MTc1NzgzNDgyNSwiZXhwIjoxNzU4NDM5NjI1fQ.D_pdWiCYimOZjeGJG7vKlAv4JpylyVf7R8NsqsKC_fg",
+      "isActive": true,
+      "expiresAt": "2025-09-21T07:27:05.613Z",
+      "createdAt": "2025-09-14T07:27:05.613Z",
+      "updatedAt": "2025-09-14T07:27:05.613Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c675c766bbf879043b8ce3",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "0aa4d5f8-d03b-4cb0-8e88-a76510b4453f",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6IjBhYTRkNWY4LWQwM2ItNGNiMC04ZTg4LWE3NjUxMGI0NDUzZiIsImlhdCI6MTc1NzgzNjc0MywiZXhwIjoxNzU4NDQxNTQzfQ.Swp50U4Bhf9dk31sliaHvWAayom7XBzRAuFiJo4J6j4",
+      "isActive": true,
+      "expiresAt": "2025-09-21T07:59:03.909Z",
+      "createdAt": "2025-09-14T07:59:03.943Z",
+      "updatedAt": "2025-09-14T07:59:03.943Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c67aa22ab1551b3a98bcd1",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "f30dcf01-e67c-40dd-b1a4-a53779f25cbe",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6ImYzMGRjZjAxLWU2N2MtNDBkZC1iMWE0LWE1Mzc3OWYyNWNiZSIsImlhdCI6MTc1NzgzNzk4NiwiZXhwIjoxNzU4NDQyNzg2fQ.nQKoF5EsOZ_sJ5XGzurtlkUf0zfbhBt0BNXC0o8yWP4",
+      "isActive": true,
+      "expiresAt": "2025-09-21T08:19:46.477Z",
+      "createdAt": "2025-09-14T08:19:46.502Z",
+      "updatedAt": "2025-09-14T08:19:46.502Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c688c32ab1551b3a98be41",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "997a3227-54b3-4c89-93e8-abefa865ba52",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6Ijk5N2EzMjI3LTU0YjMtNGM4OS05M2U4LWFiZWZhODY1YmE1MiIsImlhdCI6MTc1Nzg0MTYwMywiZXhwIjoxNzU4NDQ2NDAzfQ.mCE7G5dExPsDpJOM8HnvUP3VpYLK9iVEeto6YlBK-Cw",
+      "isActive": true,
+      "expiresAt": "2025-09-21T09:20:03.804Z",
+      "createdAt": "2025-09-14T09:20:03.811Z",
+      "updatedAt": "2025-09-14T09:20:03.811Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6a6512ab1551b3a98c077",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "33661e14-f30b-4582-97ee-734fdbe37bb2",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6IjMzNjYxZTE0LWYzMGItNDU4Mi05N2VlLTczNGZkYmUzN2JiMiIsImlhdCI6MTc1Nzg0OTE2OSwiZXhwIjoxNzU4NDUzOTY5fQ.WAMI4XKGa8T-Cts2_lo8jB_OcgdBcpghMBBS-tz2hJg",
+      "isActive": true,
+      "expiresAt": "2025-09-21T11:26:09.746Z",
+      "createdAt": "2025-09-14T11:26:09.747Z",
+      "updatedAt": "2025-09-14T11:26:09.747Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6bb839acff79d0fbf9bf4",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "c45c5d99-8eb0-4251-8bd6-e20a747db81a",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6ImM0NWM1ZDk5LThlYjAtNDI1MS04YmQ2LWUyMGE3NDdkYjgxYSIsImlhdCI6MTc1Nzg1NDU5NSwiZXhwIjoxNzU4NDU5Mzk1fQ.XZxNVc5Og1Mdn1XzeA_1QvccjMNS9r8bV_G6LaIl-BU",
+      "isActive": true,
+      "expiresAt": "2025-09-21T12:56:35.520Z",
+      "createdAt": "2025-09-14T12:56:35.536Z",
+      "updatedAt": "2025-09-14T12:56:35.536Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6c035f0747ec015c70b08",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "d3a4cc93-825e-4e0d-ac65-b69e41e1dc50",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM1ODY4ZWU1NzJmMDhiZWI3Y2I3YzUiLCJkZXZpY2VJZCI6ImQzYTRjYzkzLTgyNWUtNGUwZC1hYzY1LWI2OWU0MWUxZGM1MCIsImlhdCI6MTc1Nzg1NTc5NywiZXhwIjoxNzU4NDYwNTk3fQ.va8fxf3Dna0UscnEVwF67XOzOjJbFEXtfFeRexfGmeU",
+      "isActive": true,
+      "expiresAt": "2025-09-21T13:16:37.992Z",
+      "createdAt": "2025-09-14T13:16:37.996Z",
+      "updatedAt": "2025-09-14T13:16:37.996Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fbb2964960489f8e0fe9",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "0a58195b-2600-4d9d-a4c9-ba8ae3da22ad",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjBhNTgxOTViLTI2MDAtNGQ5ZC1hNGM5LWJhOGFlM2RhMjJhZCIsImlhdCI6MTc1Nzg3MTAyNiwiZXhwIjoxNzU4NDc1ODI2fQ.54yEjXY1D1ZcZ7C2WfXRkENCB52IdJ4pHlJMFugO9HM",
+      "isActive": true,
+      "expiresAt": "2025-09-21T17:30:26.482Z",
+      "createdAt": "2025-09-14T17:30:26.501Z",
+      "updatedAt": "2025-09-14T17:30:26.501Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fd27a00169f6c5c6cfc0",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "42bfa977-5e27-4d84-adec-1df5ac41b116",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjQyYmZhOTc3LTVlMjctNGQ4NC1hZGVjLTFkZjVhYzQxYjExNiIsImlhdCI6MTc1Nzg3MTM5OSwiZXhwIjoxNzU4NDc2MTk5fQ.GQhl_OCNWiC-SiMvN5eQFgEDkE4J2v3_z7gYgorInGI",
+      "isActive": true,
+      "expiresAt": "2025-09-21T17:36:39.485Z",
+      "createdAt": "2025-09-14T17:36:39.506Z",
+      "updatedAt": "2025-09-14T17:36:39.506Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fead677a175ebd093369",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "40c7d7c2-372d-47a2-b18e-a53b5ffd3f47",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjQwYzdkN2MyLTM3MmQtNDdhMi1iMThlLWE1M2I1ZmZkM2Y0NyIsImlhdCI6MTc1Nzg3MTc4OSwiZXhwIjoxNzU4NDc2NTg5fQ.FbCCvRSFpgo3-uTEOa2YqzRQN5SSNxK7k8CoSSUsPpY",
+      "isActive": true,
+      "expiresAt": "2025-09-21T17:43:09.450Z",
+      "createdAt": "2025-09-14T17:43:09.486Z",
+      "updatedAt": "2025-09-14T17:43:09.486Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c7040fdc5d65c2c4ff717b",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "fe0d87f4-931b-4dc8-a051-90271bc5c4c2",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6ImZlMGQ4N2Y0LTkzMWItNGRjOC1hMDUxLTkwMjcxYmM1YzRjMiIsImlhdCI6MTc1Nzg3MzE2NywiZXhwIjoxNzU4NDc3OTY3fQ.03JY1lkjY3XWSZwvK5O2PDzdHTUY_J1hjJpFbk3iYnA",
+      "isActive": true,
+      "expiresAt": "2025-09-21T18:06:07.406Z",
+      "createdAt": "2025-09-14T18:06:07.430Z",
+      "updatedAt": "2025-09-14T18:06:07.430Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c70504bf3a4f4a5fd87170",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "34b3db20-40dc-442d-a2b3-90fce4dd7af9",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjM0YjNkYjIwLTQwZGMtNDQyZC1hMmIzLTkwZmNlNGRkN2FmOSIsImlhdCI6MTc1Nzg3MzQxMiwiZXhwIjoxNzU4NDc4MjEyfQ.017Xecx6JBx8ZkQXnVrnQUHgXUnd9bam7Bm0TfDDf94",
+      "isActive": true,
+      "expiresAt": "2025-09-21T18:10:12.689Z",
+      "createdAt": "2025-09-14T18:10:12.704Z",
+      "updatedAt": "2025-09-14T18:10:12.704Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c705f2198c6861339e43c1",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "20e6c41a-8942-44a4-9dbb-070c845f3e33",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjIwZTZjNDFhLTg5NDItNDRhNC05ZGJiLTA3MGM4NDVmM2UzMyIsImlhdCI6MTc1Nzg3MzY1MCwiZXhwIjoxNzU4NDc4NDUwfQ.GxsgjN61Mvvm-4ABD8m1GvGLGpxH-j-Ovudgn24V_AU",
+      "isActive": true,
+      "expiresAt": "2025-09-21T18:14:10.563Z",
+      "createdAt": "2025-09-14T18:14:10.577Z",
+      "updatedAt": "2025-09-14T18:14:10.577Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c70a456c62033aaca43c54",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "7daa685a-d848-4b2e-ba19-4ec335648b36",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjdkYWE2ODVhLWQ4NDgtNGIyZS1iYTE5LTRlYzMzNTY0OGIzNiIsImlhdCI6MTc1Nzg3NDc1NywiZXhwIjoxNzU4NDc5NTU3fQ.q7xdk34ogqQ1bt01BGqPOnMeo_EPeC9B5hSt_reFrH4",
+      "isActive": true,
+      "expiresAt": "2025-09-21T18:32:37.742Z",
+      "createdAt": "2025-09-14T18:32:37.758Z",
+      "updatedAt": "2025-09-14T18:32:37.758Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c70b2a18f3225313a4803a",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "69f2aa3e-ee17-4250-a122-285914d83847",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjY5ZjJhYTNlLWVlMTctNDI1MC1hMTIyLTI4NTkxNGQ4Mzg0NyIsImlhdCI6MTc1Nzg3NDk4NSwiZXhwIjoxNzU4NDc5Nzg1fQ.vunwY06zNC50WkcfcK7-4Ulb69sOakRNlNg7zFs0y-U",
+      "isActive": true,
+      "expiresAt": "2025-09-21T18:36:26.079Z",
+      "createdAt": "2025-09-14T18:36:26.093Z",
+      "updatedAt": "2025-09-14T18:36:26.093Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c70b3b18f3225313a480a6",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "0da7cde8-7986-4670-ba8a-9d1a460a2847",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjBkYTdjZGU4LTc5ODYtNDY3MC1iYThhLTlkMWE0NjBhMjg0NyIsImlhdCI6MTc1Nzg3NTAwMiwiZXhwIjoxNzU4NDc5ODAyfQ.u3tysIOGxblcVXchaQ8kOB7YnafNbKWLCCu3ELyc01Y",
+      "isActive": true,
+      "expiresAt": "2025-09-21T18:36:43.062Z",
+      "createdAt": "2025-09-14T18:36:43.063Z",
+      "updatedAt": "2025-09-14T18:36:43.063Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c7110ff356ce6717cdac80",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "42ff7a7b-554c-43bc-9bd0-733780c91bfc",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjQyZmY3YTdiLTU1NGMtNDNiYy05YmQwLTczMzc4MGM5MWJmYyIsImlhdCI6MTc1Nzg3NjQ5NCwiZXhwIjoxNzU4NDgxMjk0fQ.rSjgkMDfOLPfV_xpxblIYhuDbrnkHCR82w8lw6NkPIc",
+      "isActive": true,
+      "expiresAt": "2025-09-21T19:01:35.079Z",
+      "createdAt": "2025-09-14T19:01:35.182Z",
+      "updatedAt": "2025-09-14T19:01:35.182Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c7a304dc622c9ddc35d826",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "5729f36c-0cab-453f-a960-41b4d3f7ec49",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjU3MjlmMzZjLTBjYWItNDUzZi1hOTYwLTQxYjRkM2Y3ZWM0OSIsImlhdCI6MTc1NzkxMzg2MCwiZXhwIjoxNzU4NTE4NjYwfQ.6DkbU5QX_IPelUY76-OphrP2NXIXoDxuLU8tYijfHdg",
+      "isActive": true,
+      "expiresAt": "2025-09-22T05:24:20.152Z",
+      "createdAt": "2025-09-15T05:24:20.173Z",
+      "updatedAt": "2025-09-15T05:24:20.173Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c7a86c5963f9ca31bc9c13",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "9147bc12-4ccd-4e88-8871-cf620bf14b19",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjkxNDdiYzEyLTRjY2QtNGU4OC04ODcxLWNmNjIwYmYxNGIxOSIsImlhdCI6MTc1NzkxNTI0NCwiZXhwIjoxNzU4NTIwMDQ0fQ.16kCVBtiY1BNKzoRj9mFh51O-r7zs1a7sdAhy_ordQ0",
+      "isActive": true,
+      "expiresAt": "2025-09-22T05:47:24.520Z",
+      "createdAt": "2025-09-15T05:47:24.536Z",
+      "updatedAt": "2025-09-15T05:47:24.536Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c7ae1817285dcfae13660d",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "7313444b-a387-406b-a304-be801de11fac",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6IjczMTM0NDRiLWEzODctNDA2Yi1hMzA0LWJlODAxZGUxMWZhYyIsImlhdCI6MTc1NzkxNjY5NiwiZXhwIjoxNzU4NTIxNDk2fQ.NrhQuah2nH9ybxw5RcHC7BFlu6Ghl_GqgoHlok4Pjes",
+      "isActive": true,
+      "expiresAt": "2025-09-22T06:11:36.947Z",
+      "createdAt": "2025-09-15T06:11:36.968Z",
+      "updatedAt": "2025-09-15T06:11:36.968Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c7b08873be4812c9e632ba",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "f877320b-9fc5-4619-9e44-da789cf13bbf",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OGM2ZmFkOGU2ZWJmY2ZmZDc5OGJiZTQiLCJkZXZpY2VJZCI6ImY4NzczMjBiLTlmYzUtNDYxOS05ZTQ0LWRhNzg5Y2YxM2JiZiIsImlhdCI6MTc1NzkxNzMyMCwiZXhwIjoxNzU4NTIyMTIwfQ.ED6xpMn_d7XiK9GrRMJ-PM_-wZGvex-lchgPFfxa_-Q",
+      "isActive": true,
+      "expiresAt": "2025-09-22T06:22:00.497Z",
+      "createdAt": "2025-09-15T06:22:00.513Z",
+      "updatedAt": "2025-09-15T06:22:00.513Z",
+      "__v": 0
+    }
+  ],
+  "comments": [],
+  "timelogs": [
+    {
+      "_id": "68c670218dab26a3ff1de6de",
+      "taskId": "68c66ea58dab26a3ff1de6c2",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "durationSeconds": 0,
+      "source": "timer",
+      "isBreak": false,
+      "isActive": true,
+      "estimatedDurationSeconds": 0,
+      "efficiency": 0,
+      "tags": [],
+      "billable": true,
+      "startTime": "2025-09-14T07:34:57.000Z",
+      "createdAt": "2025-09-14T07:34:57.371Z",
+      "updatedAt": "2025-09-14T07:34:57.371Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c675d166bbf879043b8dcc",
+      "taskId": "68c6737c203ed3035751c2ef",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "startTime": "2025-09-14T07:59:13.000Z",
+      "durationSeconds": 0,
+      "source": "manual",
+      "isBreak": false,
+      "isActive": false,
+      "estimatedDurationSeconds": 0,
+      "efficiency": 0,
+      "tags": [],
+      "billable": true,
+      "createdAt": "2025-09-14T07:59:13.686Z",
+      "updatedAt": "2025-09-14T07:59:13.686Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c675dc66bbf879043b8e42",
+      "taskId": "68c6737c203ed3035751c2ef",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "durationSeconds": 1253,
+      "source": "timer",
+      "isBreak": false,
+      "isActive": false,
+      "estimatedDurationSeconds": 0,
+      "efficiency": 0,
+      "tags": [],
+      "billable": true,
+      "startTime": "2025-09-14T07:59:24.000Z",
+      "createdAt": "2025-09-14T07:59:24.079Z",
+      "updatedAt": "2025-09-14T08:20:17.781Z",
+      "__v": 0,
+      "endTime": "2025-09-14T08:20:17.779Z"
+    },
+    {
+      "_id": "68c67aaa2ab1551b3a98bdc1",
+      "taskId": "68c6737c203ed3035751c2f0",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "durationSeconds": 11737,
+      "source": "timer",
+      "isBreak": false,
+      "isActive": false,
+      "estimatedDurationSeconds": 0,
+      "efficiency": 0,
+      "tags": [],
+      "billable": true,
+      "startTime": "2025-09-14T08:19:54.000Z",
+      "createdAt": "2025-09-14T08:19:54.637Z",
+      "updatedAt": "2025-09-14T11:35:31.450Z",
+      "__v": 0,
+      "endTime": "2025-09-14T11:35:31.446Z"
+    },
+    {
+      "_id": "68c6bd37f0747ec015c70a86",
+      "taskId": "68c6737c203ed3035751c2ec",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "durationSeconds": 790,
+      "source": "timer",
+      "isBreak": false,
+      "isActive": false,
+      "estimatedDurationSeconds": 0,
+      "efficiency": 0,
+      "tags": [],
+      "billable": true,
+      "startTime": "2025-09-14T13:03:51.000Z",
+      "createdAt": "2025-09-14T13:03:51.090Z",
+      "updatedAt": "2025-09-14T13:17:01.837Z",
+      "__v": 0,
+      "endTime": "2025-09-14T13:17:01.834Z"
+    }
+  ],
+  "tasks": [
+    {
+      "_id": "68c6fb31542a6e536d24f5ac",
+      "title": "Client Meeting - ABC Corp",
+      "description": "Conduct quarterly business review meeting with ABC Corp to discuss project progress and future requirements.",
+      "priority": "high",
+      "status": "not_started",
+      "location": {
+        "radiusMeters": 100,
+        "address": "ABC Corp Office, World Trade Center, Colombo 01"
+      },
+      "estimateMinutes": 120,
+      "dueDate": "2025-09-15T17:28:14.516Z",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "assignedTo": [
+        "68c5a70d8eb7de28207da6ce"
+      ],
+      "assignmentType": "individual",
+      "tags": [],
+      "approvals": {
+        "required": false,
+        "status": "pending"
+      },
+      "carryoverInfo": {
+        "isCarriedOver": false,
+        "carryoverCount": 0,
+        "carryoverHistory": []
+      },
+      "progress": {
+        "percentage": 0,
+        "milestones": []
+      },
+      "restrictions": {
+        "employeeCanEdit": true,
+        "restrictedFields": [],
+        "editableBy": []
+      },
+      "attachments": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T17:28:17.093Z",
+      "updatedAt": "2025-09-14T17:28:17.093Z"
+    },
+    {
+      "_id": "68c6fb31542a6e536d24f5ad",
+      "title": "Database Optimization",
+      "description": "Optimize database queries and implement indexing to improve system performance by at least 30%.",
+      "priority": "high",
+      "status": "in_progress",
+      "location": {
+        "radiusMeters": 50,
+        "address": "Head Office - IT Department, Galle Road, Colombo 03"
+      },
+      "estimateMinutes": 180,
+      "dueDate": "2025-09-16T17:28:14.516Z",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "assignedTo": [
+        "68c6fad9e6ebfcffd798bbe8"
+      ],
+      "assignmentType": "individual",
+      "tags": [],
+      "approvals": {
+        "required": false,
+        "status": "pending"
+      },
+      "carryoverInfo": {
+        "isCarriedOver": false,
+        "carryoverCount": 0,
+        "carryoverHistory": []
+      },
+      "progress": {
+        "percentage": 0,
+        "milestones": []
+      },
+      "restrictions": {
+        "employeeCanEdit": true,
+        "restrictedFields": [],
+        "editableBy": []
+      },
+      "attachments": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T17:28:17.096Z",
+      "updatedAt": "2025-09-14T17:28:17.096Z"
+    },
+    {
+      "_id": "68c6fb31542a6e536d24f5ae",
+      "title": "Mobile App Testing - iOS",
+      "description": "Comprehensive testing of the new mobile application on various iOS devices. Test all features and create bug reports.",
+      "priority": "medium",
+      "status": "not_started",
+      "location": {
+        "radiusMeters": 100
+      },
+      "estimateMinutes": 240,
+      "dueDate": "2025-09-17T17:28:14.516Z",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "assignedTo": [],
+      "assignedTeam": "68c6fadce6ebfcffd798bbfa",
+      "assignmentType": "team",
+      "tags": [],
+      "approvals": {
+        "required": false,
+        "status": "pending"
+      },
+      "carryoverInfo": {
+        "isCarriedOver": false,
+        "carryoverCount": 0,
+        "carryoverHistory": []
+      },
+      "progress": {
+        "percentage": 0,
+        "milestones": []
+      },
+      "restrictions": {
+        "employeeCanEdit": true,
+        "restrictedFields": [],
+        "editableBy": []
+      },
+      "attachments": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T17:28:17.096Z",
+      "updatedAt": "2025-09-14T17:28:17.096Z"
+    },
+    {
+      "_id": "68c6fb31542a6e536d24f5af",
+      "title": "Site Inspection - Kandy Branch",
+      "description": "Conduct monthly site inspection at Kandy branch office. Check security systems, IT infrastructure, and facilities.",
+      "priority": "medium",
+      "status": "not_started",
+      "location": {
+        "radiusMeters": 200,
+        "address": "Kandy Branch Office, Temple Street, Kandy"
+      },
+      "estimateMinutes": 300,
+      "dueDate": "2025-09-19T17:28:14.516Z",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "assignedTo": [
+        "68c6fadae6ebfcffd798bbee"
+      ],
+      "assignmentType": "individual",
+      "tags": [],
+      "approvals": {
+        "required": false,
+        "status": "pending"
+      },
+      "carryoverInfo": {
+        "isCarriedOver": false,
+        "carryoverCount": 0,
+        "carryoverHistory": []
+      },
+      "progress": {
+        "percentage": 0,
+        "milestones": []
+      },
+      "restrictions": {
+        "employeeCanEdit": true,
+        "restrictedFields": [],
+        "editableBy": []
+      },
+      "attachments": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T17:28:17.096Z",
+      "updatedAt": "2025-09-14T17:28:17.096Z"
+    },
+    {
+      "_id": "68c6fb31542a6e536d24f5b0",
+      "title": "Security Audit Report",
+      "description": "Prepare comprehensive security audit report based on recent penetration testing and vulnerability assessments.",
+      "priority": "high",
+      "status": "paused",
+      "location": {
+        "radiusMeters": 100
+      },
+      "estimateMinutes": 360,
+      "dueDate": "2025-09-18T17:28:14.516Z",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "assignedTo": [],
+      "assignedTeam": "68c6fadce6ebfcffd798bbf6",
+      "assignmentType": "team",
+      "tags": [],
+      "approvals": {
+        "required": false,
+        "status": "pending"
+      },
+      "carryoverInfo": {
+        "isCarriedOver": false,
+        "carryoverCount": 0,
+        "carryoverHistory": []
+      },
+      "progress": {
+        "percentage": 0,
+        "milestones": []
+      },
+      "restrictions": {
+        "employeeCanEdit": true,
+        "restrictedFields": [],
+        "editableBy": []
+      },
+      "attachments": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T17:28:17.096Z",
+      "updatedAt": "2025-09-14T17:28:17.096Z"
+    },
+    {
+      "_id": "68c6fb31542a6e536d24f5b1",
+      "title": "Equipment Maintenance - Galle",
+      "description": "Perform scheduled maintenance on server equipment and network infrastructure at Galle office.",
+      "priority": "medium",
+      "status": "not_started",
+      "location": {
+        "radiusMeters": 150,
+        "address": "Galle Branch Office, Fort Area, Galle"
+      },
+      "estimateMinutes": 240,
+      "dueDate": "2025-09-21T17:28:14.516Z",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "assignedTo": [
+        "68c5a70d8eb7de28207da6ce"
+      ],
+      "assignmentType": "individual",
+      "tags": [],
+      "approvals": {
+        "required": false,
+        "status": "pending"
+      },
+      "carryoverInfo": {
+        "isCarriedOver": false,
+        "carryoverCount": 0,
+        "carryoverHistory": []
+      },
+      "progress": {
+        "percentage": 0,
+        "milestones": []
+      },
+      "restrictions": {
+        "employeeCanEdit": true,
+        "restrictedFields": [],
+        "editableBy": []
+      },
+      "attachments": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T17:28:17.096Z",
+      "updatedAt": "2025-09-14T17:28:17.096Z"
+    },
+    {
+      "_id": "68c6fb31542a6e536d24f5b2",
+      "title": "Staff Training - Cybersecurity",
+      "description": "Conduct mandatory cybersecurity awareness training for all staff members. Cover phishing, password security, and data protection.",
+      "priority": "low",
+      "status": "not_started",
+      "location": {
+        "radiusMeters": 100
+      },
+      "estimateMinutes": 180,
+      "dueDate": "2025-09-24T17:28:14.516Z",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "assignedTo": [],
+      "assignedTeam": "68c6fadce6ebfcffd798bbfa",
+      "assignmentType": "team",
+      "tags": [],
+      "approvals": {
+        "required": false,
+        "status": "pending"
+      },
+      "carryoverInfo": {
+        "isCarriedOver": false,
+        "carryoverCount": 0,
+        "carryoverHistory": []
+      },
+      "progress": {
+        "percentage": 0,
+        "milestones": []
+      },
+      "restrictions": {
+        "employeeCanEdit": true,
+        "restrictedFields": [],
+        "editableBy": []
+      },
+      "attachments": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T17:28:17.097Z",
+      "updatedAt": "2025-09-14T17:28:17.097Z"
+    },
+    {
+      "_id": "68c6fb31542a6e536d24f5b3",
+      "title": "Network Upgrade - Negombo",
+      "description": "Upgrade network infrastructure at Negombo office. Install new switches and configure firewall settings.",
+      "priority": "high",
+      "status": "completed",
+      "location": {
+        "radiusMeters": 100,
+        "address": "Negombo Branch Office, Main Street, Negombo"
+      },
+      "estimateMinutes": 420,
+      "dueDate": "2025-09-20T17:28:14.516Z",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "assignedTo": [
+        "68c6fad9e6ebfcffd798bbec"
+      ],
+      "assignmentType": "individual",
+      "tags": [],
+      "approvals": {
+        "required": false,
+        "status": "pending"
+      },
+      "carryoverInfo": {
+        "isCarriedOver": false,
+        "carryoverCount": 0,
+        "carryoverHistory": []
+      },
+      "progress": {
+        "percentage": 0,
+        "milestones": []
+      },
+      "restrictions": {
+        "employeeCanEdit": true,
+        "restrictedFields": [],
+        "editableBy": []
+      },
+      "attachments": [],
+      "__v": 0,
+      "createdAt": "2025-09-14T17:28:17.097Z",
+      "updatedAt": "2025-09-14T17:28:17.097Z"
+    }
+  ],
+  "devices": [
+    {
+      "_id": "68c595e54915e4ae3cb95459",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "5ad58f32-18dc-4e61-b134-2e5c721bb9cd",
+      "__v": 0,
+      "createdAt": "2025-09-13T16:03:46.919Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T16:03:46.915Z",
+      "updatedAt": "2025-09-13T16:03:46.919Z",
+      "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.5697"
+    },
+    {
+      "_id": "68c598ae4915e4ae3cb95460",
+      "deviceId": "8c79fd67-d29b-4f1e-904c-926b9a599d88",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-13T16:15:43.776Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T16:15:43.776Z",
+      "updatedAt": "2025-09-13T16:15:43.776Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c5a69a4915e4ae3cb9547a",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "ad102003-8dd6-45be-9f84-0cca9d4e204a",
+      "__v": 0,
+      "createdAt": "2025-09-13T17:15:08.084Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::ffff:127.0.0.1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T17:15:08.082Z",
+      "updatedAt": "2025-09-13T17:15:08.084Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c5a7564915e4ae3cb9547e",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "deviceId": "5dcc84d6-17c7-4346-aa71-743f64196623",
+      "__v": 0,
+      "createdAt": "2025-09-13T17:18:15.394Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T17:18:15.394Z",
+      "updatedAt": "2025-09-13T17:18:15.394Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c5a7634915e4ae3cb95480",
+      "deviceId": "9e5f8221-97f9-460f-a419-393c1484c9d8",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "__v": 0,
+      "createdAt": "2025-09-13T17:18:29.333Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T17:18:29.332Z",
+      "updatedAt": "2025-09-13T17:18:29.333Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c5a76a4915e4ae3cb95481",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "deviceId": "e356615e-796b-4143-8685-4a5e90933b95",
+      "__v": 0,
+      "createdAt": "2025-09-13T17:18:36.257Z",
+      "deviceName": "Chrome Browser",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T17:30:44.976Z",
+      "pushSubscription": {
+        "endpoint": "https://fcm.googleapis.com/fcm/send/daWHE5_nWlA:APA91bGZu_fUcWbfypA5evXr0R4IwCE6WfK1C73ctLB1F927M94I-gSIr0BMJulHBj2IrOc-SpuyCYuVdgzrglGcxLd7y3AlPcgGcQAdbWqpFH037-eh8X1HsqYjGP6kf9k1n24FNn4m",
+        "keys": {
+          "p256dh": "BKTr9/u5nP+GnP7z2b4vKrOi0NAEEqomcu7JeglXLfFgdxO5+K4XVzqlyCw0sE5ZxNidHyp5AGA5a+5qza0L4jU=",
+          "auth": "lF+zZvAX9RadvQCqETRKaw=="
+        }
+      },
+      "updatedAt": "2025-09-13T17:30:44.976Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+      "batteryLevel": 100
+    },
+    {
+      "_id": "68c5af214915e4ae3cb95491",
+      "deviceId": "7e432a29-73a4-4e98-a167-1d8bd2965478",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-13T17:51:31.284Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::ffff:127.0.0.1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T17:51:31.283Z",
+      "updatedAt": "2025-09-13T17:51:31.284Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c5af224915e4ae3cb95492",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "33af5620-215e-4f9a-9ea1-061af8025f7c",
+      "__v": 0,
+      "createdAt": "2025-09-13T17:51:31.883Z",
+      "deviceName": "Chrome Browser",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T22:16:52.488Z",
+      "pushSubscription": {
+        "endpoint": "https://fcm.googleapis.com/fcm/send/e4xi0j2MAdY:APA91bFBHSJ5lboqXMDcNu5Pl0PWVlVMSSJhx08e-ki1vKZDTUlD2odDdO0-_mcq6IqtQtj2Qv2LGzC9Pd8huFhIoVib-1utsmkgGUftWWIp7aPMAcCO7sKCwG42DZg63zGkVqTXPQS1",
+        "keys": {
+          "p256dh": "BNa425trTZdtHDW+UneaWQFtH3U9nGbeEPh2GtvYyRI5ClvW7FpyxpoCLUKmkWHmy1xq97FKWp0x77hYgCkx/Wc=",
+          "auth": "M6vC++ymbnUNzlqu2T/xrQ=="
+        }
+      },
+      "updatedAt": "2025-09-13T22:16:52.492Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+      "batteryLevel": 82
+    },
+    {
+      "_id": "68c5bf3c4915e4ae3cb954b3",
+      "deviceId": "1d00f1e4-cfc2-46fa-877f-86e238b488c0",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "__v": 0,
+      "createdAt": "2025-09-13T19:00:14.252Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T19:00:14.249Z",
+      "updatedAt": "2025-09-13T19:00:14.252Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c5bf594915e4ae3cb954b6",
+      "deviceId": "d0e0dfdb-2537-40dc-8397-f9f6738ee814",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-13T19:00:42.460Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T19:00:42.460Z",
+      "updatedAt": "2025-09-13T19:00:42.460Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c5ed514915e4ae3cb95518",
+      "deviceId": "901a5e67-c09e-4b27-a80c-6646018676ec",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-13T22:16:51.088Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T22:16:51.086Z",
+      "updatedAt": "2025-09-13T22:16:51.088Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c5edb44915e4ae3cb95519",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "458c7acc-a0af-4b64-92b2-9e821d24ac8e",
+      "__v": 0,
+      "createdAt": "2025-09-13T22:18:29.413Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T22:18:29.413Z",
+      "updatedAt": "2025-09-13T22:18:29.413Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c5edb64915e4ae3cb9551a",
+      "deviceId": "7e42726b-577a-48ed-b741-422dedcc7cf2",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-13T22:18:32.308Z",
+      "deviceName": "Chrome Browser",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-13T22:28:56.201Z",
+      "pushSubscription": {
+        "endpoint": "https://fcm.googleapis.com/fcm/send/eanO0leMCm0:APA91bGc7JsOCFGRUQWmCqwpMJDa5nkSXELu29GdLGYMtlKt6jbDFe0jW6zOZyIIeV-t1HjbadMda2QoUBBFjxDKp1-inV45TfTfC6WbM9YTt8iliRqoqSmArigwwocBReEQmJUAiDP_",
+        "keys": {
+          "p256dh": "BHh8EXyJJDyebnLJGY2MQfE1LiBlYLXq2ymKu+PJ/xFGvpSIDZv3slFpTO5MVT+hcCKb0EY7n5jkXBUxcvY8pjw=",
+          "auth": "8rM39kmkm4ID0bQlEq/Zfw=="
+        }
+      },
+      "updatedAt": "2025-09-13T22:28:56.202Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+      "batteryLevel": 34
+    },
+    {
+      "_id": "68c668d24915e4ae3cb9556a",
+      "deviceId": "cebfeb46-4058-47e4-ad4b-f7b88ef202fd",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-14T07:03:46.980Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T07:03:46.979Z",
+      "updatedAt": "2025-09-14T07:03:46.980Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c669cb4915e4ae3cb9556b",
+      "deviceId": "40682ee8-2558-4fc0-8ac6-e68c4a761090",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-14T07:07:55.803Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T07:07:55.802Z",
+      "updatedAt": "2025-09-14T07:07:55.803Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c669cb4915e4ae3cb9556c",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "8409336a-5a30-4f77-a46c-3f144a273b8d",
+      "__v": 0,
+      "createdAt": "2025-09-14T07:07:56.396Z",
+      "deviceName": "Chrome Browser",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T13:21:40.590Z",
+      "pushSubscription": {
+        "endpoint": "https://fcm.googleapis.com/fcm/send/dcO_4_udTV4:APA91bF1G4kmIxvSaInYHH3KLU3q-Whd-C4YMG8u9PAaeJJEWskMPfOw7PqCbyw0RF_W65cwxv-pwpR7oWZvkQ8AqBcNl7oPbCl8FsukDLaUjw1lKfT61TIY84hOeKrF2xDwQQtbjgGl",
+        "keys": {
+          "p256dh": "BFLyGnmlS3yvBRhBf6tBTx74fSnm7WhBzpHStVZKeZNCWQttWnJILrUduQ2jwAI9Ro4gMS3I6SAoAHTStzmEs9M=",
+          "auth": "zalwtiuuPql6AW4o9H1jSg=="
+        }
+      },
+      "updatedAt": "2025-09-14T13:21:40.591Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36",
+      "batteryLevel": 100
+    },
+    {
+      "_id": "68c66a704915e4ae3cb9556e",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "d1b8f286-32e0-4317-8208-56fc0f319669",
+      "__v": 0,
+      "createdAt": "2025-09-14T07:10:40.931Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T07:10:40.930Z",
+      "updatedAt": "2025-09-14T07:10:40.931Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c66d9d4915e4ae3cb95571",
+      "userId": "68c5868fe572f08beb7cb7c9",
+      "deviceId": "a5d1a170-1d86-47f9-978c-48bebccc6911",
+      "__v": 0,
+      "createdAt": "2025-09-14T07:24:14.661Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T07:24:14.661Z",
+      "updatedAt": "2025-09-14T07:24:14.661Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c66dda4915e4ae3cb95573",
+      "deviceId": "049dcd55-bc92-4a89-9e0f-973bcd487d17",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-14T07:25:15.511Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T07:25:15.511Z",
+      "updatedAt": "2025-09-14T07:25:15.511Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c66e0e4915e4ae3cb95575",
+      "deviceId": "bcacaaf3-010e-4508-9840-dc8cbbecbca0",
+      "userId": "68c58691e572f08beb7cb7d5",
+      "__v": 0,
+      "createdAt": "2025-09-14T07:26:07.044Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T07:26:07.043Z",
+      "updatedAt": "2025-09-14T07:26:07.044Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c66e484915e4ae3cb95579",
+      "deviceId": "105f6edf-4fe7-43b5-b895-09b3a71c4973",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-14T07:27:05.501Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T07:27:05.501Z",
+      "updatedAt": "2025-09-14T07:27:05.501Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c675c74915e4ae3cb95586",
+      "deviceId": "0aa4d5f8-d03b-4cb0-8e88-a76510b4453f",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-14T07:59:03.776Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T07:59:03.775Z",
+      "updatedAt": "2025-09-14T07:59:03.776Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c67aa14915e4ae3cb9558e",
+      "deviceId": "f30dcf01-e67c-40dd-b1a4-a53779f25cbe",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-14T08:19:46.292Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T08:19:46.289Z",
+      "updatedAt": "2025-09-14T08:19:46.292Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c688c24915e4ae3cb955a2",
+      "deviceId": "997a3227-54b3-4c89-93e8-abefa865ba52",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-14T09:20:03.688Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T09:20:03.688Z",
+      "updatedAt": "2025-09-14T09:20:03.688Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c6a6504915e4ae3cb955c8",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "33661e14-f30b-4582-97ee-734fdbe37bb2",
+      "__v": 0,
+      "createdAt": "2025-09-14T11:26:09.632Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T11:26:09.631Z",
+      "updatedAt": "2025-09-14T11:26:09.632Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c6bb824915e4ae3cb955ee",
+      "deviceId": "c45c5d99-8eb0-4251-8bd6-e20a747db81a",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "__v": 0,
+      "createdAt": "2025-09-14T12:56:35.380Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T12:56:35.379Z",
+      "updatedAt": "2025-09-14T12:56:35.380Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c6c0354915e4ae3cb955f1",
+      "userId": "68c5868ee572f08beb7cb7c5",
+      "deviceId": "d3a4cc93-825e-4e0d-ac65-b69e41e1dc50",
+      "__v": 0,
+      "createdAt": "2025-09-14T13:16:37.816Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T13:16:37.816Z",
+      "updatedAt": "2025-09-14T13:16:37.816Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c6fbb14915e4ae3cb9567a",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "0a58195b-2600-4d9d-a4c9-ba8ae3da22ad",
+      "__v": 0,
+      "createdAt": "2025-09-14T17:30:26.223Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T17:30:26.222Z",
+      "updatedAt": "2025-09-14T17:30:26.223Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c6fd264915e4ae3cb95681",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "42bfa977-5e27-4d84-adec-1df5ac41b116",
+      "__v": 0,
+      "createdAt": "2025-09-14T17:36:39.348Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T17:36:39.346Z",
+      "updatedAt": "2025-09-14T17:36:39.348Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c6feac4915e4ae3cb95689",
+      "deviceId": "40c7d7c2-372d-47a2-b18e-a53b5ffd3f47",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "__v": 0,
+      "createdAt": "2025-09-14T17:43:09.299Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T17:43:09.297Z",
+      "updatedAt": "2025-09-14T17:43:09.299Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c7040e4915e4ae3cb9569e",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "fe0d87f4-931b-4dc8-a051-90271bc5c4c2",
+      "__v": 0,
+      "createdAt": "2025-09-14T18:06:07.256Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T18:06:07.254Z",
+      "updatedAt": "2025-09-14T18:06:07.256Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c705034915e4ae3cb956a3",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "34b3db20-40dc-442d-a2b3-90fce4dd7af9",
+      "__v": 0,
+      "createdAt": "2025-09-14T18:10:12.550Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T18:10:12.548Z",
+      "updatedAt": "2025-09-14T18:10:12.550Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c705f14915e4ae3cb956ab",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "20e6c41a-8942-44a4-9dbb-070c845f3e33",
+      "__v": 0,
+      "createdAt": "2025-09-14T18:14:10.422Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T18:14:10.421Z",
+      "updatedAt": "2025-09-14T18:14:10.422Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c70a444915e4ae3cb956c3",
+      "deviceId": "7daa685a-d848-4b2e-ba19-4ec335648b36",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "__v": 0,
+      "createdAt": "2025-09-14T18:32:37.601Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T18:32:37.600Z",
+      "updatedAt": "2025-09-14T18:32:37.601Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c70b294915e4ae3cb956c9",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "69f2aa3e-ee17-4250-a122-285914d83847",
+      "__v": 0,
+      "createdAt": "2025-09-14T18:36:25.944Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T18:36:25.943Z",
+      "updatedAt": "2025-09-14T18:36:25.944Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c70b394915e4ae3cb956cc",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "0da7cde8-7986-4670-ba8a-9d1a460a2847",
+      "__v": 0,
+      "createdAt": "2025-09-14T18:36:42.956Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T18:36:42.955Z",
+      "updatedAt": "2025-09-14T18:36:42.956Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c7110d4915e4ae3cb956e2",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "42ff7a7b-554c-43bc-9bd0-733780c91bfc",
+      "__v": 0,
+      "createdAt": "2025-09-14T19:01:34.857Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-14T19:01:34.852Z",
+      "updatedAt": "2025-09-14T19:01:34.857Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c7a3034915e4ae3cb957d4",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "5729f36c-0cab-453f-a960-41b4d3f7ec49",
+      "__v": 0,
+      "createdAt": "2025-09-15T05:24:20.010Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-15T05:24:20.009Z",
+      "updatedAt": "2025-09-15T05:24:20.010Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c7a86b4915e4ae3cb957e1",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "deviceId": "9147bc12-4ccd-4e88-8871-cf620bf14b19",
+      "__v": 0,
+      "createdAt": "2025-09-15T05:47:24.376Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-15T05:47:24.374Z",
+      "updatedAt": "2025-09-15T05:47:24.376Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c7ae184915e4ae3cb957f6",
+      "deviceId": "7313444b-a387-406b-a304-be801de11fac",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "__v": 0,
+      "createdAt": "2025-09-15T06:11:36.714Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-15T06:11:36.712Z",
+      "updatedAt": "2025-09-15T06:11:36.714Z",
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+    },
+    {
+      "_id": "68c7b0874915e4ae3cb957f7",
+      "deviceId": "f877320b-9fc5-4619-9e44-da789cf13bbf",
+      "userId": "68c6fad8e6ebfcffd798bbe4",
+      "__v": 0,
+      "createdAt": "2025-09-15T06:22:00.339Z",
+      "deviceName": "Mozilla/5.0",
+      "deviceType": "desktop",
+      "ipAddress": "::1",
+      "isOnline": true,
+      "lastSeen": "2025-09-15T06:22:00.337Z",
+      "updatedAt": "2025-09-15T06:22:00.339Z",
+      "userAgent": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.22621.5697"
+    }
+  ],
+  "trackingpoints": [
+    {
+      "_id": "68c5a7738eb7de28207da74e",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "timestamp": "2025-09-13T17:18:43.338Z",
+      "location": {
+        "lat": 7.116404448208491,
+        "lng": 79.84214446473581
+      },
+      "batteryLevel": 100,
+      "createdAt": "2025-09-13T17:18:43.342Z",
+      "updatedAt": "2025-09-13T17:18:43.342Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5a7738eb7de28207da750",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "timestamp": "2025-09-13T17:18:43.344Z",
+      "location": {
+        "lat": 7.116404448208491,
+        "lng": 79.84214446473581
+      },
+      "batteryLevel": 100,
+      "createdAt": "2025-09-13T17:18:43.345Z",
+      "updatedAt": "2025-09-13T17:18:43.345Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5a7738eb7de28207da752",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "timestamp": "2025-09-13T17:18:43.347Z",
+      "location": {
+        "lat": 7.116404448208491,
+        "lng": 79.84214446473581
+      },
+      "batteryLevel": 100,
+      "createdAt": "2025-09-13T17:18:43.349Z",
+      "updatedAt": "2025-09-13T17:18:43.349Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c5a7738eb7de28207da754",
+      "userId": "68c5a70d8eb7de28207da6ce",
+      "timestamp": "2025-09-13T17:18:43.350Z",
+      "location": {
+        "lat": 7.116404448208491,
+        "lng": 79.84214446473581
+      },
+      "batteryLevel": 100,
+      "createdAt": "2025-09-13T17:18:43.351Z",
+      "updatedAt": "2025-09-13T17:18:43.351Z",
+      "__v": 0
+    }
+  ],
+  "taskstatuslogs": [],
+  "teams": [
+    {
+      "_id": "68c6fadce6ebfcffd798bbf6",
+      "name": "Development Team",
+      "description": "Software development and engineering team responsible for building and maintaining applications.",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "members": [
+        "68c6fad9e6ebfcffd798bbe8",
+        "68c6fad9e6ebfcffd798bbec",
+        "68c6fadae6ebfcffd798bbee"
+      ],
+      "leader": "68c6fad9e6ebfcffd798bbe8",
+      "status": "active",
+      "createdAt": "2025-09-14T17:26:52.565Z",
+      "updatedAt": "2025-09-14T17:26:52.565Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fadce6ebfcffd798bbf8",
+      "name": "Marketing Team",
+      "description": "Marketing and promotional activities, campaigns, and brand management.",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "members": [
+        "68c6fadae6ebfcffd798bbf0",
+        "68c6fadbe6ebfcffd798bbf2"
+      ],
+      "leader": "68c6fadae6ebfcffd798bbf0",
+      "status": "active",
+      "createdAt": "2025-09-14T17:26:52.673Z",
+      "updatedAt": "2025-09-14T17:26:52.673Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fadce6ebfcffd798bbfa",
+      "name": "Sales Team",
+      "description": "Customer acquisition, sales strategies, and client relationship management.",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "members": [
+        "68c6fadce6ebfcffd798bbf4"
+      ],
+      "leader": "68c6fadce6ebfcffd798bbf4",
+      "status": "active",
+      "createdAt": "2025-09-14T17:26:52.781Z",
+      "updatedAt": "2025-09-14T17:26:52.781Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fadce6ebfcffd798bbfc",
+      "name": "Quality Assurance",
+      "description": "Testing, quality control, and ensuring product standards are maintained.",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "members": [
+        "68c6fad9e6ebfcffd798bbec",
+        "68c6fadae6ebfcffd798bbee"
+      ],
+      "leader": "68c6fad9e6ebfcffd798bbec",
+      "status": "active",
+      "createdAt": "2025-09-14T17:26:52.887Z",
+      "updatedAt": "2025-09-14T17:26:52.887Z",
+      "__v": 0
+    }
+  ],
+  "permissions": [
+    {
+      "_id": "68c6f8184915e4ae3cb95655",
+      "name": "tasks:view:all",
+      "__v": 0,
+      "action": "view",
+      "createdAt": "2025-09-14T17:15:04.801Z",
+      "description": "View all tasks",
+      "module": "tasks",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:04.801Z"
+    },
+    {
+      "_id": "68c6f8184915e4ae3cb95656",
+      "name": "tasks:view:assigned",
+      "__v": 0,
+      "action": "view",
+      "createdAt": "2025-09-14T17:15:05.087Z",
+      "description": "View assigned tasks",
+      "module": "tasks",
+      "resource": "assigned",
+      "updatedAt": "2025-09-14T17:15:05.087Z"
+    },
+    {
+      "_id": "68c6f8194915e4ae3cb95657",
+      "name": "tasks:insert:all",
+      "__v": 0,
+      "action": "insert",
+      "createdAt": "2025-09-14T17:15:05.404Z",
+      "description": "Create tasks",
+      "module": "tasks",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:05.404Z"
+    },
+    {
+      "_id": "68c6f8194915e4ae3cb95658",
+      "name": "tasks:update:all",
+      "__v": 0,
+      "action": "update",
+      "createdAt": "2025-09-14T17:15:06.286Z",
+      "description": "Update all tasks",
+      "module": "tasks",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:06.286Z"
+    },
+    {
+      "_id": "68c6f8194915e4ae3cb95659",
+      "name": "tasks:update:assigned",
+      "__v": 0,
+      "action": "update",
+      "createdAt": "2025-09-14T17:15:06.398Z",
+      "description": "Update assigned tasks",
+      "module": "tasks",
+      "resource": "assigned",
+      "updatedAt": "2025-09-14T17:15:06.398Z"
+    },
+    {
+      "_id": "68c6f8194915e4ae3cb9565a",
+      "name": "tasks:delete:all",
+      "__v": 0,
+      "action": "delete",
+      "createdAt": "2025-09-14T17:15:06.505Z",
+      "description": "Delete tasks",
+      "module": "tasks",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:06.505Z"
+    },
+    {
+      "_id": "68c6f8194915e4ae3cb9565b",
+      "name": "users:view:all",
+      "__v": 0,
+      "action": "view",
+      "createdAt": "2025-09-14T17:15:06.614Z",
+      "description": "View all users",
+      "module": "users",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:06.614Z"
+    },
+    {
+      "_id": "68c6f8194915e4ae3cb9565c",
+      "name": "users:insert:all",
+      "__v": 0,
+      "action": "insert",
+      "createdAt": "2025-09-14T17:15:06.737Z",
+      "description": "Create users",
+      "module": "users",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:06.737Z"
+    },
+    {
+      "_id": "68c6f8194915e4ae3cb9565d",
+      "name": "users:update:all",
+      "__v": 0,
+      "action": "update",
+      "createdAt": "2025-09-14T17:15:06.846Z",
+      "description": "Update users",
+      "module": "users",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:06.846Z"
+    },
+    {
+      "_id": "68c6f81a4915e4ae3cb9565e",
+      "name": "users:delete:all",
+      "__v": 0,
+      "action": "delete",
+      "createdAt": "2025-09-14T17:15:06.955Z",
+      "description": "Delete users",
+      "module": "users",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:06.955Z"
+    },
+    {
+      "_id": "68c6f81a4915e4ae3cb9565f",
+      "name": "teams:view:all",
+      "__v": 0,
+      "action": "view",
+      "createdAt": "2025-09-14T17:15:07.071Z",
+      "description": "View all teams",
+      "module": "teams",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:07.071Z"
+    },
+    {
+      "_id": "68c6f81a4915e4ae3cb95660",
+      "name": "teams:insert:all",
+      "__v": 0,
+      "action": "insert",
+      "createdAt": "2025-09-14T17:15:07.177Z",
+      "description": "Create teams",
+      "module": "teams",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:07.177Z"
+    },
+    {
+      "_id": "68c6f81a4915e4ae3cb95661",
+      "name": "teams:update:all",
+      "__v": 0,
+      "action": "update",
+      "createdAt": "2025-09-14T17:15:07.283Z",
+      "description": "Update teams",
+      "module": "teams",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:07.283Z"
+    },
+    {
+      "_id": "68c6f81a4915e4ae3cb95662",
+      "name": "teams:delete:all",
+      "__v": 0,
+      "action": "delete",
+      "createdAt": "2025-09-14T17:15:07.391Z",
+      "description": "Delete teams",
+      "module": "teams",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:07.391Z"
+    },
+    {
+      "_id": "68c6f81a4915e4ae3cb95663",
+      "name": "locations:view:all",
+      "__v": 0,
+      "action": "view",
+      "createdAt": "2025-09-14T17:15:07.498Z",
+      "description": "View all locations",
+      "module": "locations",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:07.498Z"
+    },
+    {
+      "_id": "68c6f81a4915e4ae3cb95664",
+      "name": "locations:insert:all",
+      "__v": 0,
+      "action": "insert",
+      "createdAt": "2025-09-14T17:15:07.605Z",
+      "description": "Create locations",
+      "module": "locations",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:07.605Z"
+    },
+    {
+      "_id": "68c6f81a4915e4ae3cb95665",
+      "name": "locations:update:all",
+      "__v": 0,
+      "action": "update",
+      "createdAt": "2025-09-14T17:15:07.722Z",
+      "description": "Update locations",
+      "module": "locations",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:07.722Z"
+    },
+    {
+      "_id": "68c6f81a4915e4ae3cb95666",
+      "name": "locations:delete:all",
+      "__v": 0,
+      "action": "delete",
+      "createdAt": "2025-09-14T17:15:07.834Z",
+      "description": "Delete locations",
+      "module": "locations",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:07.834Z"
+    },
+    {
+      "_id": "68c6f81b4915e4ae3cb95667",
+      "name": "attachments:view:all",
+      "__v": 0,
+      "action": "view",
+      "createdAt": "2025-09-14T17:15:07.941Z",
+      "description": "View all attachments",
+      "module": "attachments",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:07.941Z"
+    },
+    {
+      "_id": "68c6f81b4915e4ae3cb95668",
+      "name": "attachments:insert:all",
+      "__v": 0,
+      "action": "insert",
+      "createdAt": "2025-09-14T17:15:08.050Z",
+      "description": "Upload attachments",
+      "module": "attachments",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:08.050Z"
+    },
+    {
+      "_id": "68c6f81b4915e4ae3cb95669",
+      "name": "attachments:delete:all",
+      "__v": 0,
+      "action": "delete",
+      "createdAt": "2025-09-14T17:15:08.159Z",
+      "description": "Delete attachments",
+      "module": "attachments",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:08.159Z"
+    },
+    {
+      "_id": "68c6f81b4915e4ae3cb9566a",
+      "name": "reports:view:all",
+      "__v": 0,
+      "action": "view",
+      "createdAt": "2025-09-14T17:15:08.269Z",
+      "description": "View all reports",
+      "module": "reports",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:08.269Z"
+    },
+    {
+      "_id": "68c6f81b4915e4ae3cb9566b",
+      "name": "reports:insert:all",
+      "__v": 0,
+      "action": "insert",
+      "createdAt": "2025-09-14T17:15:08.378Z",
+      "description": "Generate reports",
+      "module": "reports",
+      "resource": "all",
+      "updatedAt": "2025-09-14T17:15:08.378Z"
+    }
+  ],
+  "locations": [
+    {
+      "_id": "68c6fb6f39e3ce750bb921e7",
+      "name": "Head Office - IT Department",
+      "address": "456 Galle Road, Colombo 03, Sri Lanka",
+      "latitude": 6.9271,
+      "longitude": 79.8612,
+      "radiusMeters": 50,
+      "description": "Main IT department location with secure server rooms",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "isActive": true,
+      "createdAt": "2025-09-14T17:29:19.686Z",
+      "updatedAt": "2025-09-14T17:29:19.686Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fb6f39e3ce750bb921e9",
+      "name": "World Trade Center",
+      "address": "World Trade Center, Echelon Square, Colombo 01, Sri Lanka",
+      "latitude": 6.9344,
+      "longitude": 79.8428,
+      "radiusMeters": 100,
+      "description": "Client meeting venue and business center",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "isActive": true,
+      "createdAt": "2025-09-14T17:29:19.924Z",
+      "updatedAt": "2025-09-14T17:29:19.924Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fb7039e3ce750bb921eb",
+      "name": "Kandy Branch Office",
+      "address": "123 Temple Street, Kandy, Sri Lanka",
+      "latitude": 7.2906,
+      "longitude": 80.6337,
+      "radiusMeters": 200,
+      "description": "Regional office for central province operations",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "isActive": true,
+      "createdAt": "2025-09-14T17:29:20.031Z",
+      "updatedAt": "2025-09-14T17:29:20.031Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fb7039e3ce750bb921ed",
+      "name": "Galle Branch Office",
+      "address": "Fort Area, Galle, Sri Lanka",
+      "latitude": 6.0367,
+      "longitude": 80.217,
+      "radiusMeters": 150,
+      "description": "Southern province branch with equipment storage",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "isActive": true,
+      "createdAt": "2025-09-14T17:29:20.138Z",
+      "updatedAt": "2025-09-14T17:29:20.138Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fb7039e3ce750bb921ef",
+      "name": "Negombo Branch Office",
+      "address": "78 Main Street, Negombo, Sri Lanka",
+      "latitude": 7.2083,
+      "longitude": 79.8358,
+      "radiusMeters": 100,
+      "description": "Coastal branch office for network infrastructure",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "isActive": true,
+      "createdAt": "2025-09-14T17:29:20.248Z",
+      "updatedAt": "2025-09-14T17:29:20.248Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fb7039e3ce750bb921f1",
+      "name": "Training Center - Moratuwa",
+      "address": "University of Moratuwa Campus, Moratuwa, Sri Lanka",
+      "latitude": 6.7964,
+      "longitude": 79.9003,
+      "radiusMeters": 300,
+      "description": "Staff training and development facility",
+      "createdBy": "68c6fad8e6ebfcffd798bbe4",
+      "isActive": true,
+      "createdAt": "2025-09-14T17:29:20.354Z",
+      "updatedAt": "2025-09-14T17:29:20.354Z",
+      "__v": 0
+    }
+  ],
+  "attendances": [],
+  "geofences": [],
+  "users": [
+    {
+      "_id": "68c5a70d8eb7de28207da6ce",
+      "name": "WEERASANGILI",
+      "email": "geha@gmail.com",
+      "password": "$2a$10$S68y8A6dF5C34SDtwTCYyuXy7c.yVKFZDJdhS1Z0rsINtAM.dDnYy",
+      "role": "employee",
+      "phone": "0726733332",
+      "status": "active",
+      "emailVerified": false,
+      "createdAt": "2025-09-13T17:17:01.714Z",
+      "updatedAt": "2025-09-14T17:33:53.039Z",
+      "__v": 0,
+      "lastLoginAt": "2025-09-13T19:00:14.756Z"
+    },
+    {
+      "_id": "68c6fad8e6ebfcffd798bbe4",
+      "name": "Admin User",
+      "email": "admin@company.com",
+      "password": "$2a$12$fAVnSeJbrlBT0agsOfE8VexZ1wlLgcYrtrgPa3KvRgqnuExUIWtxG",
+      "role": "admin",
+      "phone": "+94 77 123 4567",
+      "status": "active",
+      "emailVerified": false,
+      "customPermissions": [],
+      "createdAt": "2025-09-14T17:26:48.834Z",
+      "updatedAt": "2025-09-15T05:47:24.653Z",
+      "__v": 0,
+      "lastLoginAt": "2025-09-15T05:47:24.652Z"
+    },
+    {
+      "_id": "68c6fad9e6ebfcffd798bbe8",
+      "name": "John Silva",
+      "email": "john.silva@company.com",
+      "password": "$2a$12$5Dmn3s/olSlGqCyO1po7eO.MkRG4Ky0YTL3rNta/ObKLDHKgyLLOW",
+      "role": "employee",
+      "phone": "+94 77 234 5678",
+      "status": "active",
+      "emailVerified": false,
+      "customPermissions": [],
+      "createdAt": "2025-09-14T17:26:49.406Z",
+      "updatedAt": "2025-09-14T17:26:49.406Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fad9e6ebfcffd798bbec",
+      "name": "Mary Fernando",
+      "email": "mary.fernando@company.com",
+      "password": "$2a$12$nDtv/Iidi7WK8Bj5Gh4ohuYbSSu9eHbBKsUqDbmw3r50qOuUVRTTe",
+      "role": "employee",
+      "phone": "+94 77 345 6789",
+      "status": "active",
+      "emailVerified": false,
+      "customPermissions": [],
+      "createdAt": "2025-09-14T17:26:49.932Z",
+      "updatedAt": "2025-09-14T17:33:16.118Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fadae6ebfcffd798bbee",
+      "name": "David Perera",
+      "email": "david.perera@company.com",
+      "password": "$2a$12$zJ.zsVAgCFm3goRZegz8vOvvPNgXCDtLlhPnlPK0cHiUKtLqk9ek6",
+      "role": "employee",
+      "phone": "+94 77 456 7890",
+      "status": "active",
+      "emailVerified": false,
+      "customPermissions": [],
+      "createdAt": "2025-09-14T17:26:50.451Z",
+      "updatedAt": "2025-09-14T17:26:50.451Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fadae6ebfcffd798bbf0",
+      "name": "Sarah Kumari",
+      "email": "sarah.kumari@company.com",
+      "password": "$2a$12$/bxlrB7E/JPoUVMFVZmXROsxka9yIj2eFaBCwzQSxp8gyN24FVXcy",
+      "role": "employee",
+      "phone": "+94 77 567 8901",
+      "status": "active",
+      "emailVerified": false,
+      "customPermissions": [],
+      "createdAt": "2025-09-14T17:26:50.968Z",
+      "updatedAt": "2025-09-14T17:26:50.968Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fadbe6ebfcffd798bbf2",
+      "name": "Michael De Silva",
+      "email": "michael.desilva@company.com",
+      "password": "$2a$12$FnHTlIPsieEF0Dvci4t9rexl3kfyNXbQHaD0lJIaz.FC1MT7rVwKq",
+      "role": "employee",
+      "phone": "+94 77 678 9012",
+      "status": "active",
+      "emailVerified": false,
+      "customPermissions": [],
+      "createdAt": "2025-09-14T17:26:51.490Z",
+      "updatedAt": "2025-09-14T17:26:51.490Z",
+      "__v": 0
+    },
+    {
+      "_id": "68c6fadce6ebfcffd798bbf4",
+      "name": "Priya Wickramasinghe",
+      "email": "priya.wickramasinghe@company.com",
+      "password": "$2a$12$MhcbWgMsgA2YQ5.G2Cvi.eC8MeUjr3nKRRJ3vpzCEjU/O0JUkg1je",
+      "role": "employee",
+      "phone": "+94 77 789 0123",
+      "status": "active",
+      "emailVerified": false,
+      "customPermissions": [],
+      "createdAt": "2025-09-14T17:26:52.016Z",
+      "updatedAt": "2025-09-14T17:26:52.016Z",
+      "__v": 0
+    }
+  ]
+}

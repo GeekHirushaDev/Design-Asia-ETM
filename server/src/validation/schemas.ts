@@ -2,14 +2,18 @@ import { z } from 'zod';
 
 // Auth schemas
 export const registerSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters'),
+  prefix: z.enum(['Mr', 'Mrs', 'Miss', 'Dr', 'Prof'], { required_error: 'Prefix is required' }),
+  firstName: z.string().min(2, 'First name must be at least 2 characters'),
+  lastName: z.string().min(2, 'Last name must be at least 2 characters'),
+  username: z.string().min(3, 'Username must be at least 3 characters').regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
   email: z.string().email('Invalid email address'),
+  mobile: z.string().min(10, 'Mobile number must be at least 10 digits'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   role: z.enum(['admin', 'employee']).optional(),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  login: z.string().min(1, 'Email or username is required'),
   password: z.string().min(1, 'Password is required'),
 });
 

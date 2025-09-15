@@ -3,12 +3,16 @@ import { Request } from 'express';
 
 export interface IUser extends Document {
   _id: string;
+  prefix: 'Mr' | 'Mrs' | 'Miss' | 'Dr' | 'Prof';
+  firstName: string;
+  lastName: string;
   name: string;
+  username: string;
   email: string;
+  mobile: string;
   password: string;
   role: 'admin' | 'employee';
   avatarUrl?: string;
-  phone?: string;
   status: 'active' | 'inactive';
   emailVerified: boolean;
   lastLoginAt?: Date;

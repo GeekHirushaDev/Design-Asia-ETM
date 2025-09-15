@@ -50,15 +50,21 @@ router.get('/', authenticateToken, requireRole('admin'), async (req: AuthRequest
 // Create new user (admin only)
 router.post('/', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
-    const { name, email, password, role = 'employee', phone } = req.body;
+    const { prefix, firstName, lastName, username, email, mobile, password, role = 'employee' } = req.body;
 
     // Validation
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Name, email, and password are required' });
+    if (!prefix || !firstName || !lastName || !username || !email || !mobile || !password) {
+      return res.status(400).json({ error: 'All fields are required' });
     }
 
     if (password.length < 6) {
       return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    // Check if username already exists
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({ error: 'Username already taken' });
     }
 
     // Check if user already exists
@@ -71,13 +77,20 @@ router.post('/', authenticateToken, requireRole('admin'), async (req: AuthReques
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Combine first and last name for the name field
+    const fullName = `${firstName} ${lastName}`;
+
     // Create user
     const newUser = new User({
-      name,
+      prefix,
+      firstName,
+      lastName,
+      name: fullName,
+      username,
       email,
+      mobile,
       password: hashedPassword,
       role,
-      phone,
       status: 'active'
     });
 
@@ -111,8 +124,16 @@ router.get('/:userId', authenticateToken, requireRole('admin'), async (req: Auth
 // Update user (admin only)
 router.put('/:userId', authenticateToken, requireRole('admin'), async (req: AuthRequest, res) => {
   try {
-    const { name, email, role, status, phone } = req.body;
+    const { prefix, firstName, lastName, username, email, mobile, role, status } = req.body;
     const userId = req.params.userId;
+
+    // Check if username is already taken by another user
+    if (username) {
+      const existingUsername = await User.findOne({ username, _id: { $ne: userId } });
+      if (existingUsername) {
+        return res.status(400).json({ error: 'Username already taken by another user' });
+      }
+    }
 
     // Check if email is already taken by another user
     if (email) {
@@ -123,11 +144,15 @@ router.put('/:userId', authenticateToken, requireRole('admin'), async (req: Auth
     }
 
     const updateData: any = {};
-    if (name) updateData.name = name;
+    if (prefix) updateData.prefix = prefix;
+    if (firstName) updateData.firstName = firstName;
+    if (lastName) updateData.lastName = lastName;
+    if (firstName && lastName) updateData.name = `${firstName} ${lastName}`;
+    if (username) updateData.username = username;
     if (email) updateData.email = email;
+    if (mobile) updateData.mobile = mobile;
     if (role) updateData.role = role;
     if (status) updateData.status = status;
-    if (phone !== undefined) updateData.phone = phone;
 
     const user = await User.findByIdAndUpdate(
       userId,

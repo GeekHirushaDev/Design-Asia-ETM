@@ -40,7 +40,14 @@ const getDeviceInfo = (req: express.Request) => {
 // Register
 router.post('/register', validate(registerSchema), async (req, res): Promise<void> => {
   try {
-    const { name, email, password, role = 'employee' } = req.body;
+    const { prefix, firstName, lastName, username, email, mobile, password, role = 'employee' } = req.body;
+
+    // Check if username already exists
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      res.status(400).json({ error: 'Username already taken' });
+      return;
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -48,7 +55,21 @@ router.post('/register', validate(registerSchema), async (req, res): Promise<voi
       return;
     }
 
-    const user = new User({ name, email, password, role, emailVerified: false });
+    // Combine first and last name for the name field
+    const fullName = `${firstName} ${lastName}`;
+
+    const user = new User({ 
+      prefix,
+      firstName,
+      lastName,
+      name: fullName,
+      username,
+      email,
+      mobile,
+      password,
+      role,
+      emailVerified: false
+    });
     await user.save();
 
     const deviceInfo = getDeviceInfo(req);
@@ -75,7 +96,7 @@ router.post('/register', validate(registerSchema), async (req, res): Promise<voi
 
     // Send verification email
     try {
-      await EmailService.sendVerificationEmail(user._id, email, name);
+      await EmailService.sendVerificationEmail(user._id, email, fullName);
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError);
     }
@@ -94,9 +115,16 @@ router.post('/register', validate(registerSchema), async (req, res): Promise<voi
 // Login
 router.post('/login', validate(loginSchema), async (req, res): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { login, password } = req.body;
 
-    const user = await User.findOne({ email });
+    // Allow login with either email or username
+    const user = await User.findOne({
+      $or: [
+        { email: login },
+        { username: login }
+      ]
+    });
+    
     if (!user || !(await user.comparePassword(password))) {
       res.status(401).json({ error: 'Invalid credentials' });
       return;

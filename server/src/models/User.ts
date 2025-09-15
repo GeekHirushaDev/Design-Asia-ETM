@@ -4,16 +4,43 @@ import { IUser } from '../types/index.js';
 
 const userSchema = new Schema<IUser>(
   {
+    prefix: {
+      type: String,
+      enum: ['Mr', 'Mrs', 'Miss', 'Dr', 'Prof'],
+      required: true,
+    },
+    firstName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     name: {
       type: String,
       required: true,
       trim: true,
+    },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
     },
     email: {
       type: String,
       required: true,
       unique: true,
       lowercase: true,
+      trim: true,
+    },
+    mobile: {
+      type: String,
+      required: true,
       trim: true,
     },
     password: {
@@ -27,9 +54,6 @@ const userSchema = new Schema<IUser>(
       default: 'employee',
     },
     avatarUrl: {
-      type: String,
-    },
-    phone: {
       type: String,
     },
     status: {
@@ -48,10 +72,6 @@ const userSchema = new Schema<IUser>(
       type: Schema.Types.ObjectId,
       ref: 'Role',
     },
-    customPermissions: [{
-      type: Schema.Types.ObjectId,
-      ref: 'Permission',
-    }],
   },
   {
     timestamps: true,

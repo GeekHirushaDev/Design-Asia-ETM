@@ -35,12 +35,16 @@ interface Permission {
 
 interface User {
   _id: string;
+  prefix: string;
+  firstName: string;
+  lastName: string;
   name: string;
+  username: string;
   email: string;
+  mobile: string;
   role: string;
   roleId?: string;
   status: 'active' | 'inactive';
-  customPermissions?: string[];
 }
 
 export const SettingsSection: React.FC = () => {
@@ -67,11 +71,15 @@ export const SettingsSection: React.FC = () => {
   });
   
   const [userForm, setUserForm] = useState({
+    prefix: 'Mr',
+    firstName: '',
+    lastName: '',
+    username: '',
     name: '',
     email: '',
+    mobile: '',
     password: '',
     roleId: '',
-    customPermissions: [] as string[]
   });
 
   const modules = [
@@ -162,7 +170,7 @@ export const SettingsSection: React.FC = () => {
 
   const handleCreateUser = async () => {
     try {
-      if (!userForm.name.trim() || !userForm.email.trim() || !userForm.password.trim() || !userForm.roleId) {
+      if (!userForm.firstName.trim() || !userForm.lastName.trim() || !userForm.username.trim() || !userForm.email.trim() || !userForm.mobile.trim() || !userForm.password.trim() || !userForm.roleId) {
         toast.error('Please fill in all required fields');
         return;
       }
@@ -170,7 +178,7 @@ export const SettingsSection: React.FC = () => {
       await userApi.createUser(userForm);
       toast.success('User created successfully');
       setShowUserModal(false);
-      setUserForm({ name: '', email: '', password: '', roleId: '', customPermissions: [] });
+      setUserForm({ prefix: 'Mr', firstName: '', lastName: '', username: '', name: '', email: '', mobile: '', password: '', roleId: '' });
       loadData();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to create user');
@@ -179,7 +187,7 @@ export const SettingsSection: React.FC = () => {
 
   const handleUpdateUser = async () => {
     try {
-      if (!editingUser || !userForm.name.trim() || !userForm.email.trim() || !userForm.roleId) {
+      if (!editingUser || !userForm.firstName.trim() || !userForm.lastName.trim() || !userForm.username.trim() || !userForm.email.trim() || !userForm.mobile.trim() || !userForm.roleId) {
         toast.error('Please fill in all required fields');
         return;
       }
@@ -193,7 +201,7 @@ export const SettingsSection: React.FC = () => {
       toast.success('User updated successfully');
       setShowUserModal(false);
       setEditingUser(null);
-      setUserForm({ name: '', email: '', password: '', roleId: '', customPermissions: [] });
+      setUserForm({ prefix: 'Mr', firstName: '', lastName: '', username: '', name: '', email: '', mobile: '', password: '', roleId: '' });
       loadData();
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to update user');
@@ -230,15 +238,19 @@ export const SettingsSection: React.FC = () => {
     if (user) {
       setEditingUser(user);
       setUserForm({
+        prefix: user.prefix,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        username: user.username,
         name: user.name,
         email: user.email,
+        mobile: user.mobile,
         password: '', // Don't pre-fill password for security
         roleId: user.roleId || '',
-        customPermissions: user.customPermissions || []
       });
     } else {
       setEditingUser(null);
-      setUserForm({ name: '', email: '', password: '', roleId: '', customPermissions: [] });
+      setUserForm({ prefix: 'Mr', firstName: '', lastName: '', username: '', name: '', email: '', mobile: '', password: '', roleId: '' });
     }
     setShowUserModal(true);
   };
@@ -634,15 +646,62 @@ export const SettingsSection: React.FC = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name *
+                  Prefix *
+                </label>
+                <select
+                  value={userForm.prefix}
+                  onChange={(e) => setUserForm({ ...userForm, prefix: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="Mr">Mr</option>
+                  <option value="Mrs">Mrs</option>
+                  <option value="Miss">Miss</option>
+                  <option value="Dr">Dr</option>
+                  <option value="Prof">Prof</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    First Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={userForm.firstName}
+                    onChange={(e) => setUserForm({ ...userForm, firstName: e.target.value, name: `${e.target.value} ${userForm.lastName}` })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter first name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Last Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={userForm.lastName}
+                    onChange={(e) => setUserForm({ ...userForm, lastName: e.target.value, name: `${userForm.firstName} ${e.target.value}` })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter last name"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Username *
                 </label>
                 <input
                   type="text"
-                  value={userForm.name}
-                  onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
+                  value={userForm.username}
+                  onChange={(e) => setUserForm({ ...userForm, username: e.target.value.toLowerCase() })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter full name"
+                  placeholder="Enter username"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Only letters, numbers, and underscores allowed
+                </p>
               </div>
 
               <div>
@@ -655,6 +714,19 @@ export const SettingsSection: React.FC = () => {
                   onChange={(e) => setUserForm({ ...userForm, email: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter email address"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Mobile Number *
+                </label>
+                <input
+                  type="tel"
+                  value={userForm.mobile}
+                  onChange={(e) => setUserForm({ ...userForm, mobile: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter mobile number"
                 />
               </div>
 
@@ -687,39 +759,6 @@ export const SettingsSection: React.FC = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Additional Permissions (Optional)
-                </label>
-                
-                <div className="space-y-4 max-h-60 overflow-y-auto">
-                  {Object.entries(getPermissionsByModule()).map(([moduleName, modulePermissions]) => {
-                    const module = modules.find(m => m.key === moduleName);
-                    return (
-                      <div key={moduleName} className="border border-gray-200 rounded-lg p-3">
-                        <h4 className="font-medium text-sm mb-2 flex items-center space-x-2">
-                          <span>{module?.icon}</span>
-                          <span>{module?.name}</span>
-                        </h4>
-                        <div className="grid grid-cols-2 gap-2">
-                          {modulePermissions.map((permission) => (
-                            <label key={permission._id} className="flex items-center space-x-2 text-sm">
-                              <input
-                                type="checkbox"
-                                checked={userForm.customPermissions.includes(permission._id)}
-                                onChange={() => handlePermissionToggle(permission._id, 'user')}
-                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              />
-                              <span className="capitalize">{permission.action}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
             </div>
 

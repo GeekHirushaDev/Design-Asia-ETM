@@ -13,11 +13,14 @@ export const EmployeeRegistrationForm: React.FC<EmployeeRegistrationFormProps> =
   onSuccess 
 }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    prefix: 'Mr',
+    firstName: '',
+    lastName: '',
+    username: '',
     email: '',
+    mobile: '',
     password: '',
     confirmPassword: '',
-    phone: '',
     role: 'employee',
   });
   const [isLoading, setIsLoading] = useState(false);
@@ -64,25 +67,84 @@ export const EmployeeRegistrationForm: React.FC<EmployeeRegistrationFormProps> =
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Name */}
+          {/* Prefix */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-              Full Name *
+            <label htmlFor="prefix" className="block text-sm font-medium text-gray-700 mb-1">
+              Prefix *
             </label>
-            <div className="relative">
-              <User size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <select
+              id="prefix"
+              value={formData.prefix}
+              onChange={(e) => setFormData({ ...formData, prefix: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="Mr">Mr</option>
+              <option value="Mrs">Mrs</option>
+              <option value="Miss">Miss</option>
+              <option value="Dr">Dr</option>
+              <option value="Prof">Prof</option>
+            </select>
+          </div>
+
+          {/* First and Last Name */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                First Name *
+              </label>
+              <div className="relative">
+                <User size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  id="firstName"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="First name"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                Last Name *
+              </label>
               <input
                 type="text"
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter full name"
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Last name"
                 required
               />
             </div>
           </div>
 
+          {/* Username */}
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+              Username *
+            </label>
+            <div className="relative">
+              <User size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                id="username"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase() })}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter username"
+                required
+              />
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              Only letters, numbers, and underscores allowed
+            </p>
+          </div>
+
+          {/* Name */}
           {/* Email */}
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
@@ -102,20 +164,21 @@ export const EmployeeRegistrationForm: React.FC<EmployeeRegistrationFormProps> =
             </div>
           </div>
 
-          {/* Phone */}
+          {/* Mobile */}
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number
+            <label htmlFor="mobile" className="block text-sm font-medium text-gray-700 mb-1">
+              Mobile Number *
             </label>
             <div className="relative">
               <Phone size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="tel"
-                id="phone"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                id="mobile"
+                value={formData.mobile}
+                onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Enter phone number"
+                placeholder="Enter mobile number"
+                required
               />
             </div>
           </div>
