@@ -16,7 +16,6 @@ import { TaskProgressDashboard } from './TaskProgressDashboard';
 import { OverdueUpcomingSummary } from './OverdueUpcomingSummary';
 import { EmployeeRegistrationForm } from '../Admin/EmployeeRegistrationForm';
 import { AdminTimeTrackingDashboard } from '../TimeTracking/AdminTimeTrackingDashboard';
-import { LocationManagement } from '../Admin/LocationManagement';
 // Removed SettingsSection from overview to avoid showing User Management here
 
 interface DashboardStats {
@@ -285,10 +284,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
             </div>
 
-        {/* Location Management */}
-        <div className="lg:col-span-2">
-          <LocationManagement />
-        </div>
+        {/* Location Management removed from overview */}
 
         {/* Time Tracking Dashboard */}
         <div className="lg:col-span-2">

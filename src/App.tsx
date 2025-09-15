@@ -16,6 +16,7 @@ import { ReportGenerator } from './components/Reports/ReportGenerator';
 import { WeeklyReport } from './components/Reports/WeeklyReport';
 import { TaskProgressDashboard } from './components/Dashboard/TaskProgressDashboard';
 import { SettingsSection } from './components/Admin/SettingsSection';
+import { LocationManagement } from './components/Admin/LocationManagement';
 import { socketManager } from './lib/socket';
 
 function App() {
@@ -100,6 +101,8 @@ function App() {
         return <TaskProgressDashboard />;
       case 'reports':
         return <WeeklyReport />;
+      case 'locations':
+        return <LocationManagement />;
       case 'userManagement':
         return <SettingsSection />;
       case 'settings':

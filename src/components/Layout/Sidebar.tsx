@@ -32,6 +32,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'tasks', label: 'Tasks', icon: CheckSquare },
     { id: 'attendance', label: 'Attendance', icon: Calendar },
     { id: 'tracking', label: 'Live Map', icon: MapPin },
+    { id: 'locations', label: 'Location Management', icon: MapPin },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'reports', label: 'Weekly Reports', icon: BarChart3 },
     { id: 'userManagement', label: 'User Management', icon: Users },
