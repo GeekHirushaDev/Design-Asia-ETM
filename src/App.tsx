@@ -100,8 +100,29 @@ function App() {
         return <TaskProgressDashboard />;
       case 'reports':
         return <WeeklyReport />;
-      case 'settings':
+      case 'userManagement':
         return <SettingsSection />;
+      case 'settings':
+        return (
+          <div className="p-6">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">Settings</h2>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="font-medium mb-2">Theme</h3>
+                  <div className="flex items-center space-x-2">
+                    <button onClick={() => document.documentElement.classList.remove('dark')} className="px-3 py-1 bg-gray-100 rounded">Light</button>
+                    <button onClick={() => document.documentElement.classList.add('dark')} className="px-3 py-1 bg-gray-800 text-white rounded">Dark</button>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-medium mb-2">Change Password</h3>
+                  <button onClick={() => setShowInlineChangePwd(true)} className="px-4 py-2 bg-blue-600 text-white rounded">Change Password</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
       case 'timer':
         return <TaskBoard />;
       case 'chat':

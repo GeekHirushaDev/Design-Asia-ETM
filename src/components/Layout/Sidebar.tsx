@@ -34,7 +34,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'tracking', label: 'Live Map', icon: MapPin },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'reports', label: 'Weekly Reports', icon: BarChart3 },
-    { id: 'settings', label: 'User Management', icon: Settings },
+    { id: 'userManagement', label: 'User Management', icon: Users },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   const employeeMenuItems = [

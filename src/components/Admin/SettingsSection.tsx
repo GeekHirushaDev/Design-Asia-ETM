@@ -50,7 +50,7 @@ interface User {
 
 export const SettingsSection: React.FC = () => {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'roles' | 'permissions' | 'users' | 'account'>('roles');
+  const [activeTab, setActiveTab] = useState<'roles' | 'permissions' | 'users'>('roles');
   
   // Roles state
   const [roles, setRoles] = useState<Role[]>([]);
@@ -382,17 +382,6 @@ export const SettingsSection: React.FC = () => {
             <Users className="h-4 w-4 inline mr-2" />
             Users
           </button>
-          <button
-            onClick={() => setActiveTab('account')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'account'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
-          >
-            <Key className="h-4 w-4 inline mr-2" />
-            Account
-          </button>
         </nav>
       </div>
 
@@ -465,30 +454,7 @@ export const SettingsSection: React.FC = () => {
           </div>
         )}
 
-        {activeTab === 'account' && (
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-6">Account</h3>
-            <div className="space-y-6">
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="font-medium mb-2">Theme</h4>
-                <div className="flex items-center space-x-2">
-                  <button onClick={() => document.documentElement.classList.remove('dark')} className="px-3 py-1 bg-gray-100 rounded">Light</button>
-                  <button onClick={() => document.documentElement.classList.add('dark')} className="px-3 py-1 bg-gray-800 text-white rounded">Dark</button>
-                </div>
-              </div>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <h4 className="font-medium mb-2">Change Password</h4>
-                <button
-                  onClick={() => window.dispatchEvent(new CustomEvent('navigate-to-login'))}
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                  Go to Change Password
-                </button>
-                <p className="text-xs text-gray-500 mt-2">Use "Forgot password" on the login screen or ask super admin to reset.</p>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* account tab removed; content moved to dedicated Settings view */}
 
         {activeTab === 'permissions' && (
           <div>
