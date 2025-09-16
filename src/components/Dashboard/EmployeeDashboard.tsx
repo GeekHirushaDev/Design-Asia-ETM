@@ -41,10 +41,7 @@ export const EmployeeDashboard: React.FC = () => {
     try {
       const [tasksResponse, attendanceResponse] = await Promise.all([
         taskApi.getTasks(),
-        attendanceApi.getAttendance({
-          startDate: new Date().toISOString().split('T')[0],
-          endDate: new Date().toISOString().split('T')[0],
-        }),
+        attendanceApi.getTodayAttendance(),
       ]);
 
       const allTasks = tasksResponse.data.tasks;
@@ -73,7 +70,9 @@ export const EmployeeDashboard: React.FC = () => {
       setTasks(sortedTasks);
       setTodaysTasks(sortedTasks);
       
-      const todayAttendance = attendanceResponse.data.attendance[0];
+      const todayAttendance = attendanceResponse.data.attendance?.find((record: any) => 
+        record.userId === user?._id || record.userId?._id === user?._id
+      );
       setAttendance(todayAttendance);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);

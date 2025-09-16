@@ -89,16 +89,14 @@ export const taskApi = {
 
 export const attendanceApi = {
   clockIn: (location: { lat: number; lng: number }) =>
-    api.post('/attendance/clock-in', { location }),
+    api.post('/attendance/clock-in', location),
   clockOut: (location: { lat: number; lng: number }) =>
-    api.post('/attendance/clock-out', { location }),
+    api.post('/attendance/clock-out', location),
   getAttendance: (params?: any) => api.get('/attendance', { params }),
-  getTodayAttendance: () => api.get('/attendance', {
-    params: {
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date().toISOString().split('T')[0],
-    }
-  }),
+  getTodayAttendance: () => api.get('/attendance/today'),
+  getAttendanceSummary: (params?: any) => api.get('/attendance/summary', { params }),
+  updateAttendance: (id: string, data: any) => api.put(`/attendance/${id}`, data),
+  deleteAttendance: (id: string) => api.delete(`/attendance/${id}`),
 };
 
 export const trackingApi = {

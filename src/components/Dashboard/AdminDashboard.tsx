@@ -51,17 +51,12 @@ export const AdminDashboard: React.FC = () => {
       const [tasksResponse, locationsResponse, attendanceResponse] = await Promise.all([
         taskApi.getTasks(),
         trackingApi.getCurrentLocations(),
-        api.get('/attendance', {
-          params: {
-            startDate: new Date().toISOString().split('T')[0],
-            endDate: new Date().toISOString().split('T')[0],
-          }
-        }),
+        attendanceApi.getTodayAttendance(),
       ]);
 
       const tasks = tasksResponse.data.tasks;
       const locations = locationsResponse.data.locations;
-      const todayAttendance = attendanceResponse.data.attendance;
+      const todayAttendance = attendanceResponse.data.attendance || [];
 
       // Calculate stats
       const totalTasks = tasks.length;
