@@ -32,6 +32,7 @@ function App() {
     // Listen for navigation events
     const handleNavigateToMap = () => {
       setActiveView('tracking');
+      setSidebarOpen(false); // Close sidebar on mobile when navigating
     };
 
     window.addEventListener('navigate-to-map', handleNavigateToMap);

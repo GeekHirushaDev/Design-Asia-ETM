@@ -38,7 +38,9 @@ export const LiveMap: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadCurrentLocations();
+    if ((user as any)?.isSuperAdmin || user?.role === 'admin') {
+      loadCurrentLocations();
+    }
     
     // Subscribe to real-time location updates
     const socket = socketManager.getSocket();
@@ -60,17 +62,23 @@ export const LiveMap: React.FC = () => {
   }, [user]);
 
   useEffect(() => {
-    // Refresh locations when component becomes visible
-    loadCurrentLocations();
+    // Refresh locations when component becomes visible (admin only)
+    if ((user as any)?.isSuperAdmin || user?.role === 'admin') {
+      loadCurrentLocations();
+      
+      // Set up periodic refresh for admin
+      const interval = setInterval(loadCurrentLocations, 30000); // Every 30 seconds
+      return () => clearInterval(interval);
+    }
   }, []);
+
   const loadCurrentLocations = async () => {
     try {
-      if ((user as any)?.isSuperAdmin || user?.role === 'admin') {
-        const response = await trackingApi.getCurrentLocations();
-        setLocations(response.data.locations || []);
-      }
+      const response = await trackingApi.getCurrentLocations();
+      setLocations(response.data.locations || []);
     } catch (error) {
       console.error('Failed to load locations:', error);
+      setLocations([]);
     } finally {
       setIsLoading(false);
     }
@@ -135,8 +143,8 @@ export const LiveMap: React.FC = () => {
         },
         {
           enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 30000,
+          timeout: 15000,
+          maximumAge: 60000, // 1 minute
         }
       );
 
@@ -237,6 +245,8 @@ export const LiveMap: React.FC = () => {
                     <h4 className="font-semibold">Your Location</h4>
                     <p className="text-sm text-gray-600">
                       {userLocation.lat.toFixed(6)}, {userLocation.lng.toFixed(6)}
+                    <p className="text-xs text-green-600 font-medium">● Currently Active</p>
+                    <p className="text-xs text-blue-600 font-medium">● Location Tracking Active</p>
                     </p>
                     <p className="text-xs text-gray-500">
                       Updated: {new Date().toLocaleTimeString()}

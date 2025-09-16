@@ -131,16 +131,31 @@ router.get('/history', [
 // Get current locations
 router.get('/current', [
   authenticateToken,
-  requireRole('admin'),
 ], async (req: AuthRequest, res) => {
   try {
+    // Only admin can see all locations
+    if (req.user?.role !== 'admin' && !(req.user as any)?.isSuperAdmin) {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
     // Get the latest tracking point for each user within the last 10 minutes
     const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
 
+    // Also get currently clocked-in employees
+    const { default: Attendance } = await import('../models/Attendance.js');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const activeAttendance = await Attendance.find({
+      date: today,
+      clockIn: { $exists: true },
+      clockOut: { $exists: false }
+    }).populate('userId', 'name email role');
     const pipeline = [
       {
         $match: {
           timestamp: { $gte: tenMinutesAgo },
+          userId: { $in: activeAttendance.map(att => att.userId._id.toString()) }
         },
       },
       {
@@ -182,8 +197,20 @@ router.get('/current', [
     ];
 
     const currentLocations = await TrackingPoint.aggregate(pipeline);
+    
+    // Add attendance info to locations
+    const locationsWithAttendance = currentLocations.map(loc => {
+      const attendance = activeAttendance.find(att => 
+        att.userId._id.toString() === loc.userId.toString()
+      );
+      return {
+        ...loc,
+        clockedInAt: attendance?.clockIn?.time,
+        isActive: true
+      };
+    });
 
-    res.json({ locations: currentLocations });
+    res.json({ locations: locationsWithAttendance });
   } catch (error) {
     console.error('Get current locations error:', error);
     res.status(500).json({ error: 'Failed to fetch current locations' });

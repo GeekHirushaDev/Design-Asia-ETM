@@ -58,11 +58,12 @@ router.post('/clock-in', [
       await attendance.save();
     }
 
-    await attendance.populate('userId', 'name email');
+    const populatedAttendance = await Attendance.findById(attendance._id)
+      .populate('userId', 'name email');
 
     res.json({ 
       message: 'Clocked in successfully',
-      attendance 
+      attendance: populatedAttendance
     });
   } catch (error) {
     console.error('Clock in error:', error);
@@ -110,11 +111,13 @@ router.post('/clock-out', [
     };
 
     await attendance.save();
-    await attendance.populate('userId', 'name email');
+    
+    const populatedAttendance = await Attendance.findById(attendance._id)
+      .populate('userId', 'name email');
 
     res.json({ 
       message: 'Clocked out successfully',
-      attendance 
+      attendance: populatedAttendance
     });
   } catch (error) {
     console.error('Clock out error:', error);
@@ -174,7 +177,8 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 // Get today's attendance
 router.get('/today', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const today = TimezoneUtils.startOfDay();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
     const filter: any = { date: today };
     

@@ -52,7 +52,11 @@ export const EmployeeDashboard: React.FC = () => {
     try {
       const [tasksResponse, attendanceResponse] = await Promise.all([
         taskApi.getTasks(),
-        attendanceApi.getTodayAttendance(),
+        attendanceApi.getAttendance({
+          startDate: new Date().toISOString().split('T')[0],
+          endDate: new Date().toISOString().split('T')[0],
+          limit: 1
+        }),
       ]);
 
       const allTasks = tasksResponse.data.tasks;
@@ -81,27 +85,13 @@ export const EmployeeDashboard: React.FC = () => {
       setTasks(sortedTasks);
       setTodaysTasks(sortedTasks);
       
-      // For employees, API already filters by current user; prefer the first record
-      const attendanceRaw = attendanceResponse.data.attendance;
-      const attendanceList = Array.isArray(attendanceRaw)
-        ? attendanceRaw
-        : (attendanceRaw ? [attendanceRaw] : []);
-
-      let todayAttendance = attendanceList[0] ?? attendanceList.find((record: any) => 
-        record.userId === user?._id || record.userId?._id === user?._id
-      );
-
-      // Fallback: explicitly fetch today's range if empty
-      if (!todayAttendance) {
-        const today = new Date();
-        const isoDate = today.toISOString().slice(0, 10); // YYYY-MM-DD
-        const dayRange = await attendanceApi.getAttendance({ startDate: isoDate, endDate: isoDate, limit: 5 });
-        const dayList = Array.isArray(dayRange.data.attendance) ? dayRange.data.attendance : [];
-        todayAttendance = dayList[0] ?? dayList.find((record: any) => 
-          record.userId === user?._id || record.userId?._id === user?._id
-        );
-      }
-
+      // Get today's attendance record for current user
+      const attendanceList = attendanceResponse.data.attendance || [];
+      const todayAttendance = attendanceList.find((record: any) => {
+        const recordUserId = typeof record.userId === 'string' ? record.userId : record.userId?._id;
+        return recordUserId === user?._id;
+      });
+      
       setAttendance(todayAttendance || null);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
@@ -129,14 +119,17 @@ export const EmployeeDashboard: React.FC = () => {
   const handleClockIn = async () => {
     if (!location) {
       toast.error('Location access required for attendance');
+      getCurrentLocation();
       return;
     }
 
     try {
       const response = await attendanceApi.clockIn(location);
-      setAttendance(response.data.attendance);
-      await loadDashboardData();
+      const newAttendance = response.data.attendance;
+      setAttendance(newAttendance);
       toast.success('Clocked in successfully');
+      // Reload data to refresh everything
+      setTimeout(() => loadDashboardData(), 500);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to clock in');
     }
@@ -145,14 +138,17 @@ export const EmployeeDashboard: React.FC = () => {
   const handleClockOut = async () => {
     if (!location) {
       toast.error('Location access required for attendance');
+      getCurrentLocation();
       return;
     }
 
     try {
       const response = await attendanceApi.clockOut(location);
-      setAttendance(response.data.attendance);
-      await loadDashboardData();
+      const updatedAttendance = response.data.attendance;
+      setAttendance(updatedAttendance);
       toast.success('Clocked out successfully');
+      // Reload data to refresh everything
+      setTimeout(() => loadDashboardData(), 500);
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to clock out');
     }
@@ -547,17 +543,14 @@ export const EmployeeDashboard: React.FC = () => {
               {!location && (
                 <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-xs text-yellow-700">
-                    Location access is required for attendance tracking.
+                    Location access is required for attendance tracking
                   </p>
                   <button
                     onClick={getCurrentLocation}
-                    className="text-xs text-blue-600 hover:text-blue-800 underline mt-1"
+                    className="text-xs text-blue-600 hover:text-blue-800 underline mt-1 block"
                   >
                     Enable Location Access
                   </button>
-                  <p className="text-xs text-gray-600 mt-1">
-                    Weekend work is supported - clock in/out anytime
-                  </p>
                 </div>
               )}
             </div>

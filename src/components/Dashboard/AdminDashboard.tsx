@@ -48,14 +48,12 @@ export const AdminDashboard: React.FC = () => {
 
   const loadDashboardData = async () => {
     try {
-      const [tasksResponse, locationsResponse, attendanceResponse] = await Promise.all([
+      const [tasksResponse, attendanceResponse] = await Promise.all([
         taskApi.getTasks(),
-        trackingApi.getCurrentLocations(),
         attendanceApi.getTodayAttendance(),
       ]);
 
       const tasks = tasksResponse.data.tasks;
-      const locations = locationsResponse.data.locations;
       const todayAttendance = attendanceResponse.data.attendance || [];
 
       // Calculate stats
@@ -67,7 +65,7 @@ export const AdminDashboard: React.FC = () => {
       
       // Get employees who clocked in but not out (currently active)
       const currentlyActive = todayAttendance.filter((att: any) => 
-        att.clockIn && !att.clockOut
+        att.clockIn && !att.clockOut && att.userId
       );
       setActiveEmployees(currentlyActive);
       const activeEmployees = currentlyActive.length;
@@ -83,7 +81,6 @@ export const AdminDashboard: React.FC = () => {
       });
 
       setRecentTasks(tasks.slice(0, 5));
-      setCurrentLocations(locations);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
@@ -92,8 +89,9 @@ export const AdminDashboard: React.FC = () => {
   };
 
   const handleViewMap = () => {
-    // This will be handled by the parent App component
-    window.dispatchEvent(new CustomEvent('navigate-to-map'));
+    // Navigate to live map view
+    const event = new CustomEvent('navigate-to-map');
+    window.dispatchEvent(event);
   };
 
   const StatCard: React.FC<{
@@ -239,7 +237,6 @@ export const AdminDashboard: React.FC = () => {
             <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-gray-900">Currently Active Employees</h2>
-                  
                 <button onClick={handleViewMap} className="text-sm text-blue-600 hover:text-blue-800">
                   View Map
                 </button>
@@ -256,7 +253,7 @@ export const AdminDashboard: React.FC = () => {
                       </div>
                       <div>
                         <h4 className="text-sm font-medium text-gray-900">
-                          {employee.userId?.name || 'Unknown User'}
+                          {employee.userId?.name || employee.name || 'Unknown User'}
                         </h4>
                         <p className="text-xs text-gray-600">
                           Clocked in: {employee.clockIn?.time ? new Date(employee.clockIn.time).toLocaleTimeString() : 'Unknown'}
@@ -272,8 +269,8 @@ export const AdminDashboard: React.FC = () => {
                 
                 {activeEmployees.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
-                    <MapPin size={24} className="mx-auto mb-2" />
-                    <p className="text-sm">No active employees</p>
+                    <Clock size={24} className="mx-auto mb-2" />
+                    <p className="text-sm">No employees currently clocked in</p>
                   </div>
                 )}
               </div>

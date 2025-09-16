@@ -93,7 +93,16 @@ export const attendanceApi = {
   clockOut: (location: { lat: number; lng: number }) =>
     api.post('/attendance/clock-out', location),
   getAttendance: (params?: any) => api.get('/attendance', { params }),
-  getTodayAttendance: () => api.get('/attendance/today'),
+  getTodayAttendance: () => {
+    const today = new Date().toISOString().split('T')[0];
+    return api.get('/attendance', { 
+      params: { 
+        startDate: today, 
+        endDate: today,
+        limit: 50 
+      } 
+    });
+  },
   getAttendanceSummary: (params?: any) => api.get('/attendance/summary', { params }),
   updateAttendance: (id: string, data: any) => api.put(`/attendance/${id}`, data),
   deleteAttendance: (id: string) => api.delete(`/attendance/${id}`),
