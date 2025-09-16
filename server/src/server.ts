@@ -101,8 +101,12 @@ const startServer = async () => {
     
     // Try to connect to Redis, but don't fail if it's not available
     try {
-      await connectRedis();
-      console.log('✅ Redis connected successfully');
+      const redisOk = await connectRedis();
+      if (redisOk) {
+        console.log('✅ Redis connected successfully');
+      } else {
+        console.log('⚠️ Redis connection skipped - running without Redis');
+      }
     } catch (redisError) {
       console.warn('⚠️ Redis connection failed, continuing without Redis:', redisError);
     }

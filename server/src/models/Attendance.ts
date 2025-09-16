@@ -74,7 +74,6 @@ const attendanceSchema = new Schema<IAttendance>(
 attendanceSchema.index({ userId: 1, date: 1 }, { unique: true });
 
 // Additional indexes for efficient queries
-attendanceSchema.index({ date: 1 });
 attendanceSchema.index({ status: 1 });
 attendanceSchema.index({ 'clockIn.time': 1 });
 attendanceSchema.index({ 'clockOut.time': 1 });

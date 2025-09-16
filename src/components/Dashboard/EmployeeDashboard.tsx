@@ -34,8 +34,19 @@ export const EmployeeDashboard: React.FC = () => {
       setCurrentTime(new Date());
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, []);
+    // Refresh when tab becomes active again
+    const onVisibility = () => {
+      if (!document.hidden) {
+        loadDashboardData();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [user?._id]);
 
   const loadDashboardData = async () => {
     try {
@@ -70,10 +81,28 @@ export const EmployeeDashboard: React.FC = () => {
       setTasks(sortedTasks);
       setTodaysTasks(sortedTasks);
       
-      const todayAttendance = attendanceResponse.data.attendance?.find((record: any) => 
+      // For employees, API already filters by current user; prefer the first record
+      const attendanceRaw = attendanceResponse.data.attendance;
+      const attendanceList = Array.isArray(attendanceRaw)
+        ? attendanceRaw
+        : (attendanceRaw ? [attendanceRaw] : []);
+
+      let todayAttendance = attendanceList[0] ?? attendanceList.find((record: any) => 
         record.userId === user?._id || record.userId?._id === user?._id
       );
-      setAttendance(todayAttendance);
+
+      // Fallback: explicitly fetch today's range if empty
+      if (!todayAttendance) {
+        const today = new Date();
+        const isoDate = today.toISOString().slice(0, 10); // YYYY-MM-DD
+        const dayRange = await attendanceApi.getAttendance({ startDate: isoDate, endDate: isoDate, limit: 5 });
+        const dayList = Array.isArray(dayRange.data.attendance) ? dayRange.data.attendance : [];
+        todayAttendance = dayList[0] ?? dayList.find((record: any) => 
+          record.userId === user?._id || record.userId?._id === user?._id
+        );
+      }
+
+      setAttendance(todayAttendance || null);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
@@ -106,6 +135,7 @@ export const EmployeeDashboard: React.FC = () => {
     try {
       const response = await attendanceApi.clockIn(location);
       setAttendance(response.data.attendance);
+      await loadDashboardData();
       toast.success('Clocked in successfully');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to clock in');
@@ -121,6 +151,7 @@ export const EmployeeDashboard: React.FC = () => {
     try {
       const response = await attendanceApi.clockOut(location);
       setAttendance(response.data.attendance);
+      await loadDashboardData();
       toast.success('Clocked out successfully');
     } catch (error: any) {
       toast.error(error.response?.data?.error || 'Failed to clock out');
@@ -487,7 +518,7 @@ export const EmployeeDashboard: React.FC = () => {
               </div>
               
               <div className="pt-4 border-t border-gray-200">
-                {!attendance?.clockIn ? (
+                {!attendance?.clockIn?.time ? (
                   <button
                     onClick={handleClockIn}
                     disabled={!location}
