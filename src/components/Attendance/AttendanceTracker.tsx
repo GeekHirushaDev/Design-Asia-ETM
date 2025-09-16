@@ -145,10 +145,10 @@ export const AttendanceTracker: React.FC = () => {
         lat: location.lat,
         lng: location.lng,
       });
-      
+      // Reload from server first to refresh lists, then ensure local state reflects the new record
+      await loadAttendanceData();
       setTodayRecord(response.data.attendance);
       toast.success('Clocked in successfully');
-      loadAttendanceData();
     } catch (error: any) {
       const message = error.response?.data?.error || 'Failed to clock in';
       toast.error(message);
@@ -180,10 +180,10 @@ export const AttendanceTracker: React.FC = () => {
         lat: location.lat,
         lng: location.lng,
       });
-      
+      // Reload from server first to refresh lists, then ensure local state reflects the new record
+      await loadAttendanceData();
       setTodayRecord(response.data.attendance);
       toast.success('Clocked out successfully');
-      loadAttendanceData();
     } catch (error: any) {
       const message = error.response?.data?.error || 'Failed to clock out';
       toast.error(message);
@@ -396,7 +396,7 @@ export const AttendanceTracker: React.FC = () => {
                   </>
                 )}
               </button>
-            ) : !todayRecord?.clockOut ? (
+            ) : !todayRecord?.clockOut?.time ? (
               <button
                 onClick={handleClockOut}
                 disabled={!location || isClockingOut}

@@ -496,7 +496,7 @@ export const EmployeeDashboard: React.FC = () => {
                     <Calendar size={16} className="inline mr-2" />
                     Clock In
                   </button>
-                ) : !attendance?.clockOut ? (
+                ) : !attendance?.clockOut?.time ? (
                   <button
                     onClick={handleClockOut}
                     disabled={!location}
