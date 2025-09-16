@@ -64,13 +64,13 @@ export const AdminDashboard: React.FC = () => {
       const overdueTasks = tasks.filter((t: any) => 
         t.dueDate && new Date(t.dueDate) < new Date() && t.status !== 'completed'
       ).length;
-      const activeEmployees = locations.length;
       
       // Get employees who clocked in but not out (currently active)
       const currentlyActive = todayAttendance.filter((att: any) => 
         att.clockIn && !att.clockOut
       );
       setActiveEmployees(currentlyActive);
+      const activeEmployees = currentlyActive.length;
       const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
       setStats({

@@ -198,18 +198,6 @@ export const AttendanceTracker: React.FC = () => {
       return { status: '', color: 'bg-gray-50 text-gray-400', icon: null, text: '' };
     }
 
-    // Weekend check
-    const dayOfWeek = date.getDay();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    
-    if (isWeekend) {
-      return { 
-        status: 'weekend', 
-        color: 'bg-gray-100 text-gray-600', 
-        icon: Calendar, 
-        text: 'Weekend' 
-      };
-    }
 
     if (!record) {
       if (isToday(date)) {
@@ -291,17 +279,14 @@ export const AttendanceTracker: React.FC = () => {
   const calendarDays = eachDayOfInterval({ start: calendarStart, end: calendarEnd });
 
   // Calculate statistics
-  const workingDaysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
-    .filter(day => {
-      const dayOfWeek = day.getDay();
-      return dayOfWeek !== 0 && dayOfWeek !== 6 && !isFuture(day);
-    }).length;
+  const totalDaysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
+    .filter(day => !isFuture(day)).length;
 
   const presentDays = attendanceRecords.filter(record => 
     record.clockIn && record.clockOut
   ).length;
 
-  const attendanceRate = workingDaysInMonth > 0 ? (presentDays / workingDaysInMonth) * 100 : 0;
+  const attendanceRate = totalDaysInMonth > 0 ? (presentDays / totalDaysInMonth) * 100 : 0;
 
   const totalHours = attendanceRecords.reduce((total, record) => 
     total + calculateWorkingHours(record), 0
@@ -438,12 +423,14 @@ export const AttendanceTracker: React.FC = () => {
             
             {locationError && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-xs text-red-700 mb-2">{locationError}</p>
+                <p className="text-xs text-red-700">
+                  {locationError || 'Location access is required for attendance tracking'}
+                </p>
                 <button
                   onClick={getCurrentLocation}
                   className="text-xs text-blue-600 hover:text-blue-800 underline flex items-center"
                 >
-                  <RotateCcw size={12} className="mr-1" />
+                  {locationError ? 'Retry Location Access' : 'Enable Location Access'}
                   Retry Location Access
                 </button>
               </div>
@@ -601,8 +588,8 @@ export const AttendanceTracker: React.FC = () => {
                   <p className="text-lg font-semibold text-green-600">{presentDays}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Working Days</p>
-                  <p className="text-lg font-semibold text-gray-900">{workingDaysInMonth}</p>
+                  <p className="text-xs text-gray-500">Total Days</p>
+                  <p className="text-lg font-semibold text-gray-900">{totalDaysInMonth}</p>
                 </div>
               </div>
               
@@ -613,7 +600,16 @@ export const AttendanceTracker: React.FC = () => {
                 </div>
                 <div className="flex justify-between mt-1">
                   <span className="text-sm text-gray-600">Average/Day</span>
-                  <span className="font-semibold text-gray-900">{averageHours.toFixed(1)}h</span>
+                  <span className="text-sm text-gray-700">Future Days</span>
+                </div>
+                
+                <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <p className="text-xs text-blue-800 font-medium">
+                    📍 Location access is required for all attendance tracking
+                  </p>
+                  <p className="text-xs text-blue-700 mt-1">
+                    Weekend work is supported - clock in/out as needed
+                  </p>
                 </div>
               </div>
             </div>

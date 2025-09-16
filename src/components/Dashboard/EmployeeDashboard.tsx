@@ -516,7 +516,7 @@ export const EmployeeDashboard: React.FC = () => {
               {!location && (
                 <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-xs text-yellow-700">
-                    Please enable location access for attendance.
+                    Location access is required for attendance tracking.
                   </p>
                   <button
                     onClick={getCurrentLocation}
@@ -524,6 +524,9 @@ export const EmployeeDashboard: React.FC = () => {
                   >
                     Enable Location Access
                   </button>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Weekend work is supported - clock in/out anytime
+                  </p>
                 </div>
               )}
             </div>

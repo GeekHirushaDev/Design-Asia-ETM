@@ -117,8 +117,8 @@ attendanceSchema.pre('save', function(this: IAttendance, next) {
     const clockInTime = new Date(this.clockIn.time);
     const hour = clockInTime.getHours();
     
-    // Late clock in (after 9 AM)
-    if (hour >= 9) {
+    // Late clock in (after 9 AM) - only flag as anomaly, don't prevent
+    if (hour >= 9 && hour < 12) {
       this.anomalies = this.anomalies || [];
       if (!this.anomalies.includes('late_clock_in')) {
         this.anomalies.push('late_clock_in');
@@ -130,8 +130,8 @@ attendanceSchema.pre('save', function(this: IAttendance, next) {
     const clockOutTime = new Date(this.clockOut.time);
     const hour = clockOutTime.getHours();
     
-    // Early clock out (before 5 PM)
-    if (hour < 17) {
+    // Early clock out (before 5 PM) - only flag as anomaly, don't prevent
+    if (hour < 17 && hour > 6) {
       this.anomalies = this.anomalies || [];
       if (!this.anomalies.includes('early_clock_out')) {
         this.anomalies.push('early_clock_out');

@@ -51,18 +51,6 @@ export const AttendanceCalendar: React.FC<AttendanceCalendarProps> = ({
       };
     }
 
-    // Weekend check
-    const dayOfWeek = getDay(date);
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    
-    if (isWeekend) {
-      return { 
-        color: 'bg-gray-100 text-gray-600 border-gray-300', 
-        icon: Calendar, 
-        text: 'Weekend',
-        hours: null
-      };
-    }
 
     if (!record) {
       if (isToday(date)) {

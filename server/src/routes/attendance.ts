@@ -21,6 +21,12 @@ router.post('/clock-in', [
     }
 
     const { lat, lng } = req.body;
+
+    // Validate location is provided
+    if (!lat || !lng) {
+      return res.status(400).json({ error: 'Location is required for attendance tracking' });
+    }
+
     const today = TimezoneUtils.startOfDay();
 
     // Check if already clocked in today
@@ -77,6 +83,12 @@ router.post('/clock-out', [
     }
 
     const { lat, lng } = req.body;
+
+    // Validate location is provided
+    if (!lat || !lng) {
+      return res.status(400).json({ error: 'Location is required for attendance tracking' });
+    }
+
     const today = TimezoneUtils.startOfDay();
 
     const attendance = await Attendance.findOne({
@@ -280,7 +292,7 @@ router.get('/summary', authenticateToken, async (req: AuthRequest, res) => {
       .populate('userId', 'name email')
       .sort({ date: -1 });
 
-    // Calculate summary statistics
+    // Calculate summary statistics (no working days calculation)
     const totalRecords = records.length;
     const presentDays = records.filter(r => r.clockIn && r.clockOut).length;
     const partialDays = records.filter(r => r.clockIn && !r.clockOut).length;
