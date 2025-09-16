@@ -100,7 +100,7 @@ router.post('/clock-out', [
       return res.status(400).json({ error: 'Must clock in first' });
     }
 
-    if (attendance.clockOut) {
+    if (attendance.clockOut?.time) {
       return res.status(400).json({ error: 'Already clocked out today' });
     }
 

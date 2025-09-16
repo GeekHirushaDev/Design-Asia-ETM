@@ -169,7 +169,7 @@ export const AttendanceTracker: React.FC = () => {
       return;
     }
 
-    if (todayRecord?.clockOut) {
+    if (todayRecord?.clockOut?.time) {
       toast.error('Already clocked out today');
       return;
     }
